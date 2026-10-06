@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: light;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+  }
+
+  :root.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    min-width: 320px;
+    margin: 0;
+    background: #f8faf8;
+    color: #1c1917;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+
+  :root.dark body {
+    background: #0c0a09;
+    color: #f5f5f4;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 3px solid rgb(16 185 129 / 55%);
+    outline-offset: 3px;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    border-radius: 0.75rem;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgb(16 185 129 / 14%);
+  }
+
+  ::selection {
+    background: #a7f3d0;
+    color: #064e3b;
+  }
+
+  .public-site {
+    --color-stone-50: #faf8f1;
+    --color-stone-100: #f1eee4;
+    --color-stone-200: #e5e1d5;
+    --color-stone-300: #d2ccbd;
+    --color-stone-400: #aaa899;
+    --color-stone-500: #777c72;
+    --color-stone-600: #5b665e;
+    --color-stone-700: #3f554b;
+    --color-stone-800: #273f35;
+    --color-stone-900: #1b352d;
+    --color-stone-950: #122a23;
+    --color-emerald-50: #e9f2ec;
+    --color-emerald-100: #d8e9dd;
+    --color-emerald-200: #bdd9ca;
+    --color-emerald-300: #9bc4ad;
+    --color-emerald-400: #74aa8d;
+    --color-emerald-500: #4f8d72;
+    --color-emerald-600: #34755d;
+    --color-emerald-700: #24624f;
+    --color-emerald-800: #1c5142;
+    --color-emerald-900: #174437;
+    --color-emerald-950: #123a30;
+    --color-amber-50: #fbf5e5;
+    --color-amber-100: #f4e9c9;
+    --color-amber-200: #ebd79e;
+    --color-amber-300: #e0c57b;
+    --color-amber-400: #d9bc70;
+    --color-amber-500: #d4b167;
+    --color-amber-600: #b88f45;
+    --color-amber-700: #927039;
+    --color-amber-800: #735a32;
+    --color-amber-900: #5e4a2d;
+    --color-amber-950: #3c3020;
+    --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-serif: Manrope, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: var(--font-sans);
+    background-color: #faf8f1;
+  }
+
+  :root.dark .public-site {
+    background-color: #122a23;
+  }
+}
+
+@layer components {
+  .site-header {
+    box-shadow: 0 8px 24px -20px rgb(15 23 42 / 45%);
+  }
+
+  .admin-shell {
+    background-image: radial-gradient(ellipse at 85% 0%, rgb(16 185 129 / 5%), transparent 38%);
+  }
+
+  .admin-topnav {
+    box-shadow: 0 8px 24px -22px rgb(15 23 42 / 40%);
+  }
+
+  .admin-sidebar {
+    box-shadow: 10px 0 32px -28px rgb(0 0 0 / 75%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

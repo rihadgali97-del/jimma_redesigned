@@ -1,0 +1,6 @@
+{
+  "name": "Jimma Islamic Council",
+  "description": "Digital Management & Community Platform for mosques, madrasas, ulema, Islamic education, finance, zakat, and community services in Jimma Zone.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
