@@ -2,7 +2,7 @@ import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'gold' | 'ghost' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
   isLoading?: boolean;
@@ -20,6 +20,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const sizeClasses = {
+    xs: 'px-2.5 py-1 text-xs font-medium gap-1 rounded-lg min-h-[30px]',
     sm: 'px-3 py-1.5 text-xs font-medium gap-1.5 rounded-lg min-h-[36px]',
     md: 'px-4 py-2 text-sm font-medium gap-2 rounded-xl min-h-[42px]',
     lg: 'px-6 py-3 text-base font-semibold gap-2.5 rounded-xl min-h-[48px]',

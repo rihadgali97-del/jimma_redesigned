@@ -60,7 +60,7 @@ export const AdminLayout: React.FC = () => {
   const routeAccess = checkRoutePermission(currentUser, location.pathname);
 
   return (
-    <div className="admin-shell min-h-screen bg-stone-100/70 dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans transition-colors">
+    <div className="admin-shell public-site min-h-screen bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans transition-colors selection:bg-emerald-200 selection:text-emerald-950">
       {/* Admin Sidebar */}
       <AdminSidebar
         isOpen={sidebarOpen}
