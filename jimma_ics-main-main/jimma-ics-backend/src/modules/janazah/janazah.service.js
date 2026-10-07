@@ -3,10 +3,44 @@ import {
   generateReferenceNumber,
   SERVICE_CODES,
 } from '../../common/services/referenceNumber.service.js';
-import { NotFoundError, BadRequestError, ConflictError } from '../../common/errors/httpErrors.js';
+import {
+  NotFoundError,
+  BadRequestError,
+  ConflictError,
+  ServiceUnavailableError,
+} from '../../common/errors/httpErrors.js';
 import { writeAuditLog } from '../../common/utils/auditLog.js';
 import { parsePagination, buildPaginationMeta } from '../../common/utils/pagination.js';
 import { logger } from '../../common/utils/logger.js';
+
+function toAvailability(row) {
+  return {
+    serviceKey: row.serviceKey,
+    isEnabled: row.isEnabled,
+    updatedAt: row.updatedAt,
+  };
+}
+
+export async function getJanazahPublicAvailability() {
+  const row = await janazahRepository.getPublicAvailability();
+  return toAvailability(row);
+}
+
+export async function setJanazahPublicAvailability(isEnabled, actorId) {
+  const before = await janazahRepository.getPublicAvailability();
+  const row = await janazahRepository.setPublicAvailability(isEnabled, actorId);
+
+  await writeAuditLog({
+    actorId,
+    action: 'update',
+    entityType: 'civic_service_setting',
+    entityId: null,
+    before: { serviceKey: before.serviceKey, isEnabled: before.isEnabled },
+    after: { serviceKey: row.serviceKey, isEnabled: row.isEnabled },
+  });
+
+  return toAvailability(row);
+}
 
 function toPublic(req) {
   return {
@@ -40,6 +74,13 @@ function toPublicTrackView(req) {
 }
 
 export async function submitJanazahRequest(data) {
+  const availability = await janazahRepository.getPublicAvailability();
+  if (!availability.isEnabled) {
+    throw new ServiceUnavailableError(
+      'Janazah public intake is currently turned off by the council. Please call the 24/7 hotline.'
+    );
+  }
+
   const woreda = await janazahRepository.findWoredaById(data.woredaId);
   if (!woreda) throw new BadRequestError('woredaId does not reference an existing woreda');
 

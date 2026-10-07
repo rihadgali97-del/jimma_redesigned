@@ -4,6 +4,11 @@ import { sendSuccess, sendCreated } from '../../common/utils/apiResponse.js';
 
 // --- Public ---
 
+export const getAvailability = asyncHandler(async (_req, res) => {
+  const availability = await janazahService.getJanazahPublicAvailability();
+  sendSuccess(res, { data: availability });
+});
+
 export const submit = asyncHandler(async (req, res) => {
   const request = await janazahService.submitJanazahRequest(req.body);
   sendCreated(res, request);
@@ -15,6 +20,19 @@ export const track = asyncHandler(async (req, res) => {
 });
 
 // --- Admin ---
+
+export const getAdminAvailability = asyncHandler(async (_req, res) => {
+  const availability = await janazahService.getJanazahPublicAvailability();
+  sendSuccess(res, { data: availability });
+});
+
+export const updateAvailability = asyncHandler(async (req, res) => {
+  const availability = await janazahService.setJanazahPublicAvailability(
+    req.body.isEnabled,
+    req.user.id
+  );
+  sendSuccess(res, { data: availability });
+});
 
 export const list = asyncHandler(async (req, res) => {
   const { items, meta } = await janazahService.listJanazahRequests(req.query);

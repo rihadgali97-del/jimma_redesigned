@@ -1,6 +1,26 @@
 import { prisma } from '../../config/database.js';
 
+const JANAZAH_SERVICE_KEY = 'janazah';
+
 export const janazahRepository = {
+  async getPublicAvailability() {
+    const row = await prisma.civicServiceSetting.findUnique({
+      where: { serviceKey: JANAZAH_SERVICE_KEY },
+    });
+    if (row) return row;
+    return prisma.civicServiceSetting.create({
+      data: { serviceKey: JANAZAH_SERVICE_KEY, isEnabled: true },
+    });
+  },
+
+  async setPublicAvailability(isEnabled, updatedById) {
+    return prisma.civicServiceSetting.upsert({
+      where: { serviceKey: JANAZAH_SERVICE_KEY },
+      create: { serviceKey: JANAZAH_SERVICE_KEY, isEnabled, updatedById },
+      update: { isEnabled, updatedById },
+    });
+  },
+
   create(data) {
     return prisma.janazahRequest.create({ data, include: { woreda: true } });
   },

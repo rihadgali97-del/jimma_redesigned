@@ -3,6 +3,7 @@ import * as janazahController from './janazah.controller.js';
 import {
   submitJanazahRequestSchema,
   trackJanazahRequestSchema,
+  updateJanazahAvailabilitySchema,
   listJanazahRequestsSchema,
   janazahRequestIdParamSchema,
   updateJanazahStatusSchema,
@@ -24,6 +25,17 @@ export const janazahAdminRouter = Router();
 // under normal use. Still capped to blunt abuse/spam.
 const submitLimiter = strictRateLimiter({ windowMs: 60 * 60 * 1000, max: 20 });
 const trackLimiter = strictRateLimiter({ windowMs: 15 * 60 * 1000, max: 30 });
+
+/**
+ * @openapi
+ * /services/janazah/availability:
+ *   get:
+ *     summary: Whether public Janazah intake is currently enabled by the council
+ *     tags: [Janazah]
+ *     responses:
+ *       200: { description: Availability flag }
+ */
+janazahPublicRouter.get('/availability', janazahController.getAvailability);
 
 /**
  * @openapi
@@ -86,6 +98,31 @@ janazahPublicRouter.get(
 
 // --- Admin (case_officer / super_admin) ---
 janazahAdminRouter.use(authenticate);
+
+/**
+ * @openapi
+ * /admin/janazah/availability:
+ *   get:
+ *     summary: Read Janazah public intake on/off flag
+ *     tags: [Admin - Janazah]
+ *     security: [{ bearerAuth: [] }]
+ *   patch:
+ *     summary: Turn Janazah public intake on or off
+ *     tags: [Admin - Janazah]
+ *     security: [{ bearerAuth: [] }]
+ */
+janazahAdminRouter.get(
+  '/availability',
+  authorize('janazah.manage'),
+  janazahController.getAdminAvailability
+);
+
+janazahAdminRouter.patch(
+  '/availability',
+  authorize('janazah.manage'),
+  validate(updateJanazahAvailabilitySchema),
+  janazahController.updateAvailability
+);
 
 /**
  * @openapi

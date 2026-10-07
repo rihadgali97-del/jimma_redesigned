@@ -650,6 +650,18 @@ model CemeteryPlot {
   @@map("cemetery_plots")
 }
 
+// Admin on/off switches for public civic intake forms (e.g. Janazah).
+// Missing rows are treated as enabled until an admin toggles them.
+model CivicServiceSetting {
+  serviceKey  String   @id @map("service_key") @db.VarChar(64)
+  isEnabled   Boolean  @default(true) @map("is_enabled")
+  updatedById Int?     @map("updated_by_id")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("civic_service_settings")
+}
+
 // ---------------------------------------------------------------------------
 // Phase 5: Waqf Asset Registry & Financial Transparency
 // ---------------------------------------------------------------------------

@@ -14,6 +14,12 @@ const phoneSchema = z
   .trim()
   .regex(/^[0-9+()\-\s]{7,20}$/, 'Enter a valid phone number');
 
+export const updateJanazahAvailabilitySchema = z.object({
+  body: z.object({
+    isEnabled: z.boolean(),
+  }),
+});
+
 // --- Public: submit request (urgent — 24/7 bereavement service) ---
 export const submitJanazahRequestSchema = z.object({
   body: z.object({
