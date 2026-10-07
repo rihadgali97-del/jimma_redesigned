@@ -674,7 +674,9 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
               </div>
 
               <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                Gross: {totalGrossMonetaryAssets.toLocaleString()} ETB
+                <span key={totalGrossMonetaryAssets}>
+                  Gross: {totalGrossMonetaryAssets.toLocaleString()} ETB
+                </span>
               </span>
             </div>
 
@@ -704,7 +706,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
                   {cat.icon}
                   <span>{cat.label}</span>
                   {cat.count > 0 && (
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
+                    <span key={cat.count} className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
                       activeCategory === cat.id ? 'bg-white/20 text-white' : 'bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300'
                     }`}>
                       {cat.isNegative ? '-' : ''}{cat.count > 1000000 ? `${(cat.count/1000000).toFixed(1)}M` : `${Math.round(cat.count/1000)}k`}
@@ -1301,7 +1303,10 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
 
         {/* Right Side: Sticky Live Calculation & Assessment Summary (4 Columns) */}
         <div className="lg:col-span-4 space-y-6 sticky top-24">
-          <Card className="border-2 border-emerald-600/60 shadow-xl overflow-hidden relative space-y-5">
+          <Card
+            key={`${totalGrossMonetaryAssets}:${totalDeductions}:${netZakatableWealth}:${nisabThresholdETB}:${zakatAlMalDue}:${agricultureUshrDue}:${livestockSummary.totalLivestockCash}`}
+            className="border-2 border-emerald-600/60 shadow-xl overflow-hidden relative space-y-5"
+          >
             <IslamicPattern opacity={0.03} />
 
             {/* Header */}
