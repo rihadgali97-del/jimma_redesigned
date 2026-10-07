@@ -79,7 +79,6 @@ export const Header: React.FC = () => {
       isDropdown: true,
       children: [
         { label: t('servicesCatalogue'), path: '/services', icon: <HandHeart className="w-4 h-4 text-emerald-600" /> },
-        { label: t('nikahRegistration'), path: '/services?apply=srv-1', icon: <HeartHandshake className="w-4 h-4 text-rose-600" /> },
         { label: t('zakatWelfareAid'), path: '/services?apply=srv-2', icon: <Scale className="w-4 h-4 text-amber-600" /> },
         { label: t('janazahEmergency'), path: '/services?apply=srv-3', icon: <Building className="w-4 h-4 text-stone-600" /> },
         { label: t('zakatCalculator'), path: '/services?tab=zakat', icon: <Calculator className="w-4 h-4 text-emerald-600" /> },
@@ -413,14 +412,6 @@ export const Header: React.FC = () => {
                       <span>All Services Catalogue</span>
                     </Link>
                     <Link
-                      to="/services?apply=srv-1"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
-                    >
-                      <HeartHandshake className="w-4 h-4 text-rose-600" />
-                      <span>Nikah Marriage Registration</span>
-                    </Link>
-                    <Link
                       to="/services?apply=srv-2"
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-amber-50 dark:hover:bg-amber-950/40"
@@ -465,7 +456,7 @@ export const Header: React.FC = () => {
                 onClick={() => setMobileMenuOpen(false)}
                 className="block px-4 py-2.5 rounded-xl text-sm font-medium text-stone-800 dark:text-stone-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
               >
-                {t('services')} (Nikah, Zakat, Janazah)
+                {t('services')} (Zakat, Janazah)
               </Link>
               <Link
                 to="/events"

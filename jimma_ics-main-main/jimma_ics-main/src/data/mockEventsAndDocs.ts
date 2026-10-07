@@ -416,7 +416,7 @@ export const mockUsers: User[] = [
     phone: '+251 47 112 5591',
     district: 'Hermata',
     avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80',
-    permissions: ['mosque.read', 'services.nikah', 'events.view'],
+    permissions: ['mosque.read', 'services.process', 'events.view'],
   },
   {
     id: 'user-auditor',

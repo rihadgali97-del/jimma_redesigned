@@ -466,37 +466,37 @@ Column 33: Guardian Verification Signature & Teacher Comments`,
   },
   {
     id: 'res-11',
-    title: 'Nikah (Marriage) Contract Administration & Pre-Marital Counseling Guide',
-    arabicTitle: 'دليل إجراءات عقود النكاح الشرعي والتأهيل الأسري والإرشاد الزواجي',
-    oromoTitle: 'Qajeelfama Raawwii Sirna Fuudhaa fi Heerumaa (Nikaahaa) fi Gorsa Maatii',
+    title: 'Islamic Family Welfare & Marital Mediation Counseling Guide',
+    arabicTitle: 'دليل إجراءات التأهيل الأسري والإرشاد الزواجي',
+    oromoTitle: 'Qajeelfama Gorsa Maatii fi Araara Maatii',
     category: 'Administrative Protocol',
     subCategory: 'Family & Marriage',
     targetInstitution: 'Both',
-    targetAudience: 'Imams, Marriage Registrars, Shari’ah Judges & Family Counselors',
+    targetAudience: 'Imams, Shari’ah Judges & Family Counselors',
     language: 'Multilingual',
     format: 'PDF',
     fileSize: '3.1 MB',
     downloadUrl: '#',
     uploadedBy: 'Sheikh Mustafa Jamal (Fatwa Board)',
-    author: 'Family Welfare & Marriage Registration Bureau',
+    author: 'Family Welfare & Mediation Bureau',
     department: 'Shariah & Fatwa Board',
     uploadDate: '2026-08-08',
     hijriDate: '25 Muharram 1448 AH',
     downloadsCount: 520,
     isFeatured: false,
     seasonOrOccasion: 'Family Welfare Protocol',
-    description: 'Official procedure manual for licensed Imams conducting Islamic marriage ceremonies, including legal age verification, guardian consent verification (Wali), Mahr documentation, and pre-marital reconciliation counseling.',
+    description: 'Official procedure manual for counselors conducting Islamic family mediation, conflict de-escalation, and pre-marital counseling.',
     summaryPoints: [
-      'Checklist of valid Islamic marriage conditions: Mutual consent, Wali approval, two reliable witnesses, and agreed Mahr.',
-      'Integration with Ethiopian civil vital statistics and official Council Nikah certificates.',
+      'Checklist of family mediation principles: Peaceful resolution, mutual consent, and legal rights.',
+      'Integration with local community dispute resolution committees.',
       'Pre-marital counseling curriculum: Financial planning, conflict de-escalation, and mutual rights.',
-      'Template marriage registration forms with QR-code security verification.'
+      'Template family guidance forms.'
     ],
-    tags: ['Nikah', 'Marriage Guide', 'Family Welfare', 'Shariah Contract', 'Counseling'],
+    tags: ['Family Welfare', 'Family Mediation', 'Shariah Counseling', 'Conflict Resolution'],
     previewContent: {
-      translationEnglish: `Essential Nikah Registry Protocol:
-Every licensed Imam in Jimma Zone must submit completed Form NK-01 with national ID copies of both spouses, the Wali, and two witnesses to the Council Secretariat within 7 business days for official archiving and holographic seal stamping.`,
-      keyThemes: ['Legal Contract Rigor', 'Family Stability', 'Rights of Spouses', 'Official Documentation']
+      translationEnglish: `Essential Family Welfare Protocol:
+Every licensed Imam and counselor in Jimma Zone providing family mediation services must maintain confidential session logs and follow Shari’ah guidelines for family reconciliation.`,
+      keyThemes: ['Family Stability', 'Rights of Spouses', 'Conflict Resolution', 'Counseling']
     }
   },
   {

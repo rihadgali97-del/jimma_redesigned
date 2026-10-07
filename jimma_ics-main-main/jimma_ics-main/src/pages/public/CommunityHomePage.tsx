@@ -118,8 +118,8 @@ export const CommunityHomePage: React.FC = () => {
                 Start a request, use the Zakat calculator, or check an application.
               </p>
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <Button variant="secondary" size="sm" onClick={() => navigate('/services?apply=srv-1')} className="justify-center text-xs">
-                  Nikah request
+                <Button variant="secondary" size="sm" onClick={() => navigate('/services')} className="justify-center text-xs">
+                  Browse services
                 </Button>
                 <Button variant="secondary" size="sm" onClick={() => navigate('/services?tab=zakat')} className="justify-center text-xs">
                   Zakat tools

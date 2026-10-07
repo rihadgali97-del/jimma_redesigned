@@ -34,13 +34,12 @@ export const permissionCategories: PermissionCategory[] = [
     id: 'shariah_ulema',
     name: 'Shari’ah & Fatwa Council',
     arabicName: 'هيئة الفتوى والعلماء',
-    description: 'Judicial arbitration, scholar licensing, fatwa advisories, and nikah solemnization.',
+    description: 'Judicial arbitration, scholar licensing, fatwa advisories, and family mediation.',
     iconName: 'Users',
     permissions: [
       { id: 'ulema.view', name: 'View Scholar Directory', description: 'Browse profiles and credentials of Jimma Zone scholars.', module: 'shariah_ulema', risk: 'Low' },
       { id: 'ulema.license', name: 'License Ulema & Khateebs', description: 'Issue council credentials and khutbah certifications.', module: 'shariah_ulema', risk: 'High' },
       { id: 'fatwa.publish', name: 'Issue Official Fatwa Advisory', description: 'Publish authoritative legal opinions and community advisories.', module: 'shariah_ulema', risk: 'High' },
-      { id: 'nikah.solemnize', name: 'Authorize Nikah Certificates', description: 'Certify Islamic marriages and issue official registry deeds.', module: 'shariah_ulema', risk: 'Medium' },
     ],
   },
   {
@@ -117,7 +116,7 @@ export const mockRoles: RoleDefinition[] = [
     permissions: [
       'mosque.view', 'mosque.create', 'mosque.edit', 'mosque.grant_approve', 'mosque.delete',
       'madrasa.view', 'madrasa.accredit', 'student.manage', 'hifz.record_progress', 'teacher.manage', 'attendance.submit',
-      'ulema.view', 'ulema.license', 'fatwa.publish', 'nikah.solemnize',
+      'ulema.view', 'ulema.license', 'fatwa.publish',
       'finance.view', 'finance.record_entry', 'finance.approve_l1', 'finance.approve_l2', 'zakat.disburse', 'finance.export_audit',
       'services.process', 'events.schedule', 'events.gate_checkin', 'documents.publish',
       'gateway.view_logs', 'gateway.send_sabaq', 'gateway.send_janazah', 'gateway.mass_broadcast', 'gateway.topup',
@@ -243,7 +242,7 @@ export const mockRoles: RoleDefinition[] = [
     color: '#B45309', // Amber dark
     assignedUsersCount: 2,
     permissions: [
-      'ulema.view', 'ulema.license', 'fatwa.publish', 'nikah.solemnize',
+      'ulema.view', 'ulema.license', 'fatwa.publish',
       'services.process', 'events.schedule', 'documents.publish',
       'gateway.view_logs', 'gateway.send_janazah',
       'users.view'
@@ -292,14 +291,14 @@ export const mockRoles: RoleDefinition[] = [
     name: 'Imam',
     arabicName: 'الإمام والخطيب',
     department: 'Mosque & Waqf Affairs',
-    description: 'Mosque spiritual leader authorized to conduct Nikah registration, initiate Janazah alerts, and oversee prayer schedules.',
+    description: 'Mosque spiritual leader authorized to initiate Janazah alerts, manage Khutbah schedules, and oversee prayer schedules.',
     isSystemRole: true,
     privilegeLevel: 'Standard',
     defaultDashboard: '/admin/mosques',
     color: '#15803D', // Green
     assignedUsersCount: 12,
     permissions: [
-      'mosque.view', 'nikah.solemnize', 'services.process',
+      'mosque.view', 'services.process',
       'gateway.send_janazah'
     ],
     createdAt: '2025-01-01',
@@ -383,7 +382,7 @@ export const initialStaffMembers: User[] = [
     permissions: [
       'mosque.view', 'mosque.create', 'mosque.edit', 'mosque.grant_approve', 'mosque.delete',
       'madrasa.view', 'madrasa.accredit', 'student.manage', 'hifz.record_progress', 'teacher.manage', 'attendance.submit',
-      'ulema.view', 'ulema.license', 'fatwa.publish', 'nikah.solemnize',
+      'ulema.view', 'ulema.license', 'fatwa.publish',
       'finance.view', 'finance.record_entry', 'finance.approve_l1', 'finance.approve_l2', 'zakat.disburse', 'finance.export_audit',
       'services.process', 'events.schedule', 'events.gate_checkin', 'documents.publish',
       'gateway.view_logs', 'gateway.send_sabaq', 'gateway.send_janazah', 'gateway.mass_broadcast', 'gateway.topup',
@@ -533,7 +532,7 @@ export const initialStaffMembers: User[] = [
     accessLevel: 'Level 2 (Shariah Board)',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80',
     permissions: [
-      'ulema.view', 'ulema.license', 'fatwa.publish', 'nikah.solemnize',
+      'ulema.view', 'ulema.license', 'fatwa.publish',
       'services.process', 'events.schedule', 'documents.publish',
       'gateway.view_logs', 'gateway.send_janazah',
       'users.view'
@@ -624,10 +623,10 @@ export const initialStaffMembers: User[] = [
     accessLevel: 'Level 4 (Mosque Field)',
     avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80',
     permissions: [
-      'mosque.view', 'nikah.solemnize', 'services.process',
+      'mosque.view', 'services.process',
       'gateway.send_janazah'
     ],
-    notes: 'Imam of Masjid Al-Furqan Hermata and regional Nikah registrar.',
+    notes: 'Imam of Masjid Al-Furqan Hermata and regional spiritual advisor.',
   },
   {
     id: 'user-auditor-amina',

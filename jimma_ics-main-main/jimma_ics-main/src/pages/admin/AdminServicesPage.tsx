@@ -1,37 +1,65 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
   FileCheck2,
   Search,
-  Filter,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  UserCheck,
-  Building,
-  Phone,
+  ShieldAlert,
+  RefreshCw,
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { ServiceRequest } from '../../types';
+import {
+  fetchAdminJanazahAvailability,
+  setJanazahAvailability,
+} from '../../services/janazahApi';
 
 export const AdminServicesPage: React.FC = () => {
-  const { serviceRequests, updateServiceRequestStatus, addToast } = useApp();
+  const {
+    serviceRequests,
+    updateServiceRequestStatus,
+    addToast,
+    janazahPublicEnabled,
+    refreshJanazahAvailability,
+  } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(null);
-  const [newStatus, setNewStatus] = useState<ServiceRequest['status']>('In Review');
+  const [newStatus, setNewStatus] = useState<ServiceRequest['status']>('Under Review');
   const [assignedOfficer, setAssignedOfficer] = useState('');
+  const [janazahEnabled, setJanazahEnabled] = useState(janazahPublicEnabled);
+  const [availabilityLoading, setAvailabilityLoading] = useState(true);
+  const [togglingJanazah, setTogglingJanazah] = useState(false);
+
+  const loadJanazahAvailability = useCallback(async () => {
+    setAvailabilityLoading(true);
+    try {
+      const availability = await fetchAdminJanazahAvailability();
+      setJanazahEnabled(availability.isEnabled);
+      await refreshJanazahAvailability();
+    } catch (error) {
+      setJanazahEnabled(janazahPublicEnabled);
+      if (import.meta.env.DEV) {
+        console.warn('[API] Could not load Janazah availability.', error);
+      }
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  }, [janazahPublicEnabled, refreshJanazahAvailability]);
+
+  useEffect(() => {
+    void loadJanazahAvailability();
+  }, [loadJanazahAvailability]);
 
   const filtered = serviceRequests.filter((r) => {
     const s = (searchTerm || '').toLowerCase();
     const matchSearch =
       (r.applicantName || '').toLowerCase().includes(s) ||
       (r.trackingNo || '').toLowerCase().includes(s) ||
-      (r.serviceName || '').toLowerCase().includes(s) ||
-      (r.district || '').toLowerCase().includes(s);
+      (r.serviceType || '').toLowerCase().includes(s) ||
+      (r.applicantDistrict || '').toLowerCase().includes(s);
     const matchStatus = selectedStatus === 'All' || r.status === selectedStatus;
     return matchSearch && matchStatus;
   });
@@ -50,6 +78,31 @@ export const AdminServicesPage: React.FC = () => {
     setSelectedRequest(null);
   };
 
+  const handleToggleJanazah = async () => {
+    const next = !janazahEnabled;
+    setTogglingJanazah(true);
+    try {
+      const updated = await setJanazahAvailability(next);
+      setJanazahEnabled(updated.isEnabled);
+      await refreshJanazahAvailability();
+      addToast(
+        next ? 'Janazah intake enabled' : 'Janazah intake disabled',
+        next
+          ? 'The public Janazah request form is now available on the Services page.'
+          : 'The public Janazah request form is hidden and new online submissions are blocked.',
+        'success'
+      );
+    } catch (error) {
+      addToast(
+        'Could not update Janazah availability',
+        error instanceof Error ? error.message : 'Please try again.',
+        'error'
+      );
+    } finally {
+      setTogglingJanazah(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -59,10 +112,64 @@ export const AdminServicesPage: React.FC = () => {
             Public Civic Services & Applications Desk
           </h1>
           <p className="text-stone-500 dark:text-stone-400 text-xs sm:text-sm">
-            Review Nikah certificates, Zakat hardship claims, Janazah dispatch, and Shari'ah arbitration cases.
+            Review Zakat hardship claims, Janazah dispatch, Islamic counselling, and Shari'ah arbitration cases.
           </p>
         </div>
       </div>
+
+      {/* Janazah public intake on/off */}
+      <Card className="p-4 sm:p-5 border-rose-200/70 dark:border-rose-900/50 bg-gradient-to-r from-rose-50/80 via-white to-stone-50 dark:from-rose-950/30 dark:via-stone-900 dark:to-stone-900">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 flex items-center justify-center shrink-0 border border-rose-200 dark:border-rose-800">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="font-serif font-bold text-stone-900 dark:text-stone-100">
+                  Janazah Public Intake
+                </h2>
+                <Badge variant={janazahEnabled ? 'emerald' : 'rose'}>
+                  {availabilityLoading ? 'Checking…' : janazahEnabled ? 'Online form ON' : 'Online form OFF'}
+                </Badge>
+              </div>
+              <p className="text-xs text-stone-600 dark:text-stone-400 mt-1 max-w-2xl leading-relaxed">
+                When ON, families can submit urgent Janazah requests from the public Services page.
+                When OFF, the Janazah catalogue card is hidden and the API rejects new online submissions.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<RefreshCw className={`w-3.5 h-3.5 ${availabilityLoading ? 'animate-spin' : ''}`} />}
+              onClick={() => void loadJanazahAvailability()}
+              disabled={availabilityLoading || togglingJanazah}
+            >
+              Refresh
+            </Button>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={janazahEnabled}
+              disabled={availabilityLoading || togglingJanazah}
+              onClick={() => void handleToggleJanazah()}
+              className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:opacity-60 ${
+                janazahEnabled ? 'bg-emerald-600' : 'bg-stone-300 dark:bg-stone-700'
+              }`}
+              title={janazahEnabled ? 'Turn Janazah public intake off' : 'Turn Janazah public intake on'}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform ${
+                  janazahEnabled ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      </Card>
 
       {/* Filter & Search */}
       <div className="bg-white dark:bg-stone-900 p-4 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
@@ -83,10 +190,11 @@ export const AdminServicesPage: React.FC = () => {
           className="px-3 py-2 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-200"
         >
           <option value="All">All Statuses</option>
-          <option value="Pending">Pending</option>
-          <option value="In Review">In Review</option>
+          <option value="Submitted">Submitted</option>
+          <option value="Under Review">Under Review</option>
           <option value="Approved">Approved</option>
           <option value="Completed">Completed</option>
+          <option value="Disbursed">Disbursed</option>
           <option value="Rejected">Rejected</option>
         </select>
       </div>
@@ -113,16 +221,16 @@ export const AdminServicesPage: React.FC = () => {
                     {req.trackingNo}
                   </td>
                   <td className="p-3.5 font-serif font-bold text-stone-800 dark:text-stone-200">
-                    {req.serviceName}
+                    {req.serviceType}
                   </td>
                   <td className="p-3.5">
                     <div className="font-semibold text-stone-900 dark:text-stone-100">
                       {req.applicantName}
                     </div>
-                    <span className="text-[10px] text-stone-400 font-mono">{req.phone}</span>
+                    <span className="text-[10px] text-stone-400 font-mono">{req.applicantPhone}</span>
                   </td>
                   <td className="p-3.5 text-stone-600 dark:text-stone-300 font-medium">
-                    {req.district}
+                    {req.applicantDistrict}
                   </td>
                   <td className="p-3.5 text-stone-700 dark:text-stone-300">
                     {req.assignedOfficer}
@@ -130,13 +238,13 @@ export const AdminServicesPage: React.FC = () => {
                   <td className="p-3.5">
                     <Badge
                       variant={
-                        req.status === 'Completed'
+                        req.status === 'Completed' || req.status === 'Disbursed'
                           ? 'emerald'
                           : req.status === 'Approved'
                           ? 'teal'
-                          : req.status === 'In Review'
+                          : req.status === 'Under Review'
                           ? 'blue'
-                          : req.status === 'Pending'
+                          : req.status === 'Submitted'
                           ? 'gold'
                           : 'rose'
                       }
@@ -167,19 +275,19 @@ export const AdminServicesPage: React.FC = () => {
           isOpen={true}
           onClose={() => setSelectedRequest(null)}
           title={`Review Case: ${selectedRequest.trackingNo}`}
-          subtitle={`${selectedRequest.serviceName} • Applicant: ${selectedRequest.applicantName}`}
+          subtitle={`${selectedRequest.serviceType} • Applicant: ${selectedRequest.applicantName}`}
         >
           <form onSubmit={handleSaveReview} className="space-y-4">
             <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-stone-500">Applicant:</span>
                 <span className="font-bold text-stone-900 dark:text-stone-100">
-                  {selectedRequest.applicantName} ({selectedRequest.phone})
+                  {selectedRequest.applicantName} ({selectedRequest.applicantPhone})
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-stone-500">District:</span>
-                <span className="font-semibold">{selectedRequest.district}</span>
+                <span className="font-semibold">{selectedRequest.applicantDistrict}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-stone-500">Submitted:</span>
@@ -188,7 +296,7 @@ export const AdminServicesPage: React.FC = () => {
               <div className="pt-2 border-t border-stone-200 dark:border-stone-700">
                 <span className="text-stone-500 block mb-1">Details / Notes:</span>
                 <p className="text-stone-700 dark:text-stone-300 leading-relaxed font-medium">
-                  {selectedRequest.details}
+                  {selectedRequest.notes}
                 </p>
               </div>
             </div>
@@ -200,13 +308,14 @@ export const AdminServicesPage: React.FC = () => {
                 </label>
                 <select
                   value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value as any)}
+                  onChange={(e) => setNewStatus(e.target.value as ServiceRequest['status'])}
                   className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700"
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="In Review">In Review</option>
+                  <option value="Submitted">Submitted</option>
+                  <option value="Under Review">Under Review</option>
                   <option value="Approved">Approved</option>
                   <option value="Completed">Completed</option>
+                  <option value="Disbursed">Disbursed</option>
                   <option value="Rejected">Rejected</option>
                 </select>
               </div>
@@ -228,7 +337,7 @@ export const AdminServicesPage: React.FC = () => {
               <Button variant="ghost" type="button" onClick={() => setSelectedRequest(null)}>
                 Cancel
               </Button>
-              <Button variant="primary" type="submit">
+              <Button variant="primary" type="submit" icon={<FileCheck2 className="w-4 h-4" />}>
                 Save Case Decision
               </Button>
             </div>

@@ -34,7 +34,6 @@ const institutionLinks = [
 
 const serviceLinks = [
   { label: 'All public services', path: '/services' },
-  { label: 'Nikah & marriage registration', path: '/services?apply=srv-1' },
   { label: 'Zakat & welfare assistance', path: '/services?apply=srv-2' },
   { label: 'Janazah support', path: '/services?apply=srv-3' },
   { label: 'Zakat calculator', path: '/services?tab=zakat', icon: Calculator },

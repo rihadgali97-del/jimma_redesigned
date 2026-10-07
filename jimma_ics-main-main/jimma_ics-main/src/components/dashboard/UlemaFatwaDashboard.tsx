@@ -53,7 +53,7 @@ export const UlemaFatwaDashboard: React.FC = () => {
       mufti: 'Council Shari’ah Board',
       status: 'Issued & Published',
       date: '2026-08-15',
-      summary: 'Affirming that instant mobile wallet transfers satisfy immediate Qabd (possession) requirements in commercial and Nikah contracts.',
+      summary: 'Affirming that instant mobile wallet transfers satisfy immediate Qabd (possession) requirements in commercial and financial contracts.',
     },
     {
       id: 'FTW-2026-106',
@@ -454,7 +454,7 @@ export const UlemaFatwaDashboard: React.FC = () => {
                     className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
                   >
                     <option value="Zakat & Finance">Zakat & Islamic Finance</option>
-                    <option value="Family & Marriage">Family, Nikah & Inheritance</option>
+                    <option value="Family & Marriage">Family & Inheritance</option>
                     <option value="Worship (Salah/Sawm)">Worship, Fasting & Moonsighting</option>
                     <option value="Community & Ethics">Community Welfare & Halal Food</option>
                   </select>

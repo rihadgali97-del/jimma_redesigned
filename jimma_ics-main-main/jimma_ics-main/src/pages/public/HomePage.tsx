@@ -176,7 +176,7 @@ export const HomePage: React.FC = () => {
                     <span className="text-[10px] text-emerald-300">Online Processing</span>
                   </div>
                   <p className="text-xs text-stone-300">
-                    Apply for certified Nikah documents, calculate Zakat, or submit Janazah requests.
+                    Apply for civic assistance, calculate Zakat, or submit Janazah requests.
                   </p>
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     <Button
@@ -185,7 +185,7 @@ export const HomePage: React.FC = () => {
                       onClick={() => navigate('/services')}
                       className="text-xs justify-center"
                     >
-                      Nikah & Marriage
+                      Family Counselling
                     </Button>
                     <Button
                       variant="secondary"

@@ -525,7 +525,7 @@ export const JIMMA_GIS_POIS: GisPoi[] = [
     status: 'Active',
     hasSolarSystem: true,
     hasWaterWell: true,
-    description: 'Executive headquarters coordinating the 18 district councils, Fatwa board, Nikah civil registry, Shari\'ah arbitration tribunals, and treasury funds.',
+    description: 'Executive headquarters coordinating the 18 district councils, Fatwa board, Shari\'ah arbitration tribunals, and treasury funds.',
     image: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=800&q=80',
   },
   {

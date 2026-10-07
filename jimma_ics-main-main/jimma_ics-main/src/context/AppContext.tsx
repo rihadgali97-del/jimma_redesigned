@@ -51,6 +51,7 @@ import {
   updateStudentRecord,
 } from '../services/studentsApi';
 import { createZakatDistribution as createZakatDistributionApi, deleteZakatAssessment, fetchZakatDistributions } from '../services/zakatApi';
+import { fetchJanazahAvailability, JANAZAH_CATALOGUE_ID } from '../services/janazahApi';
 import {
   createEventRecord,
   deleteEventRecord,
@@ -195,6 +196,8 @@ interface AppContextType {
   updateExpenseStatus: (id: string, status: ExpenseApproval['status'], comment?: string) => void;
 
   publicServices: ServiceItem[];
+  janazahPublicEnabled: boolean;
+  refreshJanazahAvailability: () => Promise<boolean>;
   serviceRequests: ServiceRequest[];
   submitServiceRequest: (req: Omit<ServiceRequest, 'id' | 'trackingNo' | 'submissionDate' | 'status' | 'assignedOfficer'>) => ServiceRequest;
   updateServiceRequestStatus: (id: string, status: ServiceRequest['status'], officer?: string) => void;
@@ -404,6 +407,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [zakatDistributions, setZakatDistributions] = useState<ZakatBeneficiaryDistribution[]>([]);
   const [expenseApprovals, setExpenseApprovals] = useState<ExpenseApproval[]>(mockExpenseApprovals);
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>(mockServiceRequests);
+  const [janazahPublicEnabled, setJanazahPublicEnabled] = useState(true);
+
+  const refreshJanazahAvailability = async () => {
+    try {
+      const availability = await fetchJanazahAvailability();
+      setJanazahPublicEnabled(availability.isEnabled);
+      return availability.isEnabled;
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[API] Janazah availability refresh failed.', error);
+      }
+      // Keep last known value if the API is unreachable.
+      return janazahPublicEnabled;
+    }
+  };
+
+  const publicServices = mockPublicServices.filter(
+    (service) => service.id !== JANAZAH_CATALOGUE_ID || janazahPublicEnabled
+  );
   const [events, setEvents] = useState<CouncilEvent[]>(mockEvents);
   const [eventRegistrations, setEventRegistrations] = useState<EventRegistration[]>([]);
   const [eventSubscriptions, setEventSubscriptions] = useState<EventNotificationSubscription[]>([]);
@@ -456,6 +478,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     void refreshDirectoryData();
+    void refreshJanazahAvailability();
     void refreshTeachers().catch((error) => {
       if (import.meta.env.DEV) console.warn('[API] Public teacher directory refresh failed.', error);
     });
@@ -463,7 +486,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (import.meta.env.DEV) console.warn('[API] Public Ulema directory refresh failed.', error);
     });
     const refreshWhenAvailable = () => {
-      if (document.visibilityState === 'visible') void refreshDirectoryData();
+      if (document.visibilityState === 'visible') {
+        void refreshDirectoryData();
+        void refreshJanazahAvailability();
+      }
     };
     window.addEventListener('focus', refreshWhenAvailable);
     window.addEventListener('online', refreshWhenAvailable);
@@ -1924,7 +1950,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateZakatDistribution,
         expenseApprovals,
         updateExpenseStatus,
-        publicServices: mockPublicServices,
+        publicServices,
+        janazahPublicEnabled,
+        refreshJanazahAvailability,
         serviceRequests,
         submitServiceRequest,
         updateServiceRequestStatus,

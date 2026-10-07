@@ -32,11 +32,48 @@ import { ZakatCalculator } from '../../components/services/ZakatCalculator';
 import { IslamicPattern } from '../../components/common/IslamicPattern';
 import { fetchDirectoryWoredas } from '../../services/directoryApi';
 import { submitZakatApplication, trackZakatApplication } from '../../services/zakatApi';
+import {
+  JANAZAH_CATALOGUE_ID,
+  submitJanazahRequest,
+  trackJanazahRequest,
+} from '../../services/janazahApi';
 import { WaqfTransparencyPage } from './WaqfTransparencyPage';
+
+async function resolveWoredaId(district: string) {
+  const woredas = await fetchDirectoryWoredas();
+  const normalize = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[-_]/g, ' ')
+      .replace(/\b(town|district|woreda|sub city)\b/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const districtKey = normalize(district);
+  const aliases: Record<string, string> = {
+    'jimma central': 'jimma town',
+    'jimma central hermata': 'jimma town',
+  };
+  const woreda = woredas.find((item) => {
+    const code = normalize(item.code);
+    const name = normalize(item.name);
+    return code === (aliases[districtKey] || districtKey) || name === districtKey;
+  });
+  if (!woreda) throw new Error(`No registered woreda matches "${district}".`);
+  return woreda.id;
+}
+
+const applicationStatusLabels: Record<string, string> = {
+  SUBMITTED: 'Submitted',
+  UNDER_REVIEW: 'Under Review',
+  APPROVED: 'Approved',
+  REJECTED: 'Rejected',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
+};
 
 export const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { publicServices, serviceRequests, submitServiceRequest, addToast } = useApp();
+  const { publicServices, serviceRequests, submitServiceRequest, addToast, janazahPublicEnabled } = useApp();
   const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -68,10 +105,24 @@ export const ServicesPage: React.FC = () => {
 
     const applyId = searchParams.get('apply') || searchParams.get('service');
     if (applyId) {
-      const match = publicServices.find((s) => s.id === applyId);
-      if (match) {
-        setSelectedService(match);
-        setIsApplyModalOpen(true);
+      if (applyId === JANAZAH_CATALOGUE_ID && !janazahPublicEnabled) {
+        setIsApplyModalOpen(false);
+        setSelectedService(null);
+        addToast(
+          'Janazah intake unavailable',
+          'The council has turned off online Janazah requests. Please use the 24/7 hotline.',
+          'warning'
+        );
+        const next = new URLSearchParams(searchParams);
+        next.delete('apply');
+        next.delete('service');
+        setSearchParams(next, { replace: true });
+      } else {
+        const match = publicServices.find((s) => s.id === applyId);
+        if (match) {
+          setSelectedService(match);
+          setIsApplyModalOpen(true);
+        }
       }
     }
 
@@ -90,7 +141,7 @@ export const ServicesPage: React.FC = () => {
         setSearchedRequest(found);
       }
     }
-  }, [searchParams, publicServices, serviceRequests]);
+  }, [searchParams, publicServices, serviceRequests, janazahPublicEnabled, setSearchParams]);
 
   // Form state
   const [applicantName, setApplicantName] = useState('');
@@ -98,6 +149,16 @@ export const ServicesPage: React.FC = () => {
   const [district, setDistrict] = useState('Jimma Central');
   const [householdSize, setHouseholdSize] = useState('1');
   const [details, setDetails] = useState('');
+  const [deceasedName, setDeceasedName] = useState('');
+  const [needsGhusl, setNeedsGhusl] = useState(true);
+  const [needsTransport, setNeedsTransport] = useState(true);
+  const [needsCemeteryPlot, setNeedsCemeteryPlot] = useState(false);
+
+  const isJanazahService = (service: ServiceItem | null) =>
+    Boolean(
+      service &&
+        (service.id === JANAZAH_CATALOGUE_ID || service.title.toLowerCase().includes('janazah'))
+    );
 
   const openApplication = (service: ServiceItem) => {
     setSelectedService(service);
@@ -148,19 +209,9 @@ export const ServicesPage: React.FC = () => {
     if (selectedService.title.toLowerCase().includes('zakat assistance')) {
       setIsSubmittingApplication(true);
       try {
-        const woredas = await fetchDirectoryWoredas();
-        const normalize = (value: string) => value.toLowerCase().replace(/[-_]/g, ' ').replace(/\b(town|district|woreda|sub city)\b/g, '').replace(/\s+/g, ' ').trim();
-        const districtKey = normalize(district);
-        const aliases: Record<string, string> = { 'jimma central': 'jimma town', 'jimma central hermata': 'jimma town' };
-        const woreda = woredas.find((item) => {
-          const code = normalize(item.code);
-          const name = normalize(item.name);
-          return code === (aliases[districtKey] || districtKey) || name === districtKey;
-        });
-        if (!woreda) throw new Error(`No registered woreda matches "${district}".`);
-
+        const woredaId = await resolveWoredaId(district);
         const application = await submitZakatApplication({
-          woredaId: woreda.id,
+          woredaId,
           applicantFullName: applicantName.trim(),
           applicantPhone: phone.trim(),
           householdSize: Number(householdSize),
@@ -198,8 +249,84 @@ export const ServicesPage: React.FC = () => {
       return;
     }
 
+    if (isJanazahService(selectedService)) {
+      if (!janazahPublicEnabled) {
+        addToast(
+          'Janazah intake unavailable',
+          'The council has turned off online Janazah requests. Please use the 24/7 hotline.',
+          'warning'
+        );
+        return;
+      }
+      if (!deceasedName.trim()) {
+        addToast('Missing Fields', 'Please enter the deceased person’s full name.', 'warning');
+        return;
+      }
+      setIsSubmittingApplication(true);
+      try {
+        const woredaId = await resolveWoredaId(district);
+        const request = await submitJanazahRequest({
+          woredaId,
+          deceasedName: deceasedName.trim(),
+          contactName: applicantName.trim(),
+          contactPhone: phone.trim(),
+          needsGhusl,
+          needsTransport,
+          needsCemeteryPlot,
+          locationNote: details.trim() || undefined,
+        });
+        const tracked = {
+          trackingNo: request.referenceNumber,
+          serviceType: 'Janazah Support',
+          applicantName: applicantName.trim(),
+          applicantPhone: phone.trim(),
+          applicantDistrict: district,
+          submissionDate: new Date(request.createdAt).toLocaleDateString(),
+          status: 'Submitted',
+          priority: 'Urgent',
+          documentsCount: 0,
+          assignedOfficer: 'On-call Janazah desk',
+          notes: [
+            `Deceased: ${deceasedName.trim()}`,
+            needsGhusl ? 'Ghusl requested' : null,
+            needsTransport ? 'Transport requested' : null,
+            needsCemeteryPlot ? 'Cemetery plot requested' : null,
+            details.trim() || null,
+          ]
+            .filter(Boolean)
+            .join(' • '),
+        };
+        setIsApplyModalOpen(false);
+        setApplicantName('');
+        setPhone('');
+        setDeceasedName('');
+        setNeedsGhusl(true);
+        setNeedsTransport(true);
+        setNeedsCemeteryPlot(false);
+        setDetails('');
+        setTrackQuery(request.referenceNumber);
+        setTrackPhone(tracked.applicantPhone);
+        setActiveTab('track');
+        setSearchedRequest(tracked);
+        setSearchParams({ tab: 'track', trackingNo: request.referenceNumber });
+        addToast(
+          'Janazah request submitted',
+          `Save reference ${request.referenceNumber}. An on-call officer will follow up urgently.`,
+          'success'
+        );
+      } catch (error) {
+        addToast(
+          'Could not submit Janazah request',
+          error instanceof Error ? error.message : 'Check your connection and try again.',
+          'error'
+        );
+      } finally {
+        setIsSubmittingApplication(false);
+      }
+      return;
+    }
+
     const serviceCategoryMap: Record<string, any> = {
-      'Nikah (Islamic Marriage)': 'Nikah Services',
       'Zakat Assistance': 'Zakat Assistance',
       'Janazah': 'Janazah Support',
       'Counselling': 'Islamic Counselling',
@@ -209,7 +336,7 @@ export const ServicesPage: React.FC = () => {
       'Orphan': 'Orphan Sponsorship',
     };
 
-    let resolvedType: any = 'Nikah Services';
+    let resolvedType: any = 'Islamic Counselling';
     for (const key of Object.keys(serviceCategoryMap)) {
       if (selectedService.title.includes(key)) {
         resolvedType = serviceCategoryMap[key];
@@ -251,10 +378,6 @@ export const ServicesPage: React.FC = () => {
       setIsTrackingApplication(true);
       try {
         const result = await trackZakatApplication(trackQuery.trim(), trackPhone.trim());
-        const statusLabels: Record<string, string> = {
-          SUBMITTED: 'Submitted', UNDER_REVIEW: 'Under Review', APPROVED: 'Approved',
-          REJECTED: 'Rejected', COMPLETED: 'Completed', CANCELLED: 'Cancelled',
-        };
         setSearchedRequest({
           trackingNo: result.referenceNumber,
           serviceType: 'Zakat Assistance',
@@ -262,7 +385,7 @@ export const ServicesPage: React.FC = () => {
           applicantPhone: trackPhone.trim(),
           applicantDistrict: 'Contact the Zakat desk for district information',
           submissionDate: new Date(result.createdAt).toLocaleDateString(),
-          status: statusLabels[result.status] || result.status,
+          status: applicationStatusLabels[result.status] || result.status,
           priority: 'Normal',
           documentsCount: 0,
           assignedOfficer: 'Contact the Zakat desk for assistance',
@@ -272,6 +395,41 @@ export const ServicesPage: React.FC = () => {
       } catch (error) {
         setSearchedRequest(null);
         addToast('Could not find Zakat application', error instanceof Error ? error.message : 'Check the reference and phone number.', 'error');
+      } finally {
+        setIsTrackingApplication(false);
+      }
+      return;
+    }
+
+    if (query.startsWith('JNZ-')) {
+      if (!trackPhone.trim()) {
+        addToast('Phone number required', 'Enter the contact phone number used for the Janazah request.', 'warning');
+        return;
+      }
+      setIsTrackingApplication(true);
+      try {
+        const result = await trackJanazahRequest(trackQuery.trim(), trackPhone.trim());
+        setSearchedRequest({
+          trackingNo: result.referenceNumber,
+          serviceType: 'Janazah Support',
+          applicantName: result.deceasedName,
+          applicantPhone: trackPhone.trim(),
+          applicantDistrict: 'Contact the Janazah desk for district information',
+          submissionDate: new Date(result.createdAt).toLocaleDateString(),
+          status: applicationStatusLabels[result.status] || result.status,
+          priority: 'Urgent',
+          documentsCount: 0,
+          assignedOfficer: 'Contact the Janazah desk for assistance',
+          notes: `Deceased: ${result.deceasedName}. Status retrieved from the Janazah request service.`,
+        });
+        addToast('Request located', 'Status retrieved from the Janazah request database.', 'success');
+      } catch (error) {
+        setSearchedRequest(null);
+        addToast(
+          'Could not find Janazah request',
+          error instanceof Error ? error.message : 'Check the reference and phone number.',
+          'error'
+        );
       } finally {
         setIsTrackingApplication(false);
       }
@@ -556,7 +714,7 @@ export const ServicesPage: React.FC = () => {
                   Track Your Council Service Application
                 </h3>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  Enter a service tracking code, or enter a Zakat reference (ZKT-…) with the applicant phone number to retrieve its live database status.
+                  Enter a service tracking code, or a live database reference (ZKT-… / JNZ-…) with the phone number used at submission.
                 </p>
               </div>
             </div>
@@ -564,16 +722,17 @@ export const ServicesPage: React.FC = () => {
             <form onSubmit={handleTrack} className="flex flex-wrap gap-2">
               <input
                 type="text"
-                placeholder="Tracking No (REQ-… or ZKT-…)"
+                placeholder="Tracking No (REQ-…, ZKT-…, or JNZ-…)"
                 value={trackQuery}
                 onChange={(e) => setTrackQuery(e.target.value)}
                 className="flex-1 px-4 py-2.5 text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden font-mono text-stone-900 dark:text-stone-100"
               />
-              {trackQuery.trim().toUpperCase().startsWith('ZKT-') && (
+              {(trackQuery.trim().toUpperCase().startsWith('ZKT-') ||
+                trackQuery.trim().toUpperCase().startsWith('JNZ-')) && (
                 <input
                   type="tel"
                   required
-                  placeholder="Applicant phone"
+                  placeholder="Contact phone"
                   value={trackPhone}
                   onChange={(e) => setTrackPhone(e.target.value)}
                   className="w-full sm:w-48 px-3 py-2.5 text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden font-mono text-stone-900 dark:text-stone-100"
@@ -813,12 +972,16 @@ export const ServicesPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                Applicant Full Name *
+                {isJanazahService(selectedService) ? 'Family / Contact Full Name *' : 'Applicant Full Name *'}
               </label>
               <input
                 type="text"
                 required
-                placeholder="e.g. Ustadh Fuad Mohammed"
+                placeholder={
+                  isJanazahService(selectedService)
+                    ? 'e.g. Family contact for dispatch'
+                    : 'e.g. Ustadh Fuad Mohammed'
+                }
                 value={applicantName}
                 onChange={(e) => setApplicantName(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden focus:border-emerald-500 text-stone-900 dark:text-stone-100"
@@ -869,13 +1032,51 @@ export const ServicesPage: React.FC = () => {
               </div>
             )}
 
+            {isJanazahService(selectedService) && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                    Deceased Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Haji Abadiga Mohammed"
+                    value={deceasedName}
+                    onChange={(e) => setDeceasedName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden focus:border-emerald-500 text-stone-900 dark:text-stone-100"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <label className="flex items-center gap-2 text-xs text-stone-700 dark:text-stone-300 p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 cursor-pointer">
+                    <input type="checkbox" checked={needsGhusl} onChange={(e) => setNeedsGhusl(e.target.checked)} className="rounded" />
+                    Needs Ghusl / shrouding
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-stone-700 dark:text-stone-300 p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 cursor-pointer">
+                    <input type="checkbox" checked={needsTransport} onChange={(e) => setNeedsTransport(e.target.checked)} className="rounded" />
+                    Needs hearse transport
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-stone-700 dark:text-stone-300 p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 cursor-pointer">
+                    <input type="checkbox" checked={needsCemeteryPlot} onChange={(e) => setNeedsCemeteryPlot(e.target.checked)} className="rounded" />
+                    Needs cemetery plot
+                  </label>
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                Specific Request Notes / Case Summary
+                {isJanazahService(selectedService)
+                  ? 'Location / pickup notes'
+                  : 'Specific Request Notes / Case Summary'}
               </label>
               <textarea
                 rows={3}
-                placeholder="Provide any relevant details, names of witnesses, or specific dates..."
+                placeholder={
+                  isJanazahService(selectedService)
+                    ? 'Hospital, home address, mosque for Salatul Janazah, or other urgent details...'
+                    : 'Provide any relevant details, names of witnesses, or specific dates...'
+                }
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden text-stone-900 dark:text-stone-100"

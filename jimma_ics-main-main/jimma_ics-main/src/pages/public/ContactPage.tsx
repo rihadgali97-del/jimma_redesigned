@@ -46,10 +46,10 @@ export const ContactPage: React.FC = () => {
   const faqs = [
     {
       id: 'faq-1',
-      category: 'Services & Marriage',
-      question: 'How do I obtain an official Islamic Marriage (Nikah) Certificate in Jimma?',
+      category: 'Services & Counselling',
+      question: 'How do I request Islamic family counselling or mediation in Jimma?',
       answer:
-        'You can register online through our Civic Services Desk on the Services page. Required documents include Kebele IDs of both bride and groom, two witnesses, and agreement with the officiating Imam at your registered local mosque.',
+        'You can submit an inquiry through our Civic Services Desk or visit the Council Family Care Bureau. Trained scholars offer confidential mediation sessions grounded in Shari’ah principles.',
     },
     {
       id: 'faq-2',
@@ -255,7 +255,7 @@ export const ContactPage: React.FC = () => {
                       className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100"
                     >
                       <option value="General">General Question</option>
-                      <option value="Nikah">Marriage / Nikah Certificate</option>
+                      <option value="Counselling">Family & Marital Counselling</option>
                       <option value="Zakat">Zakat & Harvest Ushr</option>
                       <option value="Madrasa">Madrasa Enrollment / Affiliation</option>
                       <option value="Fatwa">Shari'ah / Fatwa Board Inquiry</option>
@@ -277,7 +277,7 @@ export const ContactPage: React.FC = () => {
                     <option value="Madrasa Education Board">Madrasa Education Board</option>
                     <option value="Zakat & Waqf Affairs">Zakat & Waqf Affairs</option>
                     <option value="Ulema & Fatwa Advisory Panel">Ulema & Fatwa Advisory Panel</option>
-                    <option value="Civic & Nikah Registration">Civic & Nikah Registration</option>
+                    <option value="Civic Services Registration">Civic Services Registration</option>
                     <option value="Mosque Expansion & Engineering">Mosque Expansion & Engineering</option>
                   </select>
                 </div>

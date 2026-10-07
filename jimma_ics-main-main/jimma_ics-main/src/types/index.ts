@@ -373,7 +373,7 @@ export interface ExpenseApproval {
 export interface ServiceRequest {
   id: string;
   trackingNo: string;
-  serviceType: 'Nikah Services' | 'Janazah Support' | 'Zakat Assistance' | 'Islamic Counselling' | 'Halal Certification Guidance' | 'Madrasa Registration' | 'Mosque Land & Waqf Support' | 'Orphan Sponsorship';
+  serviceType: 'Janazah Support' | 'Zakat Assistance' | 'Islamic Counselling' | 'Halal Certification Guidance' | 'Madrasa Registration' | 'Mosque Land & Waqf Support' | 'Orphan Sponsorship';
   applicantName: string;
   applicantPhone: string;
   applicantDistrict: string;

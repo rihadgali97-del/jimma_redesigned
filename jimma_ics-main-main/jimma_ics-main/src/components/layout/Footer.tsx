@@ -249,7 +249,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link to="/services" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Nikah Registration & Certificate</span>
+                  <span>Islamic Counselling & Guidance</span>
                 </Link>
               </li>
               <li>

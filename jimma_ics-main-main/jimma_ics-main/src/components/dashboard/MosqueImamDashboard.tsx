@@ -33,17 +33,8 @@ export const MosqueImamDashboard: React.FC = () => {
   } = useApp();
 
   const [isJanazahModalOpen, setIsJanazahModalOpen] = useState(false);
-  const [isNikahModalOpen, setIsNikahModalOpen] = useState(false);
   const [isKhutbahModalOpen, setIsKhutbahModalOpen] = useState(false);
   const [isGrantModalOpen, setIsGrantModalOpen] = useState(false);
-
-  // Form states for Nikah
-  const [groomName, setGroomName] = useState('');
-  const [brideName, setBrideName] = useState('');
-  const [waliName, setWaliName] = useState('');
-  const [mahrAmount, setMahrAmount] = useState('25,000 ETB (Prompt Mahr)');
-  const [witness1, setWitness1] = useState('Ustadh Bilal Seid');
-  const [witness2, setWitness2] = useState('Ato Mohammed Jamal');
 
   // Form states for Khutbah
   const [khutbahTopic, setKhutbahTopic] = useState('The Spiritual & Social Virtues of Waqf in Oromia');
@@ -61,24 +52,6 @@ export const MosqueImamDashboard: React.FC = () => {
     district: 'Jimma Central',
     capacity: 5500,
     imam: currentUser.name || 'Sheikh Abdullah Ahmed Al-Jimmawi',
-  };
-
-  const handleRegisterNikah = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!groomName.trim() || !brideName.trim()) {
-      addToast('Missing Details', 'Please complete groom and bride details.', 'error');
-      return;
-    }
-
-    addToast(
-      'Nikah Registered & Certified',
-      `Official Islamic Council Marriage Deed issued for ${groomName} & ${brideName} (Deed #NKH-2026-${Math.floor(1000 + Math.random() * 9000)}).`,
-      'success'
-    );
-    setIsNikahModalOpen(false);
-    setGroomName('');
-    setBrideName('');
-    setWaliName('');
   };
 
   const handleSaveKhutbah = (e: React.FormEvent) => {
@@ -346,166 +319,8 @@ export const MosqueImamDashboard: React.FC = () => {
               Compose Janazah Broadcast Alert
             </Button>
           </div>
-
-          {/* Nikah Deeds Recent Activity */}
-          <Card className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100">
-                Recent Nikah Registrations
-              </h3>
-              <Badge variant="emerald">Authenticated</Badge>
-            </div>
-
-            <div className="space-y-2.5 text-xs">
-              <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800 space-y-1">
-                <div className="flex justify-between font-semibold text-stone-900 dark:text-stone-100">
-                  <span>Ahmed Mukhtar & Aisha Oumer</span>
-                  <span className="font-mono text-[10px] text-stone-400">#NKH-2026-8812</span>
-                </div>
-                <div className="text-[10px] text-stone-500">
-                  Solemnized by {currentUser.name} • Mahr: 30,000 ETB
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800 space-y-1">
-                <div className="flex justify-between font-semibold text-stone-900 dark:text-stone-100">
-                  <span>Mustafa Dawud & Rahma Jamal</span>
-                  <span className="font-mono text-[10px] text-stone-400">#NKH-2026-8809</span>
-                </div>
-                <div className="text-[10px] text-stone-500">
-                  Solemnized by {currentUser.name} • Mahr: 25,000 ETB
-                </div>
-              </div>
-            </div>
-
-            <Button
-              variant="primary"
-              size="sm"
-              className="w-full justify-center text-xs"
-              onClick={() => setIsNikahModalOpen(true)}
-            >
-              Register New Islamic Nikah
-            </Button>
-          </Card>
         </div>
       </div>
-
-      {/* Register Nikah Modal */}
-      {isNikahModalOpen && (
-        <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 max-w-lg w-full p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 text-xs">
-            <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
-              <div>
-                <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100">
-                  Register Islamic Nikah Deed
-                </h3>
-                <p className="text-stone-500">Official Jimma Islamic Council Marriage Registry</p>
-              </div>
-              <button
-                onClick={() => setIsNikahModalOpen(false)}
-                className="p-1 rounded-lg text-stone-400 hover:text-stone-600"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleRegisterNikah} className="space-y-3.5">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                    Groom Full Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Khalid Ababor"
-                    value={groomName}
-                    onChange={(e) => setGroomName(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                    Bride Full Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Maryam Nur"
-                    value={brideName}
-                    onChange={(e) => setBrideName(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                    Bride's Legal Wali
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Sheikh Nur Mohammed (Father)"
-                    value={waliName}
-                    onChange={(e) => setWaliName(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                    Stipulated Mahr
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={mahrAmount}
-                    onChange={(e) => setMahrAmount(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                    Witness 1
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={witness1}
-                    onChange={(e) => setWitness1(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                    Witness 2
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={witness2}
-                    onChange={(e) => setWitness2(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200 dark:border-stone-800">
-                <Button variant="ghost" size="sm" type="button" onClick={() => setIsNikahModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button variant="primary" size="sm" type="submit">
-                  Issue Marriage Deed
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Log Khutbah Modal */}
       {isKhutbahModalOpen && (

@@ -246,7 +246,7 @@ export function getAuthorizedDashboard(user: User | null | undefined): RoleDashb
       role: user.role,
       dashboardPath: '/admin/mosques',
       dashboardTitle: 'Masajid & Waqf Affairs Directorate',
-      dashboardSubtitle: 'Mosque facility registry, Friday Khutbah themes, waqf land cadastre, and Nikah marital certifications',
+      dashboardSubtitle: 'Mosque facility registry, Friday Khutbah themes, waqf land cadastre, and community programs',
       badgeVariant: 'emerald',
       badgeColorClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300',
       allowedRoutePrefixes: [
