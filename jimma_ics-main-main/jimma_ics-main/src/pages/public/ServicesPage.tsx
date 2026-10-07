@@ -73,7 +73,15 @@ const applicationStatusLabels: Record<string, string> = {
 
 export const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { publicServices, serviceRequests, submitServiceRequest, upsertServiceRequest, addToast, janazahPublicEnabled } = useApp();
+  const {
+    publicServices,
+    publicServiceAvailability,
+    serviceRequests,
+    submitServiceRequest,
+    upsertServiceRequest,
+    addToast,
+    janazahPublicEnabled,
+  } = useApp();
   const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -90,11 +98,38 @@ export const ServicesPage: React.FC = () => {
   const [copiedCode, setCopiedCode] = useState(false);
   const [isSubmittingApplication, setIsSubmittingApplication] = useState(false);
   const [isTrackingApplication, setIsTrackingApplication] = useState(false);
+  const zakatServiceEnabled = publicServiceAvailability['srv-2'] !== false;
+
+  useEffect(() => {
+    if (selectedService) {
+      const selectedServiceEnabled = selectedService.id === JANAZAH_CATALOGUE_ID
+        ? janazahPublicEnabled
+        : publicServiceAvailability[selectedService.id] !== false;
+      if (!selectedServiceEnabled) {
+        setIsApplyModalOpen(false);
+        setSelectedService(null);
+      }
+    }
+    const detailServiceEnabled = detailService?.id === JANAZAH_CATALOGUE_ID
+      ? janazahPublicEnabled
+      : detailService
+        ? publicServiceAvailability[detailService.id] !== false
+        : true;
+    if (detailService && !detailServiceEnabled) {
+      setIsDetailModalOpen(false);
+      setDetailService(null);
+    }
+  }, [detailService, janazahPublicEnabled, publicServiceAvailability, selectedService]);
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam === 'zakat') {
+    if (tabParam === 'zakat' && zakatServiceEnabled) {
       setActiveTab('zakat');
+    } else if (tabParam === 'zakat') {
+      setActiveTab('catalogue');
+      const next = new URLSearchParams(searchParams);
+      next.delete('tab');
+      setSearchParams(next, { replace: true });
     } else if (tabParam === 'track') {
       setActiveTab('track');
     } else if (tabParam === 'waqf') {
@@ -111,6 +146,18 @@ export const ServicesPage: React.FC = () => {
         addToast(
           'Janazah intake unavailable',
           'The council has turned off online Janazah requests. Please use the 24/7 hotline.',
+          'warning'
+        );
+        const next = new URLSearchParams(searchParams);
+        next.delete('apply');
+        next.delete('service');
+        setSearchParams(next, { replace: true });
+      } else if (publicServiceAvailability[applyId] === false) {
+        setIsApplyModalOpen(false);
+        setSelectedService(null);
+        addToast(
+          'Service intake unavailable',
+          'The council has turned off this public service.',
           'warning'
         );
         const next = new URLSearchParams(searchParams);
@@ -141,7 +188,7 @@ export const ServicesPage: React.FC = () => {
         setSearchedRequest(found);
       }
     }
-  }, [searchParams, publicServices, serviceRequests, janazahPublicEnabled, setSearchParams]);
+  }, [searchParams, publicServices, serviceRequests, publicServiceAvailability, janazahPublicEnabled, zakatServiceEnabled, setSearchParams]);
 
   // Form state
   const [applicantName, setApplicantName] = useState('');
@@ -171,6 +218,10 @@ export const ServicesPage: React.FC = () => {
   };
 
   const handleTabChange = (tab: 'catalogue' | 'zakat' | 'track' | 'waqf') => {
+    if (tab === 'zakat' && !zakatServiceEnabled) {
+      addToast('Zakat intake unavailable', 'The council has turned off the Zakat public service.', 'warning');
+      return;
+    }
     setActiveTab(tab);
     if (tab === 'catalogue') {
       setSearchParams({});
@@ -203,6 +254,15 @@ export const ServicesPage: React.FC = () => {
     e.preventDefault();
     if (!selectedService || !applicantName || !phone) {
       addToast('Missing Fields', 'Please fill in applicant name and phone number.', 'warning');
+      return;
+    }
+
+    const serviceEnabled = selectedService.id === JANAZAH_CATALOGUE_ID
+      ? janazahPublicEnabled
+      : publicServiceAvailability[selectedService.id] !== false;
+    if (!serviceEnabled) {
+      addToast('Service intake unavailable', 'The council has turned off this public service.', 'warning');
+      setIsApplyModalOpen(false);
       return;
     }
 
@@ -505,18 +565,20 @@ export const ServicesPage: React.FC = () => {
           >
             Services Catalogue ({publicServices.length})
           </button>
-          <button
-            onClick={() => handleTabChange('zakat')}
-            className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'zakat'
-                ? 'bg-emerald-700 text-white shadow-xs font-bold'
-                : 'text-emerald-700 dark:text-emerald-400 hover:text-emerald-800'
-            }`}
-          >
-            <Calculator className="w-3.5 h-3.5" />
-            <span>Zakat Calculator</span>
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse hidden sm:inline-block" />
-          </button>
+          {zakatServiceEnabled && (
+            <button
+              onClick={() => handleTabChange('zakat')}
+              className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'zakat'
+                  ? 'bg-emerald-700 text-white shadow-xs font-bold'
+                  : 'text-emerald-700 dark:text-emerald-400 hover:text-emerald-800'
+              }`}
+            >
+              <Calculator className="w-3.5 h-3.5" />
+              <span>Zakat Calculator</span>
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse hidden sm:inline-block" />
+            </button>
+          )}
           <button
             onClick={() => handleTabChange('track')}
             className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
@@ -546,6 +608,7 @@ export const ServicesPage: React.FC = () => {
       {activeTab === 'catalogue' && (
         <div className="space-y-8">
           {/* Featured Zakat Calculator Banner */}
+          {zakatServiceEnabled && (
           <div className="bg-gradient-to-r from-emerald-950 via-stone-900 to-emerald-950 rounded-3xl p-6 sm:p-7 border border-emerald-800/80 shadow-xl relative overflow-hidden text-stone-100 flex flex-col md:flex-row items-center justify-between gap-6">
             <IslamicPattern opacity={0.05} />
             <div className="relative z-10 space-y-2 max-w-2xl">
@@ -574,6 +637,7 @@ export const ServicesPage: React.FC = () => {
               </Button>
             </div>
           </div>
+          )}
 
           {/* Filtering and Search Toolbar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-stone-900 p-3 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-xs">

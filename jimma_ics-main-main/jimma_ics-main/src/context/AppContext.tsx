@@ -53,6 +53,10 @@ import {
 import { createZakatDistribution as createZakatDistributionApi, deleteZakatAssessment, fetchZakatDistributions } from '../services/zakatApi';
 import { fetchJanazahAvailability, fetchJanazahRequests, JANAZAH_CATALOGUE_ID } from '../services/janazahApi';
 import {
+  CIVIC_PUBLIC_SERVICE_IDS,
+  fetchCivicServiceAvailability,
+} from '../services/civicServicesApi';
+import {
   createEventRecord,
   deleteEventRecord,
   fetchAdminEvents,
@@ -196,6 +200,8 @@ interface AppContextType {
   updateExpenseStatus: (id: string, status: ExpenseApproval['status'], comment?: string) => void;
 
   publicServices: ServiceItem[];
+  publicServiceAvailability: Record<string, boolean>;
+  refreshPublicServiceAvailability: () => Promise<void>;
   janazahPublicEnabled: boolean;
   refreshJanazahAvailability: () => Promise<boolean>;
   serviceRequests: ServiceRequest[];
@@ -409,6 +415,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [expenseApprovals, setExpenseApprovals] = useState<ExpenseApproval[]>(mockExpenseApprovals);
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>(mockServiceRequests);
   const [janazahPublicEnabled, setJanazahPublicEnabled] = useState(true);
+  const [publicServiceAvailability, setPublicServiceAvailability] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(CIVIC_PUBLIC_SERVICE_IDS.map((serviceId) => [serviceId, true]))
+  );
 
   const upsertServiceRequest = (request: ServiceRequest) => {
     setServiceRequests((prev) => {
@@ -478,9 +487,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const publicServices = mockPublicServices.filter(
-    (service) => service.id !== JANAZAH_CATALOGUE_ID || janazahPublicEnabled
-  );
+  const refreshPublicServiceAvailability = async () => {
+    try {
+      const settings = await fetchCivicServiceAvailability();
+      setPublicServiceAvailability((previous) => ({
+        ...previous,
+        ...Object.fromEntries(settings.map(({ serviceKey, isEnabled }) => [serviceKey, isEnabled])),
+      }));
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[API] Civic service availability refresh failed.', error);
+      }
+    }
+  };
+
+  const publicServices = mockPublicServices.filter((service) => {
+    if (service.id === JANAZAH_CATALOGUE_ID) return janazahPublicEnabled;
+    return publicServiceAvailability[service.id] !== false;
+  });
   const [events, setEvents] = useState<CouncilEvent[]>(mockEvents);
   const [eventRegistrations, setEventRegistrations] = useState<EventRegistration[]>([]);
   const [eventSubscriptions, setEventSubscriptions] = useState<EventNotificationSubscription[]>([]);
@@ -534,6 +558,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     void refreshDirectoryData();
     void refreshJanazahAvailability();
+    void refreshPublicServiceAvailability();
     void refreshJanazahRequests().catch((error) => {
       if (import.meta.env.DEV) console.warn('[API] Janazah request list refresh failed.', error);
     });
@@ -547,6 +572,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (document.visibilityState === 'visible') {
         void refreshDirectoryData();
         void refreshJanazahAvailability();
+        void refreshPublicServiceAvailability();
         void refreshJanazahRequests();
       }
     };
@@ -2010,6 +2036,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         expenseApprovals,
         updateExpenseStatus,
         publicServices,
+        publicServiceAvailability,
+        refreshPublicServiceAvailability,
         janazahPublicEnabled,
         refreshJanazahAvailability,
         serviceRequests,

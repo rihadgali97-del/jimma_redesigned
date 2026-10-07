@@ -11,10 +11,18 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { ServiceRequest } from '../../types';
+import { mockPublicServices, ServiceItem } from '../../data/mockServices';
 import {
   fetchAdminJanazahAvailability,
   setJanazahAvailability,
 } from '../../services/janazahApi';
+import {
+  CivicPublicServiceId,
+  CIVIC_PUBLIC_SERVICE_IDS,
+  fetchAdminCivicServiceAvailability,
+  isCivicPublicServiceId,
+  setCivicServiceAvailability,
+} from '../../services/civicServicesApi';
 
 export const AdminServicesPage: React.FC = () => {
   const {
@@ -23,6 +31,7 @@ export const AdminServicesPage: React.FC = () => {
     addToast,
     janazahPublicEnabled,
     refreshJanazahAvailability,
+    refreshPublicServiceAvailability,
   } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('All');
@@ -32,6 +41,11 @@ export const AdminServicesPage: React.FC = () => {
   const [janazahEnabled, setJanazahEnabled] = useState(janazahPublicEnabled);
   const [availabilityLoading, setAvailabilityLoading] = useState(true);
   const [togglingJanazah, setTogglingJanazah] = useState(false);
+  const [serviceAvailability, setServiceAvailability] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(CIVIC_PUBLIC_SERVICE_IDS.map((serviceId) => [serviceId, true]))
+  );
+  const [servicesAvailabilityLoading, setServicesAvailabilityLoading] = useState(true);
+  const [togglingServiceId, setTogglingServiceId] = useState<string | null>(null);
 
   const loadJanazahAvailability = useCallback(async () => {
     setAvailabilityLoading(true);
@@ -52,6 +66,29 @@ export const AdminServicesPage: React.FC = () => {
   useEffect(() => {
     void loadJanazahAvailability();
   }, [loadJanazahAvailability]);
+
+  const loadOtherServiceAvailability = async () => {
+    setServicesAvailabilityLoading(true);
+    try {
+      const settings = await fetchAdminCivicServiceAvailability();
+      setServiceAvailability((previous) => ({
+        ...previous,
+        ...Object.fromEntries(settings.map(({ serviceKey, isEnabled }) => [serviceKey, isEnabled])),
+      }));
+    } catch (error) {
+      addToast(
+        'Could not load public service availability',
+        error instanceof Error ? error.message : 'Please try again.',
+        'error'
+      );
+    } finally {
+      setServicesAvailabilityLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadOtherServiceAvailability();
+  }, []);
 
   const filtered = serviceRequests.filter((r) => {
     const s = (searchTerm || '').toLowerCase();
@@ -100,6 +137,36 @@ export const AdminServicesPage: React.FC = () => {
       );
     } finally {
       setTogglingJanazah(false);
+    }
+  };
+
+  const handleToggleService = async (serviceId: CivicPublicServiceId, serviceTitle: string) => {
+    const next = serviceAvailability[serviceId] === false;
+    setTogglingServiceId(serviceId);
+    try {
+      const updated = await setCivicServiceAvailability(serviceId, next);
+      setServiceAvailability((previous) => ({
+        ...previous,
+        [updated.serviceKey]: updated.isEnabled,
+      }));
+      await refreshPublicServiceAvailability();
+      addToast(
+        `${serviceTitle} ${updated.isEnabled ? 'enabled' : 'disabled'}`,
+        updated.isEnabled
+          ? 'This service is now visible on the public Services page.'
+          : updated.serviceKey === 'srv-2'
+            ? 'This service is hidden from the public Services page and new Zakat submissions are blocked.'
+            : 'This service is hidden from the public Services page.',
+        'success'
+      );
+    } catch (error) {
+      addToast(
+        'Could not update public service availability',
+        error instanceof Error ? error.message : 'Please try again.',
+        'error'
+      );
+    } finally {
+      setTogglingServiceId(null);
     }
   };
 
@@ -168,6 +235,73 @@ export const AdminServicesPage: React.FC = () => {
               />
             </button>
           </div>
+        </div>
+      </Card>
+
+      <Card className="p-4 sm:p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="font-serif font-bold text-stone-900 dark:text-stone-100">
+              Other Public Service Availability
+            </h2>
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">
+              Toggle a service off to hide it from the public catalogue. Zakat submissions are also rejected while its intake is off.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<RefreshCw className={`w-3.5 h-3.5 ${servicesAvailabilityLoading ? 'animate-spin' : ''}`} />}
+            onClick={() => void loadOtherServiceAvailability()}
+            disabled={servicesAvailabilityLoading || togglingServiceId !== null}
+          >
+            Refresh
+          </Button>
+        </div>
+
+        <div className="divide-y divide-stone-200 dark:divide-stone-800">
+          {mockPublicServices
+            .filter(
+              (service): service is ServiceItem & { id: CivicPublicServiceId } =>
+                isCivicPublicServiceId(service.id)
+            )
+            .map((service) => {
+              const isEnabled = serviceAvailability[service.id] !== false;
+              const isToggling = togglingServiceId === service.id;
+              return (
+                <div key={service.id} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                        {service.title}
+                      </h3>
+                      <Badge variant={isEnabled ? 'emerald' : 'rose'}>
+                        {servicesAvailabilityLoading ? 'Checking…' : isEnabled ? 'Online' : 'Offline'}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-stone-500 mt-0.5">{service.category}</p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-label={`${isEnabled ? 'Disable' : 'Enable'} ${service.title}`}
+                    aria-checked={isEnabled}
+                    disabled={servicesAvailabilityLoading || isToggling || togglingServiceId !== null}
+                    onClick={() => void handleToggleService(service.id, service.title)}
+                    className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:opacity-60 ${
+                      isEnabled ? 'bg-emerald-600' : 'bg-stone-300 dark:bg-stone-700'
+                    }`}
+                    title={isEnabled ? `Turn ${service.title} off` : `Turn ${service.title} on`}
+                  >
+                    <span
+                      className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform ${
+                        isEnabled ? 'translate-x-7' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              );
+            })}
         </div>
       </Card>
 
