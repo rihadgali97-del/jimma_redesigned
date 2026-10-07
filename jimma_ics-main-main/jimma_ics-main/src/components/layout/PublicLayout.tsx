@@ -3,7 +3,6 @@ import { Outlet } from 'react-router-dom';
 import { PublicSiteHeader } from './PublicSiteHeader';
 import { Footer } from './Footer';
 import { MobileBottomNav } from './MobileBottomNav';
-import { DemoPresentationBar } from '../common/DemoPresentationBar';
 import { ToastContainer } from '../ui/ToastContainer';
 import { GlobalSearchModal } from '../common/GlobalSearchModal';
 import { useApp } from '../../context/AppContext';
@@ -26,7 +25,6 @@ export const PublicLayout: React.FC = () => {
       </main>
       <Footer />
       <MobileBottomNav />
-      <DemoPresentationBar />
       <ToastContainer />
       <GlobalSearchModal />
       <PublicTranslationLayer />

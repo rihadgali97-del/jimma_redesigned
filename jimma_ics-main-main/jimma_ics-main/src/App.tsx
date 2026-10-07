@@ -4,7 +4,6 @@ import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { AppProvider } from './context/AppContext';
 import { ToastContainer } from './components/ui/ToastContainer';
-import { DemoPresentationBar } from './components/common/DemoPresentationBar';
 import { PublicTranslationLayer } from './components/layout/PublicTranslationLayer';
 
 // Layouts
@@ -60,7 +59,6 @@ export default function App() {
       <ThemeProvider>
         <AppProvider>
           <BrowserRouter>
-            <DemoPresentationBar />
             <ToastContainer />
             <PublicTranslationLayer />
             <Routes>

@@ -3,7 +3,6 @@ import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminTopNav } from './AdminTopNav';
-import { DemoPresentationBar } from '../common/DemoPresentationBar';
 import { ToastContainer } from '../ui/ToastContainer';
 import { GlobalSearchModal } from '../common/GlobalSearchModal';
 import { checkRoutePermission } from '../../middleware/authMiddleware';
@@ -89,7 +88,6 @@ export const AdminLayout: React.FC = () => {
         </main>
       </div>
 
-      <DemoPresentationBar />
       <ToastContainer />
       <GlobalSearchModal />
     </div>
