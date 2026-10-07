@@ -52,6 +52,9 @@ export const PhoneSimulatorPreview: React.FC<PhoneSimulatorPreviewProps> = ({
   const limitPerSegment = isUnicode ? 70 : 160;
   const segmentCount = Math.max(1, Math.ceil(charLength / limitPerSegment));
   const estimatedCost = (segmentCount * 0.25).toFixed(2);
+  const categoryLabel = category
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
@@ -196,9 +199,14 @@ export const PhoneSimulatorPreview: React.FC<PhoneSimulatorPreviewProps> = ({
                 <div className="my-auto py-2 space-y-1">
                   <div className="bg-[#182533] border border-[#2b5278]/40 rounded-2xl rounded-tl-xs p-3 text-white text-xs shadow-md space-y-2 whitespace-pre-line leading-relaxed font-sans">
                     <div className="text-[10px] font-bold text-[#64b5f6] pb-1 border-b border-stone-800">
-                      📢 Official Communique • Jimma Zone
+                      📢 {title || categoryLabel}
                     </div>
                     <div>{content || 'Enter message payload to preview live Telegram markdown formatting...'}</div>
+                    {recipientTarget && (
+                      <div className="border-t border-stone-800/60 pt-1 text-[9px] text-stone-400 break-words">
+                        To: {recipientTarget}
+                      </div>
+                    )}
                     <div className="flex items-center justify-between pt-1 text-[9px] text-stone-400 border-t border-stone-800/60">
                       <span>24.8k views</span>
                       <div className="flex items-center gap-1">

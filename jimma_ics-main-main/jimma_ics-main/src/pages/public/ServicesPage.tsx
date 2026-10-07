@@ -73,7 +73,7 @@ const applicationStatusLabels: Record<string, string> = {
 
 export const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { publicServices, serviceRequests, submitServiceRequest, addToast, janazahPublicEnabled } = useApp();
+  const { publicServices, serviceRequests, submitServiceRequest, upsertServiceRequest, addToast, janazahPublicEnabled } = useApp();
   const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -304,6 +304,28 @@ export const ServicesPage: React.FC = () => {
         setNeedsTransport(true);
         setNeedsCemeteryPlot(false);
         setDetails('');
+        upsertServiceRequest({
+          id: `janazah-${Date.now()}`,
+          trackingNo: request.referenceNumber,
+          serviceType: 'Janazah Support',
+          applicantName: applicantName.trim(),
+          applicantPhone: phone.trim(),
+          applicantDistrict: district,
+          submissionDate: new Date(request.createdAt).toLocaleDateString(),
+          status: 'Submitted',
+          priority: 'Urgent',
+          documentsCount: 0,
+          assignedOfficer: 'On-call Janazah desk',
+          notes: [
+            `Deceased: ${deceasedName.trim()}`,
+            needsGhusl ? 'Ghusl requested' : null,
+            needsTransport ? 'Transport requested' : null,
+            needsCemeteryPlot ? 'Cemetery plot requested' : null,
+            details.trim() || null,
+          ]
+            .filter(Boolean)
+            .join(' • '),
+        });
         setTrackQuery(request.referenceNumber);
         setTrackPhone(tracked.applicantPhone);
         setActiveTab('track');

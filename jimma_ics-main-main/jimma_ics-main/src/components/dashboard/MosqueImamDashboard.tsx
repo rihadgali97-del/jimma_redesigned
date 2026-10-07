@@ -123,7 +123,7 @@ export const MosqueImamDashboard: React.FC = () => {
             variant="primary"
             size="sm"
             icon={<FileCheck2 className="w-4 h-4" />}
-            onClick={() => setIsNikahModalOpen(true)}
+            onClick={() => setIsJanazahModalOpen(true)}
           >
             Register Nikah Deed
           </Button>

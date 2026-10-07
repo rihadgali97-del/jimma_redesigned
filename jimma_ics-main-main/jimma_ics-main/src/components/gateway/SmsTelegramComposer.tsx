@@ -179,6 +179,88 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
     applyTemplate(selectedCategory, selectedLanguage);
   }, [selectedCategory, selectedLanguage, selectedStudentId, selectedMosqueId, telegramStatus?.channelId]);
 
+  // Update message content when form fields change (for live preview)
+  useEffect(() => {
+    if (selectedCategory === 'janazah_broadcast') {
+      // Get current template
+      const template = gatewayTemplates.find((t) => t.category === 'janazah_broadcast');
+      if (template) {
+        let raw = template.languages[selectedLanguage];
+
+        // Replace placeholders with current form values
+        raw = raw
+          .replace(/{DeceasedName}/g, deceasedName)
+          .replace(/{Age}/g, deceasedAge)
+          .replace(/{Woreda}/g, activeMosque ? activeMosque.district : 'Jimma City')
+          .replace(/{JanazahTime}/g, janazahTime)
+          .replace(/{MosqueName}/g, activeMosque ? activeMosque.name : 'Grand Anwar Mosque')
+          .replace(/{Cemetery}/g, cemeteryName)
+          .replace(/{FamilyContact}/g, familyContact);
+
+        setMessageContent(raw);
+        setMessageTitle(`Emergency Janazah: ${deceasedName}`);
+        setRecipientTarget(`Zonal Emergency Janazah Broadcast List & Channel (${gatewayStats.telegramSubscribers.toLocaleString()} subscribers)`);
+      }
+    } else if (selectedCategory === 'sabaq_alert' && activeStudent) {
+      const template = gatewayTemplates.find((t) => t.category === 'sabaq_alert');
+      if (template) {
+        let raw = template.languages[selectedLanguage];
+
+        const sabaqText = activeStudent.hifzStatus?.sabaq || activeStudent.sabaqSurah || 'Surah Maryam: 1-40';
+        const sabqiText = activeStudent.hifzStatus?.sabqi || (activeStudent.sabaqiJuz ? `Juz ${activeStudent.sabaqiJuz}` : 'Juz 18');
+        const manzilText = activeStudent.hifzStatus?.manzil || activeStudent.manzilJuz || 'Juz 1 to 10';
+        const parent = activeStudent.parentName || activeStudent.guardianName || 'Guardian';
+        const parentPhone = activeStudent.parentPhone || activeStudent.guardianPhone || '+251 91 190 2831';
+
+        raw = raw
+          .replace(/{MadrasaName}/g, activeStudent.madrasaName)
+          .replace(/{ParentName}/g, parent)
+          .replace(/{StudentName}/g, activeStudent.name)
+          .replace(/{SabaqLesson}/g, sabaqText)
+          .replace(/{SabqiJuz}/g, sabqiText)
+          .replace(/{ManzilJuz}/g, manzilText)
+          .replace(/{TajweedRating}/g, activeStudent.tajweedRating)
+          .replace(/{AttendanceStatus}/g, activeStudent.dailyAttendance || 'Present (On Time)')
+          .replace(/{TeacherPhone}/g, '+251 91 123 4567')
+          .replace(/{Date}/g, new Date().toLocaleDateString());
+
+        setMessageContent(raw);
+        setMessageTitle(`Sabaq Progress: ${activeStudent.name}`);
+        setRecipientTarget(`${parent} (${parentPhone})`);
+      }
+    } else if (selectedCategory === 'moon_sighting') {
+      const template = gatewayTemplates.find((t) => t.category === 'moon_sighting');
+      if (template) {
+        let raw = template.languages[selectedLanguage];
+
+        raw = raw
+          .replace(/{Occasion}/g, moonOccasion)
+          .replace(/{HijriDate}/g, '1 Shawwal 1447 AH')
+          .replace(/{Location}/g, eidLocation)
+          .replace(/{ImamKhateeb}/g, 'Sheikh Dr. Nuruddin Kedir (Zonal Mufti)');
+
+        setMessageContent(raw);
+        setMessageTitle(`Moon Sighting Communique: ${moonOccasion}`);
+        setRecipientTarget(`All 18 Woredas Broadcast (${gatewayStats.telegramSubscribers.toLocaleString()} Subscribers + 142 Imams)`);
+      }
+    } else if (selectedCategory === 'khutbah_advisory') {
+      const template = gatewayTemplates.find((t) => t.category === 'khutbah_advisory');
+      if (template) {
+        let raw = template.languages[selectedLanguage];
+
+        raw = raw
+          .replace(/{Date}/g, 'This Friday')
+          .replace(/{KhutbahTheme}/g, khutbahTheme)
+          .replace(/{KeyFocus}/g, 'Islamic charity, moral tarbiyah of youth, and safeguarding mosque waqf property.')
+          .replace(/{Directives}/g, 'Encourage parents to enroll youth in certified evening Hifz halaqas.');
+
+        setMessageContent(raw);
+        setMessageTitle(`Unified Khutbah: ${khutbahTheme.slice(0, 30)}...`);
+        setRecipientTarget('Jimma Zone Imams & Ulema League (142 Imams across 18 Woredas)');
+      }
+    }
+  }, [deceasedName, deceasedAge, janazahTime, cemeteryName, familyContact, selectedMosqueId, selectedCategory, selectedLanguage, activeStudent, khutbahTheme, moonOccasion, eidLocation, gatewayStats.telegramSubscribers]);
+
   // Handle Dispatch Action with realistic stage simulation
   const handleDispatch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -752,6 +834,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
         {/* Right Column: Phone Simulator (5 Cols) */}
         <div className="lg:col-span-5">
           <PhoneSimulatorPreview
+            key={telegramOnly ? messageContent : undefined}
             channel={selectedChannel}
             title={messageTitle}
             senderId={senderId}

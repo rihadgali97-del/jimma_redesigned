@@ -51,7 +51,7 @@ import {
   updateStudentRecord,
 } from '../services/studentsApi';
 import { createZakatDistribution as createZakatDistributionApi, deleteZakatAssessment, fetchZakatDistributions } from '../services/zakatApi';
-import { fetchJanazahAvailability, JANAZAH_CATALOGUE_ID } from '../services/janazahApi';
+import { fetchJanazahAvailability, fetchJanazahRequests, JANAZAH_CATALOGUE_ID } from '../services/janazahApi';
 import {
   createEventRecord,
   deleteEventRecord,
@@ -199,6 +199,7 @@ interface AppContextType {
   janazahPublicEnabled: boolean;
   refreshJanazahAvailability: () => Promise<boolean>;
   serviceRequests: ServiceRequest[];
+  upsertServiceRequest: (request: ServiceRequest) => void;
   submitServiceRequest: (req: Omit<ServiceRequest, 'id' | 'trackingNo' | 'submissionDate' | 'status' | 'assignedOfficer'>) => ServiceRequest;
   updateServiceRequestStatus: (id: string, status: ServiceRequest['status'], officer?: string) => void;
 
@@ -409,6 +410,60 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>(mockServiceRequests);
   const [janazahPublicEnabled, setJanazahPublicEnabled] = useState(true);
 
+  const upsertServiceRequest = (request: ServiceRequest) => {
+    setServiceRequests((prev) => {
+      const existingIndex = prev.findIndex((item) => item.id === request.id || item.trackingNo === request.trackingNo);
+      if (existingIndex === -1) return [request, ...prev];
+      const updated = [...prev];
+      updated[existingIndex] = request;
+      return updated;
+    });
+  };
+
+  const refreshJanazahRequests = async () => {
+    try {
+      const requests = await fetchJanazahRequests();
+      const mapped = requests.map((request) => ({
+        id: String(request.id),
+        trackingNo: request.referenceNumber,
+        serviceType: 'Janazah Support',
+        applicantName: request.contactName,
+        applicantPhone: request.contactPhone,
+        applicantDistrict: request.woreda ? `Woreda ${request.woreda.code}` : 'Jimma Zone',
+        submissionDate: new Date(request.createdAt).toLocaleDateString(),
+        status: request.status === 'SUBMITTED' ? 'Submitted'
+          : request.status === 'UNDER_REVIEW' ? 'Under Review'
+          : request.status === 'APPROVED' ? 'Approved'
+          : request.status === 'REJECTED' ? 'Rejected'
+          : request.status === 'COMPLETED' ? 'Completed'
+          : 'Rejected',
+        assignedOfficer: request.assignedOfficer?.fullName || 'On-call Janazah desk',
+        notes: [
+          `Deceased: ${request.deceasedName}`,
+          request.needsGhusl ? 'Ghusl requested' : null,
+          request.needsTransport ? 'Transport requested' : null,
+          request.needsCemeteryPlot ? 'Cemetery plot requested' : null,
+          request.locationNote || null,
+        ].filter(Boolean).join(' • '),
+        documentsCount: 0,
+        priority: 'Urgent',
+      }));
+
+      setServiceRequests((prev) => {
+        const janazahIds = new Set(mapped.map((request) => request.trackingNo));
+        const others = prev.filter((request) => request.serviceType !== 'Janazah Support' && !janazahIds.has(request.trackingNo));
+        return [...mapped, ...others];
+      });
+
+      return mapped.length;
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[API] Janazah request list refresh failed.', error);
+      }
+      return 0;
+    }
+  };
+
   const refreshJanazahAvailability = async () => {
     try {
       const availability = await fetchJanazahAvailability();
@@ -479,6 +534,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     void refreshDirectoryData();
     void refreshJanazahAvailability();
+    void refreshJanazahRequests().catch((error) => {
+      if (import.meta.env.DEV) console.warn('[API] Janazah request list refresh failed.', error);
+    });
     void refreshTeachers().catch((error) => {
       if (import.meta.env.DEV) console.warn('[API] Public teacher directory refresh failed.', error);
     });
@@ -489,6 +547,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (document.visibilityState === 'visible') {
         void refreshDirectoryData();
         void refreshJanazahAvailability();
+        void refreshJanazahRequests();
       }
     };
     window.addEventListener('focus', refreshWhenAvailable);
@@ -1954,6 +2013,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         janazahPublicEnabled,
         refreshJanazahAvailability,
         serviceRequests,
+        upsertServiceRequest,
         submitServiceRequest,
         updateServiceRequestStatus,
         events,
