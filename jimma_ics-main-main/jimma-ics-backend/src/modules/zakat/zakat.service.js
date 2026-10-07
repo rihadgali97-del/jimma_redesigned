@@ -1,9 +1,14 @@
 import { zakatRepository } from './zakat.repository.js';
 import { generateReferenceNumber, SERVICE_CODES } from '../../common/services/referenceNumber.service.js';
-import { NotFoundError, BadRequestError } from '../../common/errors/httpErrors.js';
+import {
+  NotFoundError,
+  BadRequestError,
+  ServiceUnavailableError,
+} from '../../common/errors/httpErrors.js';
 import { writeAuditLog } from '../../common/utils/auditLog.js';
 import { parsePagination, buildPaginationMeta } from '../../common/utils/pagination.js';
 import { logger } from '../../common/utils/logger.js';
+import { getCivicServiceAvailability } from '../civic-services/civic-services.service.js';
 
 function toPublic(app) {
   return {
@@ -37,6 +42,13 @@ function toPublicTrackView(app) {
 }
 
 export async function submitZakatApplication(data) {
+  const availability = await getCivicServiceAvailability('srv-2');
+  if (!availability.isEnabled) {
+    throw new ServiceUnavailableError(
+      'Zakat public intake is currently turned off by the council. Please contact the Zakat desk.'
+    );
+  }
+
   const woreda = await zakatRepository.findWoredaById(data.woredaId);
   if (!woreda) throw new BadRequestError('woredaId does not reference an existing woreda');
 

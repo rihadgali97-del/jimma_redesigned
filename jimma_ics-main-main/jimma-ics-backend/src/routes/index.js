@@ -10,6 +10,10 @@ import { madrasasPublicRouter, madrasasAdminRouter } from '../modules/madrasas/m
 import { documentsRouter } from '../modules/documents/documents.routes.js';
 import { zakatPublicRouter, zakatAdminRouter, zakatAccountRouter } from '../modules/zakat/zakat.routes.js';
 import { janazahPublicRouter, janazahAdminRouter } from '../modules/janazah/janazah.routes.js';
+import {
+  civicServicesPublicRouter,
+  civicServicesAdminRouter,
+} from '../modules/civic-services/civic-services.routes.js';
 import { trackerRouter } from '../modules/tracker/tracker.routes.js';
 import { waqfPublicRouter, waqfAdminRouter } from '../modules/waqf/waqf.routes.js';
 import { financePublicRouter, financeAdminRouter } from '../modules/finance/finance.routes.js';
@@ -70,6 +74,8 @@ apiRouter.use('/admin/zakat', zakatAdminRouter);
 apiRouter.use('/zakat', zakatPublicRouter); // exposes /zakat/rates at the shorter public path too
 apiRouter.use('/services/janazah', janazahPublicRouter);
 apiRouter.use('/admin/janazah', janazahAdminRouter);
+apiRouter.use('/services', civicServicesPublicRouter);
+apiRouter.use('/admin/services', civicServicesAdminRouter);
 apiRouter.use('/track', trackerRouter);
 apiRouter.use('/transparency/waqf', waqfPublicRouter);
 apiRouter.use('/admin/waqf', waqfAdminRouter);

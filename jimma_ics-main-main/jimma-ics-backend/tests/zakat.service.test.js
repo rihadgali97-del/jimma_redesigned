@@ -9,6 +9,7 @@ const mockRepository = {
 };
 const mockWriteAuditLog = jest.fn();
 const mockGenerateReferenceNumber = jest.fn();
+const mockGetCivicServiceAvailability = jest.fn();
 
 jest.unstable_mockModule('../src/modules/zakat/zakat.repository.js', () => ({
   zakatRepository: mockRepository,
@@ -19,6 +20,9 @@ jest.unstable_mockModule('../src/common/utils/auditLog.js', () => ({
 jest.unstable_mockModule('../src/common/services/referenceNumber.service.js', () => ({
   generateReferenceNumber: mockGenerateReferenceNumber,
   SERVICE_CODES: { zakat: 'ZKT' },
+}));
+jest.unstable_mockModule('../src/modules/civic-services/civic-services.service.js', () => ({
+  getCivicServiceAvailability: mockGetCivicServiceAvailability,
 }));
 
 const zakatService = await import('../src/modules/zakat/zakat.service.js');
@@ -39,9 +43,20 @@ const application = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockGetCivicServiceAvailability.mockResolvedValue({ serviceKey: 'srv-2', isEnabled: true });
 });
 
 describe('Zakat application service', () => {
+  it('rejects new applications when public Zakat intake is disabled', async () => {
+    mockGetCivicServiceAvailability.mockResolvedValue({ serviceKey: 'srv-2', isEnabled: false });
+
+    await expect(zakatService.submitZakatApplication({ woredaId: 3 })).rejects.toMatchObject({
+      statusCode: 503,
+    });
+    expect(mockRepository.findWoredaById).not.toHaveBeenCalled();
+    expect(mockRepository.create).not.toHaveBeenCalled();
+  });
+
   it('rejects submissions for an unknown woreda without creating a record', async () => {
     mockRepository.findWoredaById.mockResolvedValue(null);
 
