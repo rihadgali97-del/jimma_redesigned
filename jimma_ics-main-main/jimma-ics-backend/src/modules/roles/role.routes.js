@@ -110,10 +110,13 @@ rolesRouter.patch('/:id', validate(z.object({
 })), asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const existing = await getRole(id);
-  if (systemRoleNames.has(existing.name)) {
-    throw new BadRequestError('System roles cannot be modified.');
-  }
   const { permissions, ...changes } = req.body;
+  if (existing.name === 'super_admin') {
+    throw new BadRequestError('The super_admin role has full access by system policy and cannot be modified.');
+  }
+  if (systemRoleNames.has(existing.name) && Object.keys(changes).length > 0) {
+    throw new BadRequestError('System role details are protected; only permissions can be changed.');
+  }
   if (changes.name && changes.name !== existing.name && systemRoleNames.has(changes.name)) {
     throw new BadRequestError('Reserved system role names cannot be used.');
   }
@@ -138,7 +141,12 @@ rolesRouter.patch('/:id', validate(z.object({
     }
     return tx.role.update({
       where: { id },
-      data: changes,
+      data: {
+        ...changes,
+        ...(permissions !== undefined && systemRoleNames.has(existing.name)
+          ? { metadata: { ...(existing.metadata || {}), permissionsCustomized: true } }
+          : {}),
+      },
       include: {
         permissions: { include: { permission: true } },
         _count: { select: { users: true } },

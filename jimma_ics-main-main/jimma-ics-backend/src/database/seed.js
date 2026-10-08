@@ -88,6 +88,7 @@ async function seedRolePermissions(roleRecords, permissionRecords) {
 
   for (const [roleName, permissionKeys] of Object.entries(grants)) {
     const role = roleRecords[roleName];
+    if (role.metadata?.permissionsCustomized === true) continue;
     for (const permissionKey of permissionKeys) {
       const permission = permissionRecords[permissionKey];
       await prisma.rolePermission.upsert({

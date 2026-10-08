@@ -339,13 +339,20 @@ export async function createRoleRecord(value: Omit<RoleDefinition, 'id' | 'creat
 }
 
 export async function updateRoleRecord(id: string, value: Partial<RoleDefinition>) {
+  const hasMetadataChanges = [
+    value.arabicName,
+    value.department,
+    value.privilegeLevel,
+    value.defaultDashboard,
+    value.color,
+  ].some((field) => field !== undefined);
   const role = await apiRequest<ApiRole>(`/admin/roles/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify({
       ...(value.name !== undefined ? { name: value.name } : {}),
       ...(value.description !== undefined ? { description: value.description } : {}),
       ...(value.permissions !== undefined ? { permissions: value.permissions } : {}),
-      metadata: toRoleMetadata(value),
+      ...(hasMetadataChanges ? { metadata: toRoleMetadata(value) } : {}),
     }),
   });
   return toRole(role);

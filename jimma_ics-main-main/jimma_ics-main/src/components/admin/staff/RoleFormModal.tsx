@@ -21,12 +21,14 @@ interface RoleFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialRole?: RoleDefinition;
+  permissionsOnly?: boolean;
 }
 
 export const RoleFormModal: React.FC<RoleFormModalProps> = ({
   isOpen,
   onClose,
   initialRole,
+  permissionsOnly = false,
 }) => {
   const { permissionCategories, addRole, updateRole } = useApp();
 
@@ -100,6 +102,10 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
   }, [initialRole, isOpen]);
 
   const allSystemPermIds = permissionCategories.flatMap((c) => c.permissions.map((p) => p.id));
+  const additionalPermissionIds = permissionsOnly
+    ? (initialRole?.permissions || []).filter((id) => !allSystemPermIds.includes(id))
+    : [];
+  const allEditablePermissionIds = [...new Set([...allSystemPermIds, ...additionalPermissionIds])];
 
   const togglePermission = (id: string) => {
     setFormData((prev) => {
@@ -129,20 +135,20 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
   };
 
   const handleSelectGlobalAll = () => {
-    const allSelected = allSystemPermIds.every((id) => formData.permissions.includes(id));
+    const allSelected = allEditablePermissionIds.every((id) => formData.permissions.includes(id));
     setFormData((prev) => ({
       ...prev,
-      permissions: allSelected ? [] : [...allSystemPermIds],
+      permissions: allSelected ? [] : [...allEditablePermissionIds],
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.description.trim()) return;
+    if (!permissionsOnly && (!formData.name.trim() || !formData.description.trim())) return;
 
     if (initialRole) {
       const saved = await updateRole(initialRole.id, {
-        ...formData,
+        ...(permissionsOnly ? { permissions: formData.permissions } : formData),
       });
       if (!saved) return;
     } else {
@@ -172,10 +178,16 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
             </div>
             <div>
               <h3 className="font-serif font-bold text-lg text-white">
-                {initialRole ? `Configure Role Matrix: ${initialRole.name}` : 'Define New Council RBAC Role'}
+                {permissionsOnly
+                  ? `Manage Permissions: ${initialRole?.name}`
+                  : initialRole
+                    ? `Configure Role Matrix: ${initialRole.name}`
+                    : 'Define New Council RBAC Role'}
               </h3>
               <p className="text-xs text-stone-300">
-                Configure granular operational capabilities, privilege tiers, and default workspaces.
+                {permissionsOnly
+                  ? "Customize this system role's permissions. Its identity and other settings remain protected."
+                  : 'Configure granular operational capabilities, privilege tiers, and default workspaces.'}
               </p>
             </div>
           </div>
@@ -190,7 +202,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
         {/* Form Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
           {/* Basic Metadata */}
-          <div className="space-y-4">
+          {!permissionsOnly && <div className="space-y-4">
             <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
               <Layers className="w-4 h-4" />
               <span>Role Definition & Scope</span>
@@ -315,12 +327,17 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
                 ))}
               </div>
             </div>
-          </div>
+          </div>}
 
-          <hr className="border-stone-200 dark:border-stone-800" />
+          {!permissionsOnly && <hr className="border-stone-200 dark:border-stone-800" />}
 
           {/* Permission Matrix */}
           <div className="space-y-4">
+            {permissionsOnly && (
+              <p className="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/20 px-3 py-2 text-xs text-stone-700 dark:text-stone-300">
+                Saving replaces this role's current permissions. Changes are retained when default roles are seeded again.
+              </p>
+            )}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
                 <Key className="w-4 h-4" />
@@ -329,7 +346,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
 
               <div className="flex items-center gap-2">
                 <Badge variant="gold" className="text-xs">
-                  {formData.permissions.length} of {allSystemPermIds.length} Permissions Active
+                  {formData.permissions.length} of {allEditablePermissionIds.length} Permissions Active
                 </Badge>
                 <Button
                   type="button"
@@ -338,12 +355,38 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
                   onClick={handleSelectGlobalAll}
                   className="text-xs py-1"
                 >
-                  {allSystemPermIds.every((id) => formData.permissions.includes(id))
+                  {allEditablePermissionIds.every((id) => formData.permissions.includes(id))
                     ? 'Deselect All'
                     : 'Grant All Permissions'}
                 </Button>
               </div>
             </div>
+
+            {permissionsOnly && additionalPermissionIds.length > 0 && (
+              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 space-y-3">
+                <div>
+                  <h4 className="font-semibold text-stone-900 dark:text-stone-100 text-sm">
+                    Additional backend permissions
+                  </h4>
+                  <p className="text-[11px] text-stone-500">
+                    These permissions are currently assigned but are not in a named category. Their exact keys are shown.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {additionalPermissionIds.map((permission) => (
+                    <label key={permission} className="flex items-center gap-2 text-xs text-stone-700 dark:text-stone-300">
+                      <input
+                        type="checkbox"
+                        checked={formData.permissions.includes(permission)}
+                        onChange={() => togglePermission(permission)}
+                        className="rounded text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <code>{permission}</code>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-4">
               {permissionCategories.map((category) => {
@@ -435,7 +478,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
               Cancel
             </Button>
             <Button variant="gold" size="sm" type="submit" icon={<Shield className="w-4 h-4" />}>
-              {initialRole ? 'Save Role Profile' : 'Publish New Role'}
+              {permissionsOnly ? 'Save Permissions' : initialRole ? 'Save Role Profile' : 'Publish New Role'}
             </Button>
           </div>
         </form>

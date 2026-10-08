@@ -901,12 +901,16 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => handleOpenEditRole(role)}
-                      disabled={role.isSystemRole}
-                      title={role.isSystemRole ? 'System roles are protected by the backend.' : undefined}
+                      disabled={role.name === 'super_admin'}
+                      title={role.name === 'super_admin'
+                        ? 'Super Admin always has full access by system policy.'
+                        : role.isSystemRole
+                          ? 'System role details stay protected; permissions can be customized.'
+                          : undefined}
                       icon={<Edit className="w-3.5 h-3.5" />}
                       className="text-xs py-1"
                     >
-                      Edit Role Matrix
+                      {role.isSystemRole && role.name !== 'super_admin' ? 'Manage Permissions' : 'Edit Role Matrix'}
                     </Button>
 
                     {!role.isSystemRole ? (
@@ -921,7 +925,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                       </button>
                     ) : (
                       <span className="text-[10px] text-stone-400 font-mono flex items-center gap-1">
-                        <Lock className="w-3 h-3" /> Core Lock
+                        <Lock className="w-3 h-3" /> {role.name === 'super_admin' ? 'Full Access Policy' : 'System Role'}
                       </span>
                     )}
                   </div>
@@ -1180,6 +1184,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
         isOpen={isRoleModalOpen}
         onClose={() => setIsRoleModalOpen(false)}
         initialRole={editingRole}
+        permissionsOnly={Boolean(editingRole?.isSystemRole && editingRole.name !== 'super_admin')}
       />
 
       <StaffDetailDrawer
