@@ -7,6 +7,7 @@ import {
   listEventRegistrationsSchema,
   listEventsSchema,
   registerForEventSchema,
+  reviewEventPaymentSchema,
   updateEventSchema,
   updateRegistrationSchema,
 } from './events.validation.js';
@@ -14,6 +15,7 @@ import { validate } from '../../common/middlewares/validate.js';
 import { authenticate } from '../../common/middlewares/authenticate.js';
 import { authorize } from '../../common/middlewares/authorize.js';
 import { strictRateLimiter } from '../../common/middlewares/rateLimiter.js';
+import { eventPaymentReceiptUpload } from '../../common/middlewares/upload.js';
 
 export const eventsPublicRouter = Router();
 export const eventsAdminRouter = Router();
@@ -29,12 +31,15 @@ eventsPublicRouter.post(
 eventsPublicRouter.post(
   '/:id/registrations',
   strictRateLimiter({ windowMs: 60 * 60 * 1000, max: 12 }),
+  eventPaymentReceiptUpload,
   validate(registerForEventSchema),
   eventsController.register
 );
 
 eventsAdminRouter.use(authenticate, authorize('events.write'));
 eventsAdminRouter.get('/registrations', validate(listEventRegistrationsSchema), eventsController.listRegistrations);
+eventsAdminRouter.get('/registrations/:id/payment-receipt', validate(reviewEventPaymentSchema.pick({ params: true })), eventsController.getPaymentReceipt);
+eventsAdminRouter.patch('/registrations/:id/payment', validate(reviewEventPaymentSchema), eventsController.reviewPayment);
 eventsAdminRouter.patch('/registrations/:id', validate(updateRegistrationSchema), eventsController.updateRegistration);
 eventsAdminRouter.get('/', validate(listEventsSchema), eventsController.listAdmin);
 eventsAdminRouter.post('/', validate(createEventSchema), eventsController.create);

@@ -167,6 +167,9 @@ model CouncilEvent {
   status           String              @default("Upcoming") @db.VarChar(30)
   format           String?             @db.VarChar(30)
   entryFee         String?             @map("entry_fee") @db.VarChar(100)
+  isPaid           Boolean             @default(false) @map("is_paid")
+  feeAmount        Decimal             @default(0) @map("fee_amount") @db.Decimal(12, 2)
+  paymentInstructions String?          @map("payment_instructions") @db.Text
   targetAudience   String?             @map("target_audience") @db.VarChar(500)
   livestreamUrl    String?             @map("livestream_url") @db.VarChar(1000)
   contactPhone     String?             @map("contact_phone") @db.VarChar(30)
@@ -216,6 +219,13 @@ enum EventRegistrationStatus {
   CANCELLED
 }
 
+enum EventPaymentStatus {
+  FREE
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model EventRegistration {
   id                    Int                     @id @default(autoincrement())
   eventId               Int                     @map("event_id")
@@ -227,8 +237,11 @@ model EventRegistration {
   organizationOrMadrasa String?                 @map("organization_or_madrasa") @db.VarChar(200)
   attendeesCount        Int                     @default(1) @map("attendees_count")
   notes                 String?                 @db.Text
-  passNumber            String                  @unique @map("pass_number") @db.VarChar(40)
+  passNumber            String?                 @unique @map("pass_number") @db.VarChar(40)
   status                EventRegistrationStatus @default(CONFIRMED)
+  paymentStatus         EventPaymentStatus      @default(FREE) @map("payment_status")
+  paymentReceiptFilename String?                @map("payment_receipt_filename") @db.VarChar(255)
+  paymentReceiptMimeType String?                @map("payment_receipt_mime_type") @db.VarChar(100)
   createdAt             DateTime                @default(now()) @map("created_at")
   checkedInAt           DateTime?               @map("checked_in_at")
 

@@ -43,21 +43,22 @@ export const EventPassModal: React.FC<EventPassModalProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const { addToast, dispatchMessage, currentUser } = useApp();
+  const passNumber = registration.passNumber;
 
   useEffect(() => {
-    if (isOpen && canvasRef.current) {
+    if (isOpen && passNumber && canvasRef.current) {
       drawEventPassOnCanvas(canvasRef.current, event, registration);
     }
-  }, [isOpen, event, registration]);
+  }, [isOpen, event, registration, passNumber]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !passNumber) return null;
 
   const handleDownloadPdf = () => {
     if (!canvasRef.current) return;
     setIsGenerating(true);
     try {
       const safeName = registration.fullName.replace(/[^a-zA-Z0-9]/g, '_');
-      downloadPassAsPdf(canvasRef.current, `Pass_${safeName}_${registration.passNumber}.pdf`);
+      downloadPassAsPdf(canvasRef.current, `Pass_${safeName}_${passNumber}.pdf`);
       addToast('Pass Downloaded', 'High-resolution PDF pass has been saved to your downloads.', 'success');
     } catch (e) {
       console.error(e);
@@ -70,7 +71,7 @@ export const EventPassModal: React.FC<EventPassModalProps> = ({
   const handleDownloadPng = () => {
     if (!canvasRef.current) return;
     const safeName = registration.fullName.replace(/[^a-zA-Z0-9]/g, '_');
-    downloadPassAsPng(canvasRef.current, `Pass_${safeName}_${registration.passNumber}.png`);
+    downloadPassAsPng(canvasRef.current, `Pass_${safeName}_${passNumber}.png`);
     addToast('Image Downloaded', 'PNG pass asset saved.', 'success');
   };
 
@@ -83,7 +84,7 @@ export const EventPassModal: React.FC<EventPassModalProps> = ({
         <!DOCTYPE html>
         <html>
           <head>
-            <title>Event Admission Pass - ${registration.passNumber}</title>
+            <title>Event Admission Pass - ${passNumber}</title>
             <style>
               @page { size: landscape; margin: 0; }
               body { margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; background: #000; }
@@ -102,10 +103,10 @@ export const EventPassModal: React.FC<EventPassModalProps> = ({
   };
 
   const handleCopyPassCode = () => {
-    navigator.clipboard.writeText(registration.passNumber);
+    navigator.clipboard.writeText(passNumber);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    addToast('Pass Code Copied', `${registration.passNumber} copied to clipboard.`, 'info');
+    addToast('Pass Code Copied', `${passNumber} copied to clipboard.`, 'info');
   };
 
   const handleSendSmsConfirmation = async () => {
@@ -116,7 +117,7 @@ export const EventPassModal: React.FC<EventPassModalProps> = ({
       senderId: currentUser.id,
       recipientTarget: registration.phone,
       recipientCount: 1,
-      content: `Assalamu Alaykum ${registration.fullName}, your registration for "${event.title}" is confirmed! Pass #${registration.passNumber}. Date: ${event.date} at ${event.location}. - Jimma Islamic Council`,
+      content: `Assalamu Alaykum ${registration.fullName}, your registration for "${event.title}" is confirmed! Pass #${passNumber}. Date: ${event.date} at ${event.location}. - Jimma Islamic Council`,
       costETB: 0.35,
     });
     addToast('SMS Notification Dispatched', `Confirmation sent to ${registration.phone} via Ethio Telecom.`, 'success');
@@ -142,7 +143,7 @@ export const EventPassModal: React.FC<EventPassModalProps> = ({
                 </span>
               </div>
               <h2 className="text-lg sm:text-xl font-serif font-bold text-stone-100">
-                {registration.fullName} - {registration.passNumber}
+                {registration.fullName} - {passNumber}
               </h2>
             </div>
           </div>
@@ -208,7 +209,7 @@ export const EventPassModal: React.FC<EventPassModalProps> = ({
               className="px-3 py-1.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-800 border border-emerald-700 text-emerald-100 text-xs font-mono font-bold flex items-center gap-1.5 shrink-0 transition-colors"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{registration.passNumber}</span>
+              <span>{passNumber}</span>
             </button>
           </div>
         </div>

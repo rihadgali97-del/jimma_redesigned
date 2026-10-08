@@ -415,7 +415,9 @@ export interface EventRegistration {
   organizationOrMadrasa?: string;
   attendeesCount: number;
   notes?: string;
-  passNumber: string;
+  passNumber?: string;
+  paymentStatus?: 'FREE' | 'PENDING' | 'APPROVED' | 'REJECTED';
+  hasPaymentReceipt?: boolean;
   status: 'Confirmed' | 'Checked-In' | 'Cancelled';
   createdAt: string;
 }
@@ -442,6 +444,9 @@ export interface CouncilEvent {
   status?: 'Upcoming' | 'In Progress' | 'Completed' | 'Postponed' | 'Cancelled';
   format?: 'In-Person' | 'Hybrid' | 'Live Stream';
   entryFee?: 'Free' | string;
+  isPaid?: boolean;
+  feeAmount?: number;
+  paymentInstructions?: string;
   targetAudience?: string;
   livestreamUrl?: string;
   contactPhone?: string;

@@ -35,6 +35,8 @@ interface EventDetailModalProps {
   onClose: () => void;
   onOpenPass: (registration: EventRegistration) => void;
   onOpenNotifications: (eventId: string) => void;
+  initialTab?: 'overview' | 'agenda' | 'speakers' | 'register';
+  isRetryingRejectedPayment?: boolean;
 }
 
 export const EventDetailModal: React.FC<EventDetailModalProps> = ({
@@ -43,6 +45,8 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   onClose,
   onOpenPass,
   onOpenNotifications,
+  initialTab = 'overview',
+  isRetryingRejectedPayment = false,
 }) => {
   const {
     registerForEvent,
@@ -53,7 +57,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
     addToast,
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'agenda' | 'speakers' | 'register'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'agenda' | 'speakers' | 'register'>(initialTab);
 
   // Form State
   const [fullName, setFullName] = useState('');
@@ -63,6 +67,8 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   const [organization, setOrganization] = useState('');
   const [attendeesCount, setAttendeesCount] = useState(1);
   const [notes, setNotes] = useState('');
+  const [paymentReceipt, setPaymentReceipt] = useState<File | null>(null);
+  const [hasSubmittedRetry, setHasSubmittedRetry] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
@@ -78,8 +84,10 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || !phone.trim()) {
-      addToast('Missing Fields', 'Please enter your full name and phone number.', 'warning');
+    if (!fullName.trim() || !phone.trim() || (event.isPaid && !email.trim()) || (event.isPaid && !paymentReceipt)) {
+      addToast('Missing Fields', event.isPaid
+        ? 'Enter your name, phone, email, and attach your payment receipt.'
+        : 'Please enter your full name and phone number.', 'warning');
       return;
     }
 
@@ -96,11 +104,16 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         organizationOrMadrasa: organization.trim() || undefined,
         attendeesCount: Number(attendeesCount) || 1,
         notes: notes.trim() || undefined,
+        paymentReceipt: event.isPaid ? paymentReceipt || undefined : undefined,
       });
 
-      // Clear form and open pass modal
-      onClose();
-      onOpenPass(newReg);
+      if (newReg.passNumber) {
+        onClose();
+        onOpenPass(newReg);
+      } else {
+        setPaymentReceipt(null);
+        setHasSubmittedRetry(true);
+      }
     } catch {
       // The app context displays the server's registration error.
     } finally {
@@ -110,7 +123,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-950/80 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto text-stone-900 dark:text-stone-100 animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl w-full max-w-4xl max-h-[92dvh] min-h-0 flex flex-col shadow-2xl overflow-hidden my-auto text-stone-900 dark:text-stone-100 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Banner Image & Top Badges */}
         <div className="relative h-48 sm:h-64 w-full bg-stone-800 overflow-hidden shrink-0">
@@ -218,7 +231,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         </div>
 
         {/* Tab Content Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-6">
 
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
@@ -268,7 +281,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     <span>Entry & Access</span>
                   </div>
                   <p className="font-bold text-xs sm:text-sm text-emerald-600 dark:text-emerald-400">
-                    {event.entryFee || 'Free Admission'}
+                    {event.isPaid ? `${event.feeAmount?.toLocaleString()} ETB per attendee` : event.entryFee || 'Free Admission'}
                   </p>
                   <p className="text-[11px] text-stone-500 dark:text-stone-400">
                     {event.registrationOpen ? 'Registration Open' : 'Registration Closed'}
@@ -379,26 +392,34 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                       {userExistingReg ? 'You Are Registered For This Event!' : 'Reserve Your Admission Pass Online'}
                     </h4>
                     <p className="text-xs text-stone-600 dark:text-stone-400">
-                      {userExistingReg
-                        ? `Pass #${userExistingReg.passNumber} confirmed. Click below to view or print.`
-                        : 'Free entrance with digital barcode verification. Seats are limited.'}
+                      {userExistingReg?.paymentStatus === 'PENDING'
+                        ? 'Your receipt is being reviewed. The pass will be available after approval.'
+                        : userExistingReg
+                          ? `Pass #${userExistingReg.passNumber} confirmed. Click below to view or print.`
+                          : event.isPaid
+                            ? `Pay ${event.feeAmount?.toLocaleString()} ETB per attendee and upload the receipt to reserve a seat.`
+                            : 'Free entrance with digital barcode verification. Seats are limited.'}
                     </p>
                   </div>
                 </div>
 
                 {userExistingReg ? (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => {
-                      onClose();
-                      onOpenPass(userExistingReg);
-                    }}
-                    icon={<Ticket className="w-4 h-4" />}
-                    className="shrink-0 text-xs"
-                  >
-                    View My Pass
-                  </Button>
+                  userExistingReg.passNumber ? (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => {
+                        onClose();
+                        onOpenPass(userExistingReg);
+                      }}
+                      icon={<Ticket className="w-4 h-4" />}
+                      className="shrink-0 text-xs"
+                    >
+                      View My Pass
+                    </Button>
+                  ) : (
+                    <span className="shrink-0 text-xs font-semibold text-amber-700 dark:text-amber-300">Payment under review</span>
+                  )
                 ) : (
                   <Button
                     variant="gold"
@@ -522,6 +543,11 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
           {/* TAB 4: REGISTER / RSVP FORM */}
           {activeTab === 'register' && (
             <div className="space-y-6">
+              {isRetryingRejectedPayment && !hasSubmittedRetry && (
+                <p role="alert" className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm font-medium text-rose-700 dark:text-rose-300">
+                  Your previous receipt was rejected. Please check the payment details and upload a clear, valid receipt to try again.
+                </p>
+              )}
               {userExistingReg ? (
                 <div className="p-6 rounded-3xl bg-emerald-950/30 border border-emerald-800/50 text-center space-y-4">
                   <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center">
@@ -529,13 +555,17 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                   </div>
                   <div>
                     <h3 className="text-lg font-serif font-bold text-stone-100">
-                      You are confirmed for this gathering!
+                      {userExistingReg.paymentStatus === 'PENDING' ? 'Payment receipt submitted' : 'You are confirmed for this gathering!'}
                     </h3>
-                    <p className="text-xs text-stone-400 mt-1">
-                      Pass Number: <strong className="font-mono text-emerald-300">{userExistingReg.passNumber}</strong>
-                    </p>
+                    {userExistingReg.paymentStatus === 'PENDING' ? (
+                      <p className="text-xs text-stone-400 mt-1">An administrator will review your receipt. Your admission pass will appear here after approval.</p>
+                    ) : (
+                      <p className="text-xs text-stone-400 mt-1">
+                        Pass Number: <strong className="font-mono text-emerald-300">{userExistingReg.passNumber}</strong>
+                      </p>
+                    )}
                   </div>
-                  <Button
+                  {userExistingReg.passNumber && <Button
                     variant="gold"
                     onClick={() => {
                       onClose();
@@ -545,16 +575,18 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     className="mx-auto text-xs"
                   >
                     Open Digital Admission Pass
-                  </Button>
+                  </Button>}
                 </div>
               ) : (
-                <form onSubmit={handleRegisterSubmit} className="space-y-4 max-w-2xl mx-auto">
+                <form onSubmit={handleRegisterSubmit} className="space-y-4 max-w-2xl mx-auto min-h-0">
                   <div className="border-b border-stone-200 dark:border-stone-800 pb-3">
                     <h3 className="text-base font-serif font-bold text-stone-900 dark:text-stone-100">
                       Complete Public Registration
                     </h3>
                     <p className="text-xs text-stone-500">
-                      Admission is 100% free. Digital pass will be issued immediately upon submission.
+                      {event.isPaid
+                        ? `Admission is ${event.feeAmount?.toLocaleString()} ETB per attendee. A pass is issued after receipt approval.`
+                        : 'Admission is free. Your digital pass will be issued immediately upon submission.'}
                     </p>
                   </div>
 
@@ -589,10 +621,11 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-stone-700 dark:text-stone-300">
-                        Email Address (Optional)
+                        Email Address {event.isPaid ? <span className="text-rose-500">*</span> : '(Optional)'}
                       </label>
                       <input
                         type="email"
+                        required={Boolean(event.isPaid)}
                         placeholder="bilal@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -657,6 +690,28 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     />
                   </div>
 
+                  {event.isPaid && (
+                    <div className="space-y-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
+                      <div>
+                        <h4 className="text-xs font-bold text-stone-900 dark:text-stone-100">Payment Instructions</h4>
+                        <p className="mt-1 whitespace-pre-wrap text-xs text-stone-600 dark:text-stone-300">{event.paymentInstructions}</p>
+                        <p className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                          Total: {(Number(event.feeAmount) * attendeesCount).toLocaleString()} ETB
+                        </p>
+                      </div>
+                      <label className="block space-y-1.5 text-xs font-semibold">
+                        Payment receipt (JPG, PNG, or PDF) *
+                        <input
+                          type="file"
+                          required
+                          accept="image/jpeg,image/png,application/pdf"
+                          onChange={(e) => setPaymentReceipt(e.target.files?.[0] || null)}
+                          className="block w-full rounded-xl border border-stone-200 bg-white p-2 text-xs dark:border-stone-700 dark:bg-stone-800"
+                        />
+                      </label>
+                    </div>
+                  )}
+
                   <div className="pt-3">
                     <Button
                       type="submit"
@@ -665,7 +720,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                       icon={<Ticket className="w-4 h-4" />}
                       className="w-full justify-center text-xs sm:text-sm py-3"
                     >
-                      {isSubmitting ? 'Issuing Pass...' : 'Confirm Registration & Generate Admission Pass'}
+                      {isSubmitting ? 'Submitting…' : event.isPaid ? 'Submit Receipt for Approval' : 'Confirm Registration & Generate Admission Pass'}
                     </Button>
                   </div>
                 </form>

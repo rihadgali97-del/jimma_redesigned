@@ -63,7 +63,9 @@ import {
   fetchEventRegistrations,
   fetchPublicEvents,
   findMyEventRegistrationsRecord,
+  fetchEventPaymentReceiptRecord,
   registerForEventRecord,
+  reviewEventPaymentRecord,
   updateEventRecord,
   updateEventRegistrationStatus,
 } from '../services/eventsApi';
@@ -218,7 +220,9 @@ interface AppContextType {
   eventRegistrations: EventRegistration[];
   refreshEventRegistrations: (eventId?: string) => Promise<void>;
   findMyEventRegistrations: (email: string, phone: string) => Promise<EventRegistration[]>;
-  registerForEvent: (data: Omit<EventRegistration, 'id' | 'passNumber' | 'status' | 'createdAt'>) => Promise<EventRegistration>;
+  registerForEvent: (data: Omit<EventRegistration, 'id' | 'passNumber' | 'status' | 'createdAt'> & { paymentReceipt?: File }) => Promise<EventRegistration>;
+  reviewEventPayment: (regId: string, paymentStatus: 'APPROVED' | 'REJECTED') => Promise<EventRegistration>;
+  fetchEventPaymentReceipt: (regId: string) => Promise<Blob>;
   cancelRegistration: (regId: string) => Promise<void>;
   checkInAttendee: (regId: string) => Promise<void>;
   eventSubscriptions: EventNotificationSubscription[];
@@ -1625,7 +1629,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const registerForEvent = async (
-    data: Omit<EventRegistration, 'id' | 'passNumber' | 'status' | 'createdAt'>
+    data: Omit<EventRegistration, 'id' | 'passNumber' | 'status' | 'createdAt'> & { paymentReceipt?: File }
   ): Promise<EventRegistration> => {
     try {
       const newReg = await registerForEventRecord({
@@ -1637,12 +1641,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         organizationOrMadrasa: data.organizationOrMadrasa,
         attendeesCount: data.attendeesCount,
         notes: data.notes,
+        paymentReceipt: data.paymentReceipt,
       });
       setEventRegistrations((prev) => [newReg, ...prev.filter((item) => item.id !== newReg.id)]);
       setEvents((prev) => prev.map((event) => event.id === data.eventId
         ? { ...event, attendeesCount: event.attendeesCount + newReg.attendeesCount }
         : event));
-      addToast('Registration Confirmed! Barakallahu Feekum', `Official Pass #${newReg.passNumber} issued for ${data.fullName}.`, 'success');
+      if (newReg.paymentStatus === 'PENDING') {
+        addToast('Receipt Submitted', 'Your registration is pending payment review. Your pass will be available after approval.', 'info');
+      } else {
+        addToast('Registration Confirmed! Barakallahu Feekum', `Official Pass #${newReg.passNumber} issued for ${data.fullName}.`, 'success');
+      }
       return newReg;
     } catch (error) {
       addToast('Registration Could Not Be Completed', error instanceof Error ? error.message : 'Please try again.', 'error');
@@ -1674,6 +1683,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addToast('Attendee Checked In', 'Pass verified at venue entrance.', 'success');
     } catch (error) {
       addToast('Check In Failed', error instanceof Error ? error.message : 'Please try again.', 'error');
+      throw error;
+    }
+  };
+
+  const reviewEventPayment = async (regId: string, paymentStatus: 'APPROVED' | 'REJECTED') => {
+    try {
+      const updated = await reviewEventPaymentRecord(regId, paymentStatus);
+      const existing = eventRegistrations.find((registration) => registration.id === regId);
+      setEventRegistrations((prev) => prev.map((registration) => registration.id === regId ? updated : registration));
+      if (paymentStatus === 'REJECTED' && existing) {
+        setEvents((prev) => prev.map((event) => event.id === updated.eventId
+          ? { ...event, attendeesCount: Math.max(0, event.attendeesCount - existing.attendeesCount) }
+          : event));
+        addToast('Payment Rejected', 'The registration was cancelled and its seats released.', 'info');
+      } else {
+        addToast('Payment Approved', `Pass #${updated.passNumber} has been issued.`, 'success');
+      }
+      return updated;
+    } catch (error) {
+      addToast('Payment Review Failed', error instanceof Error ? error.message : 'Please try again.', 'error');
       throw error;
     }
   };
@@ -2070,6 +2099,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         refreshEventRegistrations,
         findMyEventRegistrations,
         registerForEvent,
+        reviewEventPayment,
+        fetchEventPaymentReceipt: fetchEventPaymentReceiptRecord,
         cancelRegistration,
         checkInAttendee,
         eventSubscriptions,

@@ -40,13 +40,15 @@ export const eventsRepository = {
     return prisma.councilEvent.delete({ where: { id } });
   },
 
-  async register(eventId, data, passNumber) {
+  async register(eventId, data, passNumber, receipt) {
     return prisma.$transaction(async (tx) => {
       // Lock the event row to serialize simultaneous reservations and protect capacity.
       const locked = await tx.$queryRaw`SELECT id FROM council_events WHERE id = ${eventId} FOR UPDATE`;
       if (locked.length === 0) return null;
       const event = await tx.councilEvent.findUnique({ where: { id: eventId } });
       if (!event || !event.isPublished || !event.registrationOpen || event.status === 'Cancelled') return null;
+      if (event.isPaid && (!data.email || !receipt?.filename)) return { paymentRequired: true };
+      if (!event.isPaid && receipt?.filename) return { unexpectedReceipt: true };
       if (data.email) {
         const existingRegistration = await tx.eventRegistration.findFirst({
           where: { eventId, email: data.email, status: { not: 'CANCELLED' } },
@@ -61,7 +63,14 @@ export const eventsRepository = {
         data: { registeredSeats: { increment: data.attendeesCount } },
       });
       const registration = await tx.eventRegistration.create({
-        data: { ...data, eventId, passNumber },
+        data: {
+          ...data,
+          eventId,
+          passNumber: event.isPaid ? null : passNumber,
+          paymentStatus: event.isPaid ? 'PENDING' : 'FREE',
+          paymentReceiptFilename: event.isPaid ? receipt.filename : null,
+          paymentReceiptMimeType: event.isPaid ? receipt.mimeType : null,
+        },
         include: { event: true },
       });
       return { registration };
@@ -85,7 +94,13 @@ export const eventsRepository = {
 
   findRegistrationsByEmail(email) {
     return prisma.eventRegistration.findMany({
-      where: { email, status: { not: 'CANCELLED' } },
+      where: {
+        email,
+        OR: [
+          { status: { not: 'CANCELLED' } },
+          { paymentStatus: 'REJECTED' },
+        ],
+      },
       orderBy: { createdAt: 'desc' },
       take: 100,
       include: { event: true },
@@ -101,6 +116,9 @@ export const eventsRepository = {
       const existing = await tx.eventRegistration.findUnique({ where: { id } });
       if (!existing) return null;
       if (existing.status === 'CANCELLED') return { unchanged: true, registration: existing };
+      if (status === 'CHECKED_IN' && existing.paymentStatus === 'PENDING') {
+        return { paymentPending: true, registration: existing };
+      }
       if (status === 'CANCELLED') {
         const changed = await tx.eventRegistration.updateMany({
           where: { id, status: { not: 'CANCELLED' } },
@@ -119,6 +137,36 @@ export const eventsRepository = {
         });
       }
       return { registration: await tx.eventRegistration.findUnique({ where: { id }, include: { event: true } }) };
+    });
+  },
+
+  async reviewPaymentStatus(id, paymentStatus, passNumber) {
+    return prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM event_registrations WHERE id = ${id} FOR UPDATE`;
+      const existing = await tx.eventRegistration.findUnique({ where: { id } });
+      if (!existing) return null;
+      if (existing.paymentStatus !== 'PENDING' || existing.status === 'CANCELLED') {
+        return { notPending: true, registration: existing };
+      }
+
+      if (paymentStatus === 'REJECTED') {
+        await tx.eventRegistration.update({
+          where: { id },
+          data: { paymentStatus: 'REJECTED', status: 'CANCELLED' },
+        });
+        await tx.councilEvent.update({
+          where: { id: existing.eventId },
+          data: { registeredSeats: { decrement: existing.attendeesCount } },
+        });
+      } else {
+        await tx.eventRegistration.update({
+          where: { id },
+          data: { paymentStatus: 'APPROVED', passNumber },
+        });
+      }
+      return {
+        registration: await tx.eventRegistration.findUnique({ where: { id }, include: { event: true } }),
+      };
     });
   },
 };

@@ -49,6 +49,30 @@ export const imageUpload = multer({
   },
 });
 
+const eventPaymentReceiptUploadMiddleware = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: env.MAX_UPLOAD_SIZE_MB * 1024 * 1024, files: 1 },
+  fileFilter(req, file, cb) {
+    if (!['image/jpeg', 'image/png', 'application/pdf'].includes(file.mimetype)) {
+      return cb(new BadRequestError('Payment receipt must be a JPG, PNG, or PDF file'));
+    }
+    cb(null, true);
+  },
+}).single('receipt');
+
+export function eventPaymentReceiptUpload(req, res, next) {
+  eventPaymentReceiptUploadMiddleware(req, res, (error) => {
+    if (error?.code === 'LIMIT_FILE_SIZE') {
+      return next(new BadRequestError(`Payment receipt exceeds the ${env.MAX_UPLOAD_SIZE_MB} MB upload limit`));
+    }
+    if (error?.code === 'LIMIT_UNEXPECTED_FILE') {
+      return next(new BadRequestError('Upload one payment receipt using the "receipt" field'));
+    }
+    if (error) return next(error);
+    return next();
+  });
+}
+
 const directoryImageUploadMiddleware = imageUpload.single('file');
 
 export function directoryImageUpload(req, res, next) {

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { eventsRepository } from './events.repository.js';
-import { ConflictError, NotFoundError } from '../../common/errors/httpErrors.js';
+import { BadRequestError, ConflictError, NotFoundError } from '../../common/errors/httpErrors.js';
 import { writeAuditLog } from '../../common/utils/auditLog.js';
 import { parsePagination, buildPaginationMeta } from '../../common/utils/pagination.js';
 import { logger } from '../../common/utils/logger.js';
@@ -9,6 +9,11 @@ import {
   queueRegistrationConfirmation,
   cancelQueuedEventNotifications,
 } from '../notifications/notifications.service.js';
+import {
+  getEventPaymentReceiptPath,
+  removeEventPaymentReceipt,
+  saveEventPaymentReceipt,
+} from './eventPaymentReceiptStorage.js';
 
 async function queueEventSideEffect(operation, eventId, operationName) {
   try {
@@ -40,7 +45,10 @@ function toCouncilEvent(event) {
     registrationOpen: event.registrationOpen,
     status: event.status,
     format: event.format ?? undefined,
-    entryFee: event.entryFee ?? undefined,
+    entryFee: event.isPaid ? `${event.feeAmount} ETB` : (event.entryFee || 'Free Admission'),
+    isPaid: event.isPaid,
+    feeAmount: Number(event.feeAmount),
+    paymentInstructions: event.paymentInstructions ?? undefined,
     targetAudience: event.targetAudience ?? undefined,
     livestreamUrl: event.livestreamUrl ?? undefined,
     contactPhone: event.contactPhone ?? undefined,
@@ -65,7 +73,9 @@ function toEventRegistration(registration) {
     organizationOrMadrasa: registration.organizationOrMadrasa ?? undefined,
     attendeesCount: registration.attendeesCount,
     notes: registration.notes ?? undefined,
-    passNumber: registration.passNumber,
+    passNumber: registration.passNumber ?? undefined,
+    paymentStatus: registration.paymentStatus,
+    hasPaymentReceipt: Boolean(registration.paymentReceiptFilename),
     status: registration.status === 'CHECKED_IN' ? 'Checked-In'
       : registration.status === 'CANCELLED' ? 'Cancelled' : 'Confirmed',
     createdAt: registration.createdAt.toISOString(),
@@ -93,7 +103,15 @@ export async function getEvent(id, { publicOnly = true } = {}) {
 }
 
 export async function createEvent(data, actorId) {
-  const event = await eventsRepository.create(toEventData(data));
+  if (data.isPaid && (!(data.feeAmount > 0) || !data.paymentInstructions?.trim())) {
+    throw new BadRequestError('Charged events require a positive ETB amount and payment instructions');
+  }
+  const eventData = {
+    ...data,
+    feeAmount: data.isPaid ? data.feeAmount : 0,
+    paymentInstructions: data.isPaid ? data.paymentInstructions.trim() : null,
+  };
+  const event = await eventsRepository.create(toEventData(eventData));
   await writeAuditLog({ actorId, action: 'create', entityType: 'council_event', entityId: event.id, after: { title: event.title } });
   if (event.isPublished) {
     await queueEventSideEffect(() => queueEventNotifications(event), event.id, 'Queueing event notifications');
@@ -107,7 +125,26 @@ export async function updateEvent(id, data, actorId) {
   if (data.maxCapacity !== undefined && data.maxCapacity < existing.registeredSeats) {
     throw new ConflictError('Capacity cannot be lower than the number of seats already reserved');
   }
-  const event = await eventsRepository.update(id, data.date ? toEventData(data) : data);
+  const nextIsPaid = data.isPaid ?? existing.isPaid;
+  const existingFeeAmount = Number(existing.feeAmount);
+  const nextFeeAmount = data.feeAmount ?? existingFeeAmount;
+  const nextInstructions = data.paymentInstructions ?? existing.paymentInstructions;
+  if (nextIsPaid && (!(nextFeeAmount > 0) || !nextInstructions?.trim())) {
+    throw new BadRequestError('Charged events require a positive ETB amount and payment instructions');
+  }
+  if (existing.registeredSeats > 0 && (
+    (data.isPaid !== undefined && data.isPaid !== existing.isPaid) ||
+    (data.feeAmount !== undefined && data.feeAmount !== existingFeeAmount) ||
+    (data.paymentInstructions !== undefined && data.paymentInstructions !== existing.paymentInstructions)
+  )) {
+    throw new ConflictError('Payment terms cannot be changed after attendees have reserved seats');
+  }
+  const eventData = {
+    ...data,
+    ...(data.isPaid === false ? { feeAmount: 0, paymentInstructions: null } : {}),
+    ...(data.paymentInstructions !== undefined ? { paymentInstructions: data.paymentInstructions.trim() || null } : {}),
+  };
+  const event = await eventsRepository.update(id, eventData.date ? toEventData(eventData) : eventData);
   await writeAuditLog({ actorId, action: 'update', entityType: 'council_event', entityId: id, after: data });
   const changedNotificationFields = ['title', 'category', 'date', 'time', 'location', 'district', 'description', 'status', 'isPublished'];
   const notificationRelevantChange = changedNotificationFields.some(
@@ -136,21 +173,50 @@ export async function deleteEvent(id, actorId) {
   await writeAuditLog({ actorId, action: 'delete', entityType: 'council_event', entityId: id, after: { title: existing.title } });
 }
 
-export async function registerForEvent(eventId, data) {
+export async function registerForEvent(eventId, data, receiptFile) {
   const passNumber = `JIC-PASS-${new Date().getFullYear()}-${randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase()}`;
   const registrationData = {
     ...data,
     ...(data.email ? { email: data.email.trim().toLowerCase() } : {}),
   };
-  const result = await eventsRepository.register(eventId, registrationData, passNumber);
+  const event = await eventsRepository.findById(eventId);
+  if (!event || !event.isPublished || !event.registrationOpen || event.status === 'Cancelled') {
+    throw new NotFoundError('Event not found or registration is closed');
+  }
+  if (event.isPaid && !registrationData.email) {
+    throw new BadRequestError('An email address is required for paid event registration');
+  }
+  if (event.isPaid && !receiptFile) {
+    throw new BadRequestError('Attach your payment receipt to submit a paid event registration');
+  }
+  if (!event.isPaid && receiptFile) {
+    throw new BadRequestError('Receipts can only be submitted for charged events');
+  }
+
+  const receipt = event.isPaid ? await saveEventPaymentReceipt(receiptFile) : null;
+  let result;
+  try {
+    result = await eventsRepository.register(eventId, registrationData, passNumber, receipt);
+  } catch (error) {
+    if (receipt) await removeEventPaymentReceipt(receipt.filepath);
+    throw error;
+  }
+  if (!result || result.duplicate || result.full || result.paymentRequired || result.unexpectedReceipt) {
+    if (receipt) await removeEventPaymentReceipt(receipt.filepath);
+  }
   if (!result) throw new NotFoundError('Event not found or registration is closed');
   if (result.duplicate) throw new ConflictError('This email is already registered for this event');
   if (result.full) throw new ConflictError('There are not enough seats remaining for this registration');
-  await queueEventSideEffect(
-    () => queueRegistrationConfirmation(result.registration),
-    result.registration.eventId,
-    'Queueing event registration confirmation'
-  );
+  if (result.paymentRequired) throw new BadRequestError('A payment receipt is required for this charged event');
+  if (result.unexpectedReceipt) throw new BadRequestError('This event does not accept payment receipts');
+
+  if (result.registration.paymentStatus === 'FREE') {
+    await queueEventSideEffect(
+      () => queueRegistrationConfirmation(result.registration),
+      result.registration.eventId,
+      'Queueing event registration confirmation'
+    );
+  }
   return toEventRegistration(result.registration);
 }
 
@@ -183,6 +249,7 @@ export async function listEventRegistrations(query) {
 export async function updateRegistrationStatus(id, status, actorId) {
   const result = await eventsRepository.updateRegistrationStatus(id, status);
   if (!result) throw new NotFoundError('Event registration not found');
+  if (result.paymentPending) throw new ConflictError('Payment must be approved before checking in this attendee');
   await writeAuditLog({
     actorId,
     action: status === 'CHECKED_IN' ? 'check_in' : 'cancel',
@@ -191,4 +258,38 @@ export async function updateRegistrationStatus(id, status, actorId) {
     after: { status },
   });
   return toEventRegistration(result.registration);
+}
+
+export async function reviewEventPayment(id, paymentStatus, actorId) {
+  const passNumber = paymentStatus === 'APPROVED'
+    ? `JIC-PASS-${new Date().getFullYear()}-${randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase()}`
+    : undefined;
+  const result = await eventsRepository.reviewPaymentStatus(id, paymentStatus, passNumber);
+  if (!result) throw new NotFoundError('Event registration not found');
+  if (result.notPending) throw new ConflictError('Only registrations awaiting payment review can be approved or rejected');
+
+  if (paymentStatus === 'APPROVED') {
+    await queueEventSideEffect(
+      () => queueRegistrationConfirmation(result.registration),
+      result.registration.eventId,
+      'Queueing approved event registration confirmation'
+    );
+  }
+  await writeAuditLog({
+    actorId,
+    action: paymentStatus === 'APPROVED' ? 'approve_payment' : 'reject_payment',
+    entityType: 'event_registration',
+    entityId: id,
+    after: { paymentStatus },
+  });
+  return toEventRegistration(result.registration);
+}
+
+export async function getEventPaymentReceipt(id) {
+  const registration = await eventsRepository.findRegistrationById(id);
+  if (!registration?.paymentReceiptFilename) throw new NotFoundError('Payment receipt not found');
+  return {
+    path: getEventPaymentReceiptPath(registration.paymentReceiptFilename),
+    mimeType: registration.paymentReceiptMimeType || 'application/octet-stream',
+  };
 }

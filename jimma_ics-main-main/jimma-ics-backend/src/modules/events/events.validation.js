@@ -54,6 +54,9 @@ const eventFields = {
   status: z.enum(eventStatuses).default('Upcoming'),
   format: z.enum(formats).optional(),
   entryFee: z.string().trim().max(100).optional(),
+  isPaid: z.boolean().default(false),
+  feeAmount: z.coerce.number().finite().min(0).max(100000000).default(0),
+  paymentInstructions: z.string().trim().max(2000).optional(),
   targetAudience: z.string().trim().max(500).optional(),
   livestreamUrl: z.string().url().optional().or(z.literal('')),
   contactPhone: z.string().trim().max(30).optional(),
@@ -73,11 +76,17 @@ export const listEventsSchema = z.object({
   }),
 });
 export const eventIdParamSchema = z.object({ params: idParamSchema });
-export const createEventSchema = z.object({ body: z.object(eventFields) });
+export const createEventSchema = z.object({
+  body: z.object(eventFields).refine(
+    (data) => !data.isPaid || (data.feeAmount > 0 && Boolean(data.paymentInstructions?.trim())),
+    { message: 'Charged events require a positive ETB amount and payment instructions' }
+  ),
+});
 export const updateEventSchema = z.object({
   params: idParamSchema,
   body: z.object(Object.fromEntries(Object.entries(eventFields).map(([key, schema]) => [key, schema.optional()])))
-    .refine((data) => Object.keys(data).length > 0, { message: 'At least one field must be provided' }),
+    .refine((data) => Object.keys(data).length > 0, { message: 'At least one field must be provided' })
+    .refine((data) => data.feeAmount === undefined || data.feeAmount >= 0, { message: 'Event fee cannot be negative' }),
 });
 export const listEventRegistrationsSchema = z.object({
   query: paginationQuerySchema.extend({ eventId: z.coerce.number().int().positive().optional() }),
@@ -103,4 +112,8 @@ export const findMyEventRegistrationsSchema = z.object({
 export const updateRegistrationSchema = z.object({
   params: z.object({ id: z.coerce.number().int().positive() }),
   body: z.object({ status: z.enum(['CHECKED_IN', 'CANCELLED']) }),
+});
+export const reviewEventPaymentSchema = z.object({
+  params: z.object({ id: z.coerce.number().int().positive() }),
+  body: z.object({ paymentStatus: z.enum(['APPROVED', 'REJECTED']) }),
 });

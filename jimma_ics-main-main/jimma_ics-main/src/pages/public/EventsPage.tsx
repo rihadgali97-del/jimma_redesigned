@@ -55,6 +55,7 @@ export const EventsPage: React.FC = () => {
 
   // Modals state
   const [selectedEventForDetail, setSelectedEventForDetail] = useState<CouncilEvent | null>(null);
+  const [openRegistrationEventId, setOpenRegistrationEventId] = useState<string | null>(null);
   const [selectedPassData, setSelectedPassData] = useState<{
     event: CouncilEvent;
     registration: EventRegistration;
@@ -117,6 +118,17 @@ export const EventsPage: React.FC = () => {
   const quranCompsCount = events.filter((e) => e.category === 'Quran Competition').length;
 
   const handleOpenRegistrationModal = (event: CouncilEvent) => {
+    setOpenRegistrationEventId(null);
+    setSelectedEventForDetail(event);
+  };
+
+  const handleRetryPaymentRegistration = (registration: EventRegistration) => {
+    const event = events.find((item) => item.id === registration.eventId);
+    if (!event || !event.registrationOpen) {
+      addToast('Registration Unavailable', 'This event is no longer accepting registrations.', 'warning');
+      return;
+    }
+    setOpenRegistrationEventId(event.id);
     setSelectedEventForDetail(event);
   };
 
@@ -169,7 +181,7 @@ export const EventsPage: React.FC = () => {
               Council Events, Symposia & Quranic Competitions
             </h1>
             <p className="text-stone-300 text-xs sm:text-sm leading-relaxed">
-              Explore public gatherings, annual Tahfeez championships, youth workshops, and scholar conferences hosted across Jimma Zone. Admission is open and free to the public with verified digital admission passes.
+              Explore public gatherings, annual Tahfeez championships, youth workshops, and scholar conferences hosted across Jimma Zone. Events may be free or paid; approved registrations receive verified digital admission passes.
             </p>
           </div>
 
@@ -198,7 +210,7 @@ export const EventsPage: React.FC = () => {
               }`}
             >
               <Ticket className="w-4 h-4 text-amber-400" />
-              <span>My Registered Passes ({eventRegistrations.length})</span>
+              <span>My Registrations & Passes ({eventRegistrations.length})</span>
             </button>
           </div>
         </div>
@@ -298,11 +310,25 @@ export const EventsPage: React.FC = () => {
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
-                        {reg.passNumber}
-                      </span>
-                      <span className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                        {reg.status}
+                      {reg.passNumber ? (
+                        <span className="font-mono text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
+                          {reg.passNumber}
+                        </span>
+                      ) : (
+                        <span className="text-xs font-semibold text-amber-700 dark:text-amber-300">Payment under review</span>
+                      )}
+                      <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border ${
+                        reg.paymentStatus === 'PENDING'
+                          ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
+                          : reg.paymentStatus === 'REJECTED'
+                            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+                            : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                      }`}>
+                        {reg.paymentStatus === 'PENDING'
+                          ? 'Payment review'
+                          : reg.paymentStatus === 'REJECTED'
+                            ? 'Receipt rejected'
+                            : reg.status}
                       </span>
                     </div>
 
@@ -315,6 +341,11 @@ export const EventsPage: React.FC = () => {
                         <Calendar className="w-3.5 h-3.5 text-amber-500" />
                         <span>{reg.eventDate}</span>
                       </div>
+                      {reg.paymentStatus === 'REJECTED' && (
+                        <p role="alert" className="rounded-lg bg-rose-500/10 px-2.5 py-2 text-xs font-medium text-rose-700 dark:text-rose-300">
+                          Your receipt was rejected. Please check the payment instructions and submit a new registration with a valid receipt.
+                        </p>
+                      )}
                       <div className="flex items-center gap-1.5">
                         <Users className="w-3.5 h-3.5 text-blue-500" />
                         <span>Attendee: <strong>{reg.fullName}</strong> ({reg.attendeesCount} seat(s))</span>
@@ -323,16 +354,33 @@ export const EventsPage: React.FC = () => {
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between">
-                    <span className="text-[11px] text-stone-400">Issued: {reg.createdAt}</span>
-                    <Button
-                      variant="gold"
-                      size="sm"
-                      onClick={() => handleOpenExistingPass(reg)}
-                      icon={<Ticket className="w-3.5 h-3.5" />}
-                      className="text-xs"
-                    >
-                      Open Pass
-                    </Button>
+                    <span className="text-[11px] text-stone-400">
+                      {reg.paymentStatus === 'PENDING' ? 'Submitted: ' : reg.paymentStatus === 'REJECTED' ? 'Reviewed: ' : 'Issued: '}{reg.createdAt}
+                    </span>
+                    {reg.paymentStatus === 'REJECTED' ? (
+                      <Button
+                        variant="gold"
+                        size="sm"
+                        disabled={!events.find((item) => item.id === reg.eventId)?.registrationOpen}
+                        onClick={() => handleRetryPaymentRegistration(reg)}
+                        icon={<Ticket className="w-3.5 h-3.5" />}
+                        className="text-xs"
+                      >
+                        Retry Registration
+                      </Button>
+                    ) : reg.passNumber ? (
+                      <Button
+                        variant="gold"
+                        size="sm"
+                        onClick={() => handleOpenExistingPass(reg)}
+                        icon={<Ticket className="w-3.5 h-3.5" />}
+                        className="text-xs"
+                      >
+                        Open Pass
+                      </Button>
+                    ) : (
+                      <span className="text-[11px] text-stone-500">Pass issued after approval</span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -732,6 +780,8 @@ export const EventsPage: React.FC = () => {
             setSelectedEventForNotification(eventId);
             setIsNotificationModalOpen(true);
           }}
+          initialTab={openRegistrationEventId === selectedEventForDetail.id ? 'register' : 'overview'}
+          isRetryingRejectedPayment={openRegistrationEventId === selectedEventForDetail.id}
           onOpenPass={(reg) => {
             setSelectedPassData({ event: selectedEventForDetail, registration: reg });
           }}

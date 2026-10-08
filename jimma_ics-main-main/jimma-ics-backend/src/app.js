@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'node:path';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
@@ -14,6 +15,8 @@ import { notFoundHandler } from './common/middlewares/notFoundHandler.js';
 import { errorHandler } from './common/middlewares/errorHandler.js';
 import { auditRequestContext } from './common/utils/auditRequestContext.js';
 import { apiRouter } from './routes/index.js';
+import { authenticate } from './common/middlewares/authenticate.js';
+import { authorize } from './common/middlewares/authorize.js';
 
 export function createApp() {
   const app = express();
@@ -44,6 +47,14 @@ export function createApp() {
   );
 
   app.use(defaultRateLimiter);
+
+  // Keep payment proofs under the uploads volume but serve them only to event administrators.
+  app.use(
+    `/${env.UPLOAD_DIR}/private-event-payment-receipts`,
+    authenticate,
+    authorize('events.write'),
+    express.static(path.resolve(env.UPLOAD_DIR, 'private-event-payment-receipts'))
+  );
 
   // Serve uploaded files (mosque/madrasa photos, etc.) statically. In
   // production this would typically move to a CDN/object storage — see

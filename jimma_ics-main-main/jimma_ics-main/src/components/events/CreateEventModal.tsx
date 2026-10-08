@@ -49,7 +49,9 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   );
   const [maxCapacity, setMaxCapacity] = useState(initialEvent?.maxCapacity || 500);
   const [format, setFormat] = useState<CouncilEvent['format']>(initialEvent?.format || 'In-Person');
-  const [entryFee, setEntryFee] = useState(initialEvent?.entryFee || 'Free');
+  const [isPaid, setIsPaid] = useState(Boolean(initialEvent?.isPaid));
+  const [feeAmount, setFeeAmount] = useState(initialEvent?.feeAmount || 0);
+  const [paymentInstructions, setPaymentInstructions] = useState(initialEvent?.paymentInstructions || '');
   const [targetAudience, setTargetAudience] = useState(initialEvent?.targetAudience || 'General Public & Madrasa Students');
   const [livestreamUrl, setLivestreamUrl] = useState(initialEvent?.livestreamUrl || '');
   const [image, setImage] = useState(
@@ -97,6 +99,11 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
       return;
     }
 
+    if (isPaid && (!(Number(feeAmount) > 0) || !paymentInstructions.trim())) {
+      addToast('Payment Details Required', 'Enter a positive ETB amount and payment instructions for charged events.', 'warning');
+      return;
+    }
+
     const payload = {
       title: title.trim(),
       arabicTitle: arabicTitle.trim() || undefined,
@@ -116,7 +123,10 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
       image,
       registrationOpen,
       format,
-      entryFee,
+      entryFee: isPaid ? `${Number(feeAmount)} ETB` : 'Free',
+      isPaid,
+      feeAmount: isPaid ? Number(feeAmount) : 0,
+      paymentInstructions: isPaid ? paymentInstructions.trim() : undefined,
       targetAudience,
       livestreamUrl: livestreamUrl.trim() || undefined,
       schedule,
@@ -293,6 +303,59 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 />
               </div>
             </div>
+          </div>
+
+          {/* Event Payment */}
+          <div className="space-y-4 pt-2 border-t border-stone-200 dark:border-stone-800">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+              Admission Payment
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold">Admission Type *</label>
+                <select
+                  value={isPaid ? 'paid' : 'free'}
+                  onChange={(e) => setIsPaid(e.target.value === 'paid')}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs sm:text-sm outline-hidden focus:ring-2 focus:ring-amber-500"
+                >
+                  <option value="free">Free</option>
+                  <option value="paid">Charged</option>
+                </select>
+              </div>
+              {isPaid && (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold">Fee per attendee (ETB) *</label>
+                    <input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      required
+                      value={feeAmount}
+                      onChange={(e) => setFeeAmount(Number(e.target.value))}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs sm:text-sm outline-hidden focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <label className="text-xs font-semibold">Payment Instructions *</label>
+                    <textarea
+                      rows={3}
+                      required
+                      maxLength={2000}
+                      placeholder="Bank/mobile-money account, account holder, and payment reference instructions"
+                      value={paymentInstructions}
+                      onChange={(e) => setPaymentInstructions(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs sm:text-sm outline-hidden focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+            {isPaid && (
+              <p className="text-xs text-stone-500">
+                Attendees must pay, upload a receipt, and wait for an administrator to approve it before a pass is issued.
+              </p>
+            )}
           </div>
 
           {/* Section 3: Key People & Description */}

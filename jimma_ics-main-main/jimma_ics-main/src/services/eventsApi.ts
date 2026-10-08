@@ -1,4 +1,4 @@
-import { apiRequest } from './authApi';
+import { apiRequest, apiRequestBlob } from './authApi';
 import { CouncilEvent, EventRegistration, EventScheduleItem } from '../types';
 
 type ApiEvent = Omit<CouncilEvent, 'id' | 'date' | 'attendeesCount'> & {
@@ -70,11 +70,22 @@ export async function registerForEventRecord(data: {
   organizationOrMadrasa?: string;
   attendeesCount: number;
   notes?: string;
+  paymentReceipt?: File;
 }): Promise<EventRegistration> {
-  const { eventId, ...body } = data;
+  const { eventId, paymentReceipt, ...body } = data;
+  const requestBody: BodyInit = paymentReceipt
+    ? (() => {
+        const formData = new FormData();
+        Object.entries(body).forEach(([key, value]) => {
+          if (value !== undefined) formData.append(key, String(value));
+        });
+        formData.append('receipt', paymentReceipt);
+        return formData;
+      })()
+    : JSON.stringify(body);
   const registration = await apiRequest<ApiRegistration>(`/events/${encodeURIComponent(eventId)}/registrations`, {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: requestBody,
   });
   return mapRegistration(registration);
 }
@@ -100,6 +111,18 @@ export async function updateEventRegistrationStatus(id: string, status: 'CHECKED
     body: JSON.stringify({ status }),
   });
   return mapRegistration(registration);
+}
+
+export async function reviewEventPaymentRecord(id: string, paymentStatus: 'APPROVED' | 'REJECTED') {
+  const registration = await apiRequest<ApiRegistration>(`/admin/events/registrations/${encodeURIComponent(id)}/payment`, {
+    method: 'PATCH',
+    body: JSON.stringify({ paymentStatus }),
+  });
+  return mapRegistration(registration);
+}
+
+export function fetchEventPaymentReceiptRecord(id: string) {
+  return apiRequestBlob(`/admin/events/registrations/${encodeURIComponent(id)}/payment-receipt`);
 }
 
 export type EventScheduleInput = EventScheduleItem;

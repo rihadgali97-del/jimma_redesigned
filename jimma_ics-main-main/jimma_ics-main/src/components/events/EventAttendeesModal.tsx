@@ -112,6 +112,8 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
     refreshEventRegistrations,
     checkInAttendee,
     registerForEvent,
+    reviewEventPayment,
+    fetchEventPaymentReceipt,
     dispatchMessage,
     currentUser,
     addToast,
@@ -123,6 +125,8 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
   const [showBroadcastSms, setShowBroadcastSms] = useState(false);
   const [showQrScanner, setShowQrScanner] = useState(false);
   const [isLoadingAttendees, setIsLoadingAttendees] = useState(false);
+  const [receiptPreviewUrl, setReceiptPreviewUrl] = useState<string | null>(null);
+  const [reviewingRegistrationId, setReviewingRegistrationId] = useState<string | null>(null);
 
   // Walk-in form state
   const [walkInName, setWalkInName] = useState('');
@@ -143,6 +147,10 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
     void refreshEventRegistrations(event.id).finally(() => setIsLoadingAttendees(false));
   }, [isOpen, event.id]);
 
+  useEffect(() => () => {
+    if (receiptPreviewUrl) URL.revokeObjectURL(receiptPreviewUrl);
+  }, [receiptPreviewUrl]);
+
   if (!isOpen) return null;
 
   const eventAttendees = eventRegistrations.filter((r) => r.eventId === event.id);
@@ -159,7 +167,10 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
   });
 
   const checkedInCount = eventAttendees.filter((r) => r.status === 'Checked-In').length;
-  const totalSeats = eventAttendees.reduce((acc, r) => acc + (r.attendeesCount || 1), 0);
+  const totalSeats = eventAttendees
+    .filter((registration) => registration.status !== 'Cancelled')
+    .reduce((acc, r) => acc + (r.attendeesCount || 1), 0);
+  const passHolders = eventAttendees.filter((registration) => registration.status !== 'Cancelled' && registration.passNumber);
 
   const handlePassCodeScanned = async (passCode: string) => {
     setShowQrScanner(false);
@@ -216,7 +227,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
   const handleExportCsv = () => {
     const headers = ['Pass Number', 'Full Name', 'Phone', 'Email', 'District', 'Organization / Madrasa', 'Seats', 'Status', 'Date Registered', 'Notes'];
     const rows = eventAttendees.map((r) => [
-      r.passNumber,
+      r.passNumber || '',
       `"${r.fullName}"`,
       r.phone,
       r.email || '',
@@ -239,6 +250,26 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
     addToast('CSV Exported', `Downloaded list of ${eventAttendees.length} attendees.`, 'success');
   };
 
+  const handleOpenReceipt = async (registrationId: string) => {
+    try {
+      const blob = await fetchEventPaymentReceipt(registrationId);
+      setReceiptPreviewUrl(URL.createObjectURL(blob));
+    } catch {
+      // The app context reports the API error.
+    }
+  };
+
+  const handlePaymentReview = async (registrationId: string, paymentStatus: 'APPROVED' | 'REJECTED') => {
+    setReviewingRegistrationId(registrationId);
+    try {
+      await reviewEventPayment(registrationId, paymentStatus);
+    } catch {
+      // The app context reports the API error.
+    } finally {
+      setReviewingRegistrationId(null);
+    }
+  };
+
   const handleSendBroadcastSms = async () => {
     if (!smsContent.trim()) return;
     setIsSendingSms(true);
@@ -248,17 +279,17 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
         category: 'general_bulletin',
         channel: 'sms',
         senderId: currentUser.id,
-        recipientTarget: `${eventAttendees.length} Confirmed Attendees for ${event.title}`,
-        recipientCount: eventAttendees.length,
+        recipientTarget: `${passHolders.length} Confirmed Attendees for ${event.title}`,
+        recipientCount: passHolders.length,
         content: smsContent,
-        costETB: eventAttendees.length * 0.35,
+        costETB: passHolders.length * 0.35,
       });
 
       setIsSendingSms(false);
       setShowBroadcastSms(false);
       addToast(
         'Broadcast Message Dispatched',
-        `SMS sent to ${eventAttendees.length} registered attendees via Ethio Telecom shortcode.`,
+        `SMS sent to ${passHolders.length} approved attendees via Ethio Telecom shortcode.`,
         'success'
       );
     } catch (err) {
@@ -322,15 +353,17 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
             >
               Broadcast SMS
             </Button>
-            <Button
-              variant="gold"
-              size="sm"
-              onClick={() => setShowAddWalkIn(!showAddWalkIn)}
-              icon={<UserPlus className="w-3.5 h-3.5" />}
-              className="text-xs"
-            >
-              Add Walk-In
-            </Button>
+            {!event.isPaid && (
+              <Button
+                variant="gold"
+                size="sm"
+                onClick={() => setShowAddWalkIn(!showAddWalkIn)}
+                icon={<UserPlus className="w-3.5 h-3.5" />}
+                className="text-xs"
+              >
+                Add Walk-In
+              </Button>
+            )}
             <button
               onClick={onClose}
               className="p-2 rounded-xl text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors"
@@ -366,7 +399,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
         )}
 
         {/* Walk-In Form Drawer (Conditional) */}
-        {showAddWalkIn && (
+        {showAddWalkIn && !event.isPaid && (
           <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border-b border-amber-200 dark:border-amber-900/40 animate-in slide-in-from-top-2 duration-150">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
@@ -500,6 +533,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
                     <th className="p-3">Madrasa / Affiliation</th>
                     <th className="p-3 text-center">Seats</th>
                     <th className="p-3">Status</th>
+                    <th className="p-3">Payment</th>
                     <th className="p-3 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -510,7 +544,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
                       className="hover:bg-stone-50/80 dark:hover:bg-stone-800/40 transition-colors"
                     >
                       <td className="p-3 font-mono font-bold text-amber-600 dark:text-amber-400">
-                        {att.passNumber}
+                        {att.passNumber || 'Pending'}
                       </td>
                       <td className="p-3 font-medium text-stone-900 dark:text-stone-100">
                         {att.fullName}
@@ -541,9 +575,20 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
                           {att.status}
                         </span>
                       </td>
+                      <td className="p-3">
+                        <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                          att.paymentStatus === 'PENDING'
+                            ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                            : att.paymentStatus === 'REJECTED'
+                              ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                              : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                        }`}>
+                          {att.paymentStatus || 'FREE'}
+                        </span>
+                      </td>
                       <td className="p-3 text-right">
                         <div className="inline-flex items-center gap-1.5">
-                          {att.status !== 'Checked-In' && (
+                          {att.status !== 'Checked-In' && att.passNumber && (
                             <Button
                               variant="primary"
                               size="sm"
@@ -554,16 +599,51 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
                               Check In
                             </Button>
                           )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={<QrCode className="w-3.5 h-3.5" />}
-                            onClick={() => onOpenPass(att)}
-                            className="text-[11px] py-1"
-                            title="View Digital Pass"
-                          >
-                            Pass
-                          </Button>
+                          {att.hasPaymentReceipt && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={<Download className="w-3.5 h-3.5" />}
+                              onClick={() => void handleOpenReceipt(att.id)}
+                              className="text-[11px] py-1"
+                            >
+                              Receipt
+                            </Button>
+                          )}
+                          {att.paymentStatus === 'PENDING' && (
+                            <>
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                disabled={reviewingRegistrationId === att.id}
+                                onClick={() => void handlePaymentReview(att.id, 'APPROVED')}
+                                className="text-[11px] py-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={reviewingRegistrationId === att.id}
+                                onClick={() => void handlePaymentReview(att.id, 'REJECTED')}
+                                className="text-[11px] py-1 text-rose-600"
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          {att.passNumber && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={<QrCode className="w-3.5 h-3.5" />}
+                              onClick={() => onOpenPass(att)}
+                              className="text-[11px] py-1"
+                              title="View Digital Pass"
+                            >
+                              Pass
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -585,7 +665,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
         {/* Footer */}
         <div className="p-4 border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950/60 flex items-center justify-between text-xs text-stone-500">
           <div>
-            Total Registrations: <strong>{eventAttendees.length}</strong> | Admitted Seats: <strong>{totalSeats}</strong>
+            Total Registrations: <strong>{eventAttendees.length}</strong> | Reserved Seats: <strong>{totalSeats}</strong>
           </div>
           <Button variant="outline" size="sm" onClick={onClose} className="text-xs">
             Done
@@ -593,6 +673,27 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
         </div>
 
       </div>
+      {receiptPreviewUrl && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-stone-950/80 p-4">
+          <div className="flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white dark:bg-stone-900">
+            <div className="flex items-center justify-between border-b border-stone-200 p-3 dark:border-stone-800">
+              <h3 className="text-sm font-semibold">Payment Receipt</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<X className="h-4 w-4" />}
+                onClick={() => {
+                  URL.revokeObjectURL(receiptPreviewUrl);
+                  setReceiptPreviewUrl(null);
+                }}
+              >
+                Close
+              </Button>
+            </div>
+            <iframe title="Payment receipt preview" src={receiptPreviewUrl} className="min-h-0 flex-1" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
