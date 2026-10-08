@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CouncilEvent, EventRegistration } from '../../types';
 import { useApp } from '../../context/AppContext';
 import {
@@ -58,6 +58,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'agenda' | 'speakers' | 'register'>(initialTab);
+  const tabContentRef = useRef<HTMLDivElement>(null);
 
   // Form State
   const [fullName, setFullName] = useState('');
@@ -70,6 +71,10 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   const [paymentReceipt, setPaymentReceipt] = useState<File | null>(null);
   const [hasSubmittedRetry, setHasSubmittedRetry] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    tabContentRef.current?.scrollTo({ top: 0 });
+  }, [activeTab]);
 
   if (!isOpen) return null;
 
@@ -126,7 +131,9 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
       <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl w-full max-w-4xl max-h-[92dvh] min-h-0 flex flex-col shadow-2xl overflow-hidden my-auto text-stone-900 dark:text-stone-100 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Banner Image & Top Badges */}
-        <div className="relative h-48 sm:h-64 w-full bg-stone-800 overflow-hidden shrink-0">
+        <div className={`relative w-full bg-stone-800 overflow-hidden shrink-0 ${
+          activeTab === 'register' ? 'h-28 sm:h-32' : 'h-48 sm:h-64'
+        }`}>
           <img
             src={event.image}
             alt={event.title}
@@ -231,7 +238,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         </div>
 
         {/* Tab Content Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-6">
+        <div ref={tabContentRef} className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-6">
 
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
@@ -578,7 +585,11 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                   </Button>}
                 </div>
               ) : (
-                <form onSubmit={handleRegisterSubmit} className="space-y-4 max-w-2xl mx-auto min-h-0">
+                <form
+                  id={`event-registration-form-${event.id}`}
+                  onSubmit={handleRegisterSubmit}
+                  className="space-y-4 max-w-2xl mx-auto min-h-0"
+                >
                   <div className="border-b border-stone-200 dark:border-stone-800 pb-3">
                     <h3 className="text-base font-serif font-bold text-stone-900 dark:text-stone-100">
                       Complete Public Registration
@@ -712,17 +723,6 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     </div>
                   )}
 
-                  <div className="pt-3">
-                    <Button
-                      type="submit"
-                      variant="gold"
-                      disabled={isSubmitting || !event.registrationOpen || isFull}
-                      icon={<Ticket className="w-4 h-4" />}
-                      className="w-full justify-center text-xs sm:text-sm py-3"
-                    >
-                      {isSubmitting ? 'Submitting…' : event.isPaid ? 'Submit Receipt for Approval' : 'Confirm Registration & Generate Admission Pass'}
-                    </Button>
-                  </div>
                 </form>
               )}
             </div>
@@ -732,7 +732,9 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
         {/* Modal Bottom Footer */}
         <div className="p-4 sm:p-5 border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950/70 flex flex-wrap items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
+          <div className={`flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400 ${
+            activeTab === 'register' ? 'hidden' : ''
+          }`}>
             <Info className="w-3.5 h-3.5 text-amber-500" />
             <span>Questions? Contact Council Helpdesk at <strong>{event.contactPhone || '+251 47 111 2345'}</strong></span>
           </div>
@@ -746,6 +748,18 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             >
               Close
             </Button>
+            {activeTab === 'register' && !userExistingReg && (
+              <Button
+                type="submit"
+                form={`event-registration-form-${event.id}`}
+                variant="gold"
+                disabled={isSubmitting || !event.registrationOpen || isFull}
+                icon={<Ticket className="w-4 h-4" />}
+                className="text-xs sm:text-sm"
+              >
+                {isSubmitting ? 'Submitting…' : event.isPaid ? 'Submit Receipt for Approval' : 'Complete Registration'}
+              </Button>
+            )}
             {activeTab !== 'register' && !userExistingReg && event.registrationOpen && (
               <Button
                 variant="gold"
