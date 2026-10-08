@@ -15,6 +15,10 @@ export const register = asyncHandler(async (req, res) => {
   sendCreated(res, await eventsService.registerForEvent(req.params.id, req.body));
 });
 
+export const findMyRegistrations = asyncHandler(async (req, res) => {
+  sendSuccess(res, { data: await eventsService.findMyEventRegistrations(req.body) });
+});
+
 export const listAdmin = asyncHandler(async (req, res) => {
   const result = await eventsService.listEvents(req.query, { publicOnly: false });
   sendSuccess(res, { data: result.items, meta: result.meta });

@@ -138,8 +138,13 @@ export async function deleteEvent(id, actorId) {
 
 export async function registerForEvent(eventId, data) {
   const passNumber = `JIC-PASS-${new Date().getFullYear()}-${randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase()}`;
-  const result = await eventsRepository.register(eventId, data, passNumber);
+  const registrationData = {
+    ...data,
+    ...(data.email ? { email: data.email.trim().toLowerCase() } : {}),
+  };
+  const result = await eventsRepository.register(eventId, registrationData, passNumber);
   if (!result) throw new NotFoundError('Event not found or registration is closed');
+  if (result.duplicate) throw new ConflictError('This email is already registered for this event');
   if (result.full) throw new ConflictError('There are not enough seats remaining for this registration');
   await queueEventSideEffect(
     () => queueRegistrationConfirmation(result.registration),
@@ -147,6 +152,26 @@ export async function registerForEvent(eventId, data) {
     'Queueing event registration confirmation'
   );
   return toEventRegistration(result.registration);
+}
+
+function normalizePhone(phone) {
+  return phone.replace(/\D/g, '');
+}
+
+export async function findMyEventRegistrations({ email, phone }) {
+  const registrations = await eventsRepository.findRegistrationsByEmail(email.trim().toLowerCase());
+  const normalizedPhone = normalizePhone(phone);
+  const matchingRegistrations = registrations.filter(
+    (registration) => normalizePhone(registration.phone) === normalizedPhone
+  );
+  const seenEvents = new Set();
+  return matchingRegistrations
+    .filter((registration) => {
+      if (seenEvents.has(registration.eventId)) return false;
+      seenEvents.add(registration.eventId);
+      return true;
+    })
+    .map(toEventRegistration);
 }
 
 export async function listEventRegistrations(query) {

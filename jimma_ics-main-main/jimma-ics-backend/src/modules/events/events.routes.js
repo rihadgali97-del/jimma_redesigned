@@ -3,6 +3,7 @@ import * as eventsController from './events.controller.js';
 import {
   createEventSchema,
   eventIdParamSchema,
+  findMyEventRegistrationsSchema,
   listEventRegistrationsSchema,
   listEventsSchema,
   registerForEventSchema,
@@ -19,6 +20,12 @@ export const eventsAdminRouter = Router();
 
 eventsPublicRouter.get('/', validate(listEventsSchema), eventsController.listPublic);
 eventsPublicRouter.get('/:id', validate(eventIdParamSchema), eventsController.getPublic);
+eventsPublicRouter.post(
+  '/registrations/lookup',
+  strictRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 }),
+  validate(findMyEventRegistrationsSchema),
+  eventsController.findMyRegistrations
+);
 eventsPublicRouter.post(
   '/:id/registrations',
   strictRateLimiter({ windowMs: 60 * 60 * 1000, max: 12 }),

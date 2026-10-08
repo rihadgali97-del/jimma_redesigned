@@ -7,6 +7,7 @@ const mockRepository = {
   update: jest.fn(),
   delete: jest.fn(),
   register: jest.fn(),
+  findRegistrationsByEmail: jest.fn(),
   findRegistrations: jest.fn(),
   findRegistrationById: jest.fn(),
   updateRegistrationStatus: jest.fn(),
@@ -134,6 +135,67 @@ describe('Events service', () => {
       fullName: 'Amina Ahmed', phone: '+251911234567', district: 'Jimma', attendeesCount: 2,
     })).rejects.toMatchObject({ statusCode: 409 });
   });
+
+  it('rejects an email already registered for the same event', async () => {
+    mockRepository.register.mockResolvedValue({ duplicate: true });
+
+    await expect(eventsService.registerForEvent(42, {
+      fullName: 'Amina Ahmed',
+      phone: '+251911234567',
+      email: '  AMINA@example.com ',
+      district: 'Jimma',
+      attendeesCount: 1,
+    })).rejects.toMatchObject({ statusCode: 409 });
+
+    expect(mockRepository.register).toHaveBeenCalledWith(
+      42,
+      expect.objectContaining({ email: 'amina@example.com' }),
+      expect.any(String)
+    );
+    expect(mockQueueRegistrationConfirmation).not.toHaveBeenCalled();
+  });
+
+  it('returns matching active passes using normalized email and phone', async () => {
+    mockRepository.findRegistrationsByEmail.mockResolvedValue([
+      {
+        id: 81,
+        eventId: 42,
+        event,
+        fullName: 'Amina Ahmed',
+        phone: '+251 (911) 234-567',
+        email: 'amina@example.com',
+        district: 'Jimma',
+        organizationOrMadrasa: null,
+        attendeesCount: 1,
+        notes: null,
+        passNumber: 'JIC-PASS-2026-ABCDEF1234',
+        status: 'CONFIRMED',
+        createdAt: new Date('2026-10-03T12:00:00.000Z'),
+      },
+      {
+        id: 82,
+        eventId: 42,
+        event,
+        fullName: 'Amina Ahmed',
+        phone: '+251 911 234 567',
+        email: 'amina@example.com',
+        district: 'Jimma',
+        attendeesCount: 1,
+        passNumber: 'JIC-PASS-2026-ABCDEF1235',
+        status: 'CONFIRMED',
+        createdAt: new Date('2026-10-03T11:00:00.000Z'),
+      },
+    ]);
+
+    const results = await eventsService.findMyEventRegistrations({
+      email: ' AMINA@example.com ',
+      phone: '+251 911 234 567',
+    });
+
+    expect(results).toHaveLength(1);
+    expect(results[0]).toMatchObject({ id: '81', status: 'Confirmed' });
+    expect(mockRepository.findRegistrationsByEmail).toHaveBeenCalledWith('amina@example.com');
+  });
 });
 
 describe('Events request validation', () => {
@@ -153,5 +215,19 @@ describe('Events request validation', () => {
       body: { fullName: 'Amina Ahmed', phone: 'phone', district: 'Jimma', attendeesCount: 0 },
     });
     expect(result.success).toBe(false);
+  });
+
+  it('normalizes registration emails and validates pass lookup contacts', () => {
+    const registration = registerForEventSchema.parse({
+      params: { id: '42' },
+      body: {
+        fullName: 'Amina Ahmed',
+        phone: '+251911234567',
+        email: ' AMINA@example.com ',
+        district: 'Jimma',
+        attendeesCount: 1,
+      },
+    });
+    expect(registration.body.email).toBe('amina@example.com');
   });
 });

@@ -62,6 +62,7 @@ import {
   fetchAdminEvents,
   fetchEventRegistrations,
   fetchPublicEvents,
+  findMyEventRegistrationsRecord,
   registerForEventRecord,
   updateEventRecord,
   updateEventRegistrationStatus,
@@ -216,6 +217,7 @@ interface AppContextType {
   deleteEvent: (id: string) => Promise<void>;
   eventRegistrations: EventRegistration[];
   refreshEventRegistrations: (eventId?: string) => Promise<void>;
+  findMyEventRegistrations: (email: string, phone: string) => Promise<EventRegistration[]>;
   registerForEvent: (data: Omit<EventRegistration, 'id' | 'passNumber' | 'status' | 'createdAt'>) => Promise<EventRegistration>;
   cancelRegistration: (regId: string) => Promise<void>;
   checkInAttendee: (regId: string) => Promise<void>;
@@ -1569,6 +1571,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const findMyEventRegistrations = async (email: string, phone: string) => {
+    try {
+      const registrations = await findMyEventRegistrationsRecord(email, phone);
+      setEventRegistrations(registrations);
+      return registrations;
+    } catch (error) {
+      addToast(
+        'Could Not Find Passes',
+        error instanceof Error ? error.message : 'Check your registration email and phone number, then try again.',
+        'error'
+      );
+      throw error;
+    }
+  };
+
   const addEvent = async (data: Omit<CouncilEvent, 'id'>) => {
     try {
       const newEvent = await createEventRecord(data);
@@ -2051,6 +2068,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deleteEvent,
         eventRegistrations,
         refreshEventRegistrations,
+        findMyEventRegistrations,
         registerForEvent,
         cancelRegistration,
         checkInAttendee,

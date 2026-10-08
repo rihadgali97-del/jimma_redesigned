@@ -79,6 +79,14 @@ export async function registerForEventRecord(data: {
   return mapRegistration(registration);
 }
 
+export async function findMyEventRegistrationsRecord(email: string, phone: string): Promise<EventRegistration[]> {
+  const registrations = await apiRequest<ApiRegistration[]>('/events/registrations/lookup', {
+    method: 'POST',
+    body: JSON.stringify({ email, phone }),
+  });
+  return registrations.map(mapRegistration);
+}
+
 export async function fetchEventRegistrations(eventId?: string): Promise<EventRegistration[]> {
   const query = paginationParams();
   if (eventId) query.set('eventId', eventId);

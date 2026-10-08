@@ -39,6 +39,7 @@ export const EventsPage: React.FC = () => {
   const {
     events,
     eventRegistrations,
+    findMyEventRegistrations,
     eventSubscriptions,
     toggleEventReminder,
     isSubscribedToEvent,
@@ -60,6 +61,10 @@ export const EventsPage: React.FC = () => {
   } | null>(null);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [selectedEventForNotification, setSelectedEventForNotification] = useState<string | undefined>(undefined);
+  const [passLookupEmail, setPassLookupEmail] = useState('');
+  const [passLookupPhone, setPassLookupPhone] = useState('');
+  const [isLookingUpPasses, setIsLookingUpPasses] = useState(false);
+  const [hasLookedUpPasses, setHasLookedUpPasses] = useState(false);
 
   const categories = [
     'All',
@@ -113,6 +118,19 @@ export const EventsPage: React.FC = () => {
 
   const handleOpenRegistrationModal = (event: CouncilEvent) => {
     setSelectedEventForDetail(event);
+  };
+
+  const handlePassLookup = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLookingUpPasses(true);
+    try {
+      await findMyEventRegistrations(passLookupEmail, passLookupPhone);
+      setHasLookedUpPasses(true);
+    } catch {
+      setHasLookedUpPasses(false);
+    } finally {
+      setIsLookingUpPasses(false);
+    }
   };
 
   const handleOpenExistingPass = (reg: EventRegistration) => {
@@ -241,6 +259,36 @@ export const EventsPage: React.FC = () => {
             </button>
           </div>
 
+          <form onSubmit={(event) => void handlePassLookup(event)} className="grid gap-3 rounded-2xl border border-amber-500/20 bg-white/60 p-4 dark:bg-stone-900/50 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            <label className="space-y-1 text-xs font-semibold text-stone-700 dark:text-stone-300">
+              Registration email
+              <input
+                type="email"
+                autoComplete="email"
+                required
+                value={passLookupEmail}
+                onChange={(event) => setPassLookupEmail(event.target.value)}
+                placeholder="you@example.com"
+                className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm font-normal outline-none focus:border-amber-500 dark:border-stone-700 dark:bg-stone-950"
+              />
+            </label>
+            <label className="space-y-1 text-xs font-semibold text-stone-700 dark:text-stone-300">
+              Registration phone
+              <input
+                type="tel"
+                autoComplete="tel"
+                required
+                value={passLookupPhone}
+                onChange={(event) => setPassLookupPhone(event.target.value)}
+                placeholder="+251..."
+                className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm font-normal outline-none focus:border-amber-500 dark:border-stone-700 dark:bg-stone-950"
+              />
+            </label>
+            <Button type="submit" variant="gold" disabled={isLookingUpPasses} icon={<Ticket className="h-4 w-4" />}>
+              {isLookingUpPasses ? 'Looking up…' : 'Find My Passes'}
+            </Button>
+          </form>
+
           {eventRegistrations.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {eventRegistrations.map((reg) => (
@@ -292,8 +340,14 @@ export const EventsPage: React.FC = () => {
           ) : (
             <div className="p-8 text-center bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-2">
               <Ticket className="w-8 h-8 text-stone-400 mx-auto" />
-              <p className="text-sm font-semibold text-stone-700 dark:text-stone-300">No Registrations Yet</p>
-              <p className="text-xs text-stone-500">Pick any upcoming gathering below and register online for free admission!</p>
+              <p className="text-sm font-semibold text-stone-700 dark:text-stone-300">
+                {hasLookedUpPasses ? 'No active passes found for those details' : 'Find your registered passes'}
+              </p>
+              <p className="text-xs text-stone-500">
+                {hasLookedUpPasses
+                  ? 'Check that you entered the same email and phone number used to register.'
+                  : 'Enter the email and phone number used when registering to retrieve your passes.'}
+              </p>
             </div>
           )}
         </div>
@@ -380,7 +434,7 @@ export const EventsPage: React.FC = () => {
       {viewMode === 'grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map((event) => {
-            const userReg = eventRegistrations.find((r) => r.eventId === event.id);
+            const userReg = eventRegistrations.find((r) => r.eventId === event.id && r.status !== 'Cancelled');
             const capacityPercent = Math.min(
               100,
               Math.round(((event.attendeesCount || 0) / (event.maxCapacity || 1)) * 100)
@@ -536,7 +590,7 @@ export const EventsPage: React.FC = () => {
       {viewMode === 'timeline' && (
         <div className="space-y-6">
           {filteredEvents.map((event) => {
-            const userReg = eventRegistrations.find((r) => r.eventId === event.id);
+            const userReg = eventRegistrations.find((r) => r.eventId === event.id && r.status !== 'Cancelled');
 
             return (
               <div

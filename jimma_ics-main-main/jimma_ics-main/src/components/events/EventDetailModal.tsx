@@ -67,7 +67,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
   if (!isOpen) return null;
 
-  const userExistingReg = eventRegistrations.find((r) => r.eventId === event.id);
+  const userExistingReg = eventRegistrations.find((r) => r.eventId === event.id && r.status !== 'Cancelled');
 
   const capacityPercent = Math.min(
     100,

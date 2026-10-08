@@ -47,6 +47,13 @@ export const eventsRepository = {
       if (locked.length === 0) return null;
       const event = await tx.councilEvent.findUnique({ where: { id: eventId } });
       if (!event || !event.isPublished || !event.registrationOpen || event.status === 'Cancelled') return null;
+      if (data.email) {
+        const existingRegistration = await tx.eventRegistration.findFirst({
+          where: { eventId, email: data.email, status: { not: 'CANCELLED' } },
+          select: { id: true },
+        });
+        if (existingRegistration) return { duplicate: true };
+      }
       if (event.registeredSeats + data.attendeesCount > event.maxCapacity) return { full: true };
 
       await tx.councilEvent.update({
@@ -74,6 +81,15 @@ export const eventsRepository = {
       prisma.eventRegistration.count({ where }),
     ]);
     return { items, totalItems };
+  },
+
+  findRegistrationsByEmail(email) {
+    return prisma.eventRegistration.findMany({
+      where: { email, status: { not: 'CANCELLED' } },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      include: { event: true },
+    });
   },
 
   findRegistrationById(id) {
