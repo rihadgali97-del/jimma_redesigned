@@ -56,7 +56,7 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
       .filter((s) => s.status === 'Submitted')
       .map((s) => ({
         id: s.id,
-        title: `New Service Request: ${s.serviceName}`,
+        title: `New Service Request: ${s.serviceType}`,
         time: s.submissionDate,
         type: 'service',
         link: '/admin/services',
