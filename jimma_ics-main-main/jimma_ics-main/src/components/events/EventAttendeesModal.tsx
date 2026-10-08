@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
+import type { Html5Qrcode as Html5QrcodeScanner } from 'html5-qrcode';
 import { CouncilEvent, EventRegistration } from '../../types';
 import { useApp } from '../../context/AppContext';
 import {
@@ -20,6 +21,78 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
+
+interface EventQrScannerProps {
+  onScan: (decodedText: string) => void;
+}
+
+const EventQrScanner: React.FC<EventQrScannerProps> = ({ onScan }) => {
+  const scannerId = useId();
+  const onScanRef = useRef(onScan);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    onScanRef.current = onScan;
+  }, [onScan]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let handledScan = false;
+    let scanner: Html5QrcodeScanner | undefined;
+
+    const startScanner = async () => {
+      try {
+        const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import('html5-qrcode');
+        if (cancelled) return;
+        scanner = new Html5Qrcode(scannerId, {
+          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+          verbose: false,
+        });
+        await scanner.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 240, height: 240 } },
+          (decodedText) => {
+            if (cancelled || handledScan) return;
+            handledScan = true;
+            void scanner?.stop().then(() => {
+              scanner?.clear();
+              onScanRef.current(decodedText);
+            }).catch((scanError: unknown) => {
+              setError(scanError instanceof Error ? scanError.message : 'Could not stop the camera after scanning.');
+            });
+          },
+          undefined
+        );
+        if (cancelled && scanner.isScanning) {
+          await scanner.stop();
+          scanner.clear();
+        }
+      } catch (scanError) {
+        if (!cancelled) {
+          setError(scanError instanceof Error ? scanError.message : 'Could not start the camera scanner.');
+        }
+      }
+    };
+
+    void startScanner();
+
+    return () => {
+      cancelled = true;
+      if (scanner?.isScanning) {
+        void scanner.stop().then(() => scanner?.clear()).catch((scanError: unknown) => {
+          console.error('Could not stop the event QR scanner.', scanError);
+        });
+      }
+    };
+  }, [scannerId]);
+
+  return (
+    <div className="space-y-2">
+      <div id={scannerId} className="mx-auto max-w-sm overflow-hidden rounded-xl" />
+      {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400">{error}</p>}
+    </div>
+  );
+};
 
 interface EventAttendeesModalProps {
   event: CouncilEvent;
@@ -48,6 +121,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
   const [statusFilter, setStatusFilter] = useState<'All' | 'Confirmed' | 'Checked-In' | 'Cancelled'>('All');
   const [showAddWalkIn, setShowAddWalkIn] = useState(false);
   const [showBroadcastSms, setShowBroadcastSms] = useState(false);
+  const [showQrScanner, setShowQrScanner] = useState(false);
   const [isLoadingAttendees, setIsLoadingAttendees] = useState(false);
 
   // Walk-in form state
@@ -86,6 +160,25 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
 
   const checkedInCount = eventAttendees.filter((r) => r.status === 'Checked-In').length;
   const totalSeats = eventAttendees.reduce((acc, r) => acc + (r.attendeesCount || 1), 0);
+
+  const handlePassCodeScanned = async (passCode: string) => {
+    setShowQrScanner(false);
+    const registration = eventAttendees.find((attendee) => attendee.passNumber === passCode.trim());
+    if (!registration) {
+      addToast('Pass Not Found', 'This QR code is not a valid pass for this event.', 'error');
+      return;
+    }
+    if (registration.status === 'Checked-In') {
+      addToast('Already Checked In', `${registration.fullName} has already been admitted.`, 'info');
+      return;
+    }
+    if (registration.status === 'Cancelled') {
+      addToast('Pass Cancelled', 'This registration was cancelled and cannot be checked in.', 'error');
+      return;
+    }
+
+    await checkInAttendee(registration.id);
+  };
 
   const handleWalkInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,6 +297,16 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
             <Button
               variant="outline"
               size="sm"
+              disabled={isLoadingAttendees}
+              onClick={() => setShowQrScanner((visible) => !visible)}
+              icon={<QrCode className="w-3.5 h-3.5 text-emerald-500" />}
+              className="text-xs"
+            >
+              {showQrScanner ? 'Close Scanner' : 'Scan Pass'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleExportCsv}
               icon={<Download className="w-3.5 h-3.5" />}
               className="hidden sm:inline-flex text-xs"
@@ -236,6 +339,31 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
             </button>
           </div>
         </div>
+
+        {showQrScanner && (
+          <div className="p-4 border-b border-stone-200 dark:border-stone-800 bg-emerald-50 dark:bg-emerald-950/20">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-sm font-semibold text-emerald-900 dark:text-emerald-200">Scan Event Pass</h3>
+                <p className="text-xs text-stone-600 dark:text-stone-400">Point the camera at the attendee's QR code to check them in.</p>
+                <p className="text-[11px] text-stone-500 dark:text-stone-500">Camera access requires HTTPS (or localhost) and browser permission.</p>
+              </div>
+              <button
+                onClick={() => setShowQrScanner(false)}
+                className="text-xs text-stone-500 hover:text-stone-800 dark:hover:text-stone-300"
+              >
+                Close
+              </button>
+            </div>
+            <EventQrScanner
+              onScan={(decodedText) => {
+                void handlePassCodeScanned(decodedText).catch((error: unknown) => {
+                  console.error('The scanned event pass could not be checked in.', error);
+                });
+              }}
+            />
+          </div>
+        )}
 
         {/* Walk-In Form Drawer (Conditional) */}
         {showAddWalkIn && (

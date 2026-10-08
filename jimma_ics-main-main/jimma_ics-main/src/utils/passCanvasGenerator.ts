@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
 import { CouncilEvent, EventRegistration } from '../types';
 
 export function drawEventPassOnCanvas(
@@ -184,7 +185,7 @@ export function drawEventPassOnCanvas(
   ctx.font = '13px sans-serif';
   ctx.fillText('GATE ADMISSION TICKET', stubCenterX, 110);
 
-  // Draw Simulated High-Contrast QR Code Box
+  // Encode the same pass number shown on the ticket so staff can verify it at check-in.
   const qrSize = 200;
   const qrX = stubCenterX - qrSize / 2;
   const qrY = 145;
@@ -195,43 +196,22 @@ export function drawEventPassOnCanvas(
   ctx.lineWidth = 3;
   ctx.strokeRect(qrX, qrY, qrSize, qrSize);
 
-  // Draw QR Pattern
+  const qrCode = QRCode.create(registration.passNumber, { errorCorrectionLevel: 'H' });
+  const qrModuleSize = qrSize / (qrCode.modules.size + 8);
+  const qrOffset = qrX + (qrSize - qrModuleSize * qrCode.modules.size) / 2;
   ctx.fillStyle = '#0f172a';
-  // Corners
-  ctx.fillRect(qrX + 15, qrY + 15, 45, 45);
-  ctx.clearRect(qrX + 25, qrY + 25, 25, 25);
-  ctx.fillRect(qrX + 30, qrY + 30, 15, 15);
-
-  ctx.fillRect(qrX + qrSize - 60, qrY + 15, 45, 45);
-  ctx.clearRect(qrX + qrSize - 50, qrY + 25, 25, 25);
-  ctx.fillRect(qrX + qrSize - 45, qrY + 30, 15, 15);
-
-  ctx.fillRect(qrX + 15, qrY + qrSize - 60, 45, 45);
-  ctx.clearRect(qrX + 25, qrY + qrSize - 50, 25, 25);
-  ctx.fillRect(qrX + 30, qrY + qrSize - 45, 15, 15);
-
-  // Random pixel blocks for QR authenticity
-  const gridCells = 14;
-  const cellSize = 10;
-  for (let r = 0; r < gridCells; r++) {
-    for (let c = 0; c < gridCells; c++) {
-      if ((r < 5 && c < 5) || (r < 5 && c > 8) || (r > 8 && c < 5)) continue;
-      const hash = (r * 31 + c * 17 + registration.passNumber.charCodeAt(r % registration.passNumber.length)) % 5;
-      if (hash < 2) {
-        ctx.fillRect(qrX + 30 + c * cellSize, qrY + 30 + r * cellSize, cellSize - 2, cellSize - 2);
+  for (let row = 0; row < qrCode.modules.size; row++) {
+    for (let column = 0; column < qrCode.modules.size; column++) {
+      if (qrCode.modules.get(row, column)) {
+        ctx.fillRect(
+          qrOffset + column * qrModuleSize,
+          qrY + (qrSize - qrModuleSize * qrCode.modules.size) / 2 + row * qrModuleSize,
+          qrModuleSize,
+          qrModuleSize
+        );
       }
     }
   }
-
-  // QR Center Badge
-  ctx.fillStyle = '#064e3b';
-  ctx.fillRect(stubCenterX - 18, qrY + qrSize / 2 - 18, 36, 36);
-  ctx.strokeStyle = '#fbbf24';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(stubCenterX - 18, qrY + qrSize / 2 - 18, 36, 36);
-  ctx.fillStyle = '#fbbf24';
-  ctx.font = 'bold 16px serif';
-  ctx.fillText('JIC', stubCenterX, qrY + qrSize / 2 + 6);
 
   // Pass Number under QR
   ctx.fillStyle = '#fef08a';
