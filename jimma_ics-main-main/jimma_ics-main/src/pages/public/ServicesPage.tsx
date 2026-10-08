@@ -160,14 +160,8 @@ export const ServicesPage: React.FC = () => {
     const trackParam = searchParams.get('trackingNo');
     if (trackParam) {
       setTrackQuery(trackParam);
-      const found = serviceRequests.find(
-        (r) => r.trackingNo.toLowerCase() === trackParam.toLowerCase().trim()
-      );
-      if (found) {
-        setSearchedRequest(found);
-      }
     }
-  }, [searchParams, publicServices, serviceRequests, publicServiceAvailability, janazahPublicEnabled, zakatServiceEnabled, setSearchParams]);
+  }, [searchParams, publicServices, publicServiceAvailability, janazahPublicEnabled, zakatServiceEnabled, setSearchParams]);
 
   // Form state
   const [applicantName, setApplicantName] = useState('');
@@ -297,7 +291,7 @@ export const ServicesPage: React.FC = () => {
         setTrackQuery(application.referenceNumber);
         setTrackPhone(tracked.applicantPhone);
         setActiveTab('track');
-        setSearchedRequest(tracked);
+        setSearchedRequest(null);
         setSearchParams({ tab: 'track', trackingNo: application.referenceNumber });
         addToast('Zakat application submitted', `Save reference ${application.referenceNumber} to track your application.`, 'success');
       } catch (error) {
@@ -387,7 +381,7 @@ export const ServicesPage: React.FC = () => {
         setTrackQuery(request.referenceNumber);
         setTrackPhone(tracked.applicantPhone);
         setActiveTab('track');
-        setSearchedRequest(tracked);
+        setSearchedRequest(null);
         setSearchParams({ tab: 'track', trackingNo: request.referenceNumber });
         addToast(
           'Janazah request submitted',
@@ -439,25 +433,28 @@ export const ServicesPage: React.FC = () => {
     setPhone('');
     setDetails('');
     setTrackQuery(newReq.trackingNo);
+    setTrackPhone(newReq.applicantPhone);
     handleTabChange('track');
-    setSearchedRequest(newReq);
+    setSearchedRequest(null);
   };
 
   const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
-    const query = trackQuery.toLowerCase().trim();
+    const query = trackQuery.trim();
+    const normalizedQuery = query.toUpperCase();
     if (!query) {
       addToast('Input Required', 'Please enter a tracking reference code.', 'warning');
       return;
     }
-    if (query.startsWith('ZKT-')) {
-      if (!trackPhone.trim()) {
-        addToast('Phone number required', 'Enter the phone number used for the Zakat application.', 'warning');
-        return;
-      }
+    if (!trackPhone.trim()) {
+      addToast('Phone number required', 'Enter the contact phone number used for this application.', 'warning');
+      setSearchedRequest(null);
+      return;
+    }
+    if (normalizedQuery.startsWith('ZKT-')) {
       setIsTrackingApplication(true);
       try {
-        const result = await trackZakatApplication(trackQuery.trim(), trackPhone.trim());
+        const result = await trackZakatApplication(query, trackPhone.trim());
         setSearchedRequest({
           trackingNo: result.referenceNumber,
           serviceType: 'Zakat Assistance',
@@ -481,14 +478,10 @@ export const ServicesPage: React.FC = () => {
       return;
     }
 
-    if (query.startsWith('JNZ-')) {
-      if (!trackPhone.trim()) {
-        addToast('Phone number required', 'Enter the contact phone number used for the Janazah request.', 'warning');
-        return;
-      }
+    if (normalizedQuery.startsWith('JNZ-')) {
       setIsTrackingApplication(true);
       try {
-        const result = await trackJanazahRequest(trackQuery.trim(), trackPhone.trim());
+        const result = await trackJanazahRequest(query, trackPhone.trim());
         setSearchedRequest({
           trackingNo: result.referenceNumber,
           serviceType: 'Janazah Support',
@@ -516,14 +509,16 @@ export const ServicesPage: React.FC = () => {
       return;
     }
     const found = serviceRequests.find(
-      (r) => r.trackingNo.toLowerCase() === query || (r.id && r.id.toLowerCase() === query)
+      (r) =>
+        (r.trackingNo.toLowerCase() === query.toLowerCase() || (r.id && r.id.toLowerCase() === query.toLowerCase())) &&
+        r.applicantPhone.trim() === trackPhone.trim()
     );
     if (found) {
       setSearchedRequest(found);
       addToast('Application Located', `Found tracking record for ${found.applicantName}`, 'success');
     } else {
       setSearchedRequest(null);
-      addToast('Tracking No Not Found', `No application with ID "${trackQuery}" was located.`, 'warning');
+      addToast('Application Not Found', 'No application matches that reference number and phone number.', 'warning');
     }
   };
 
@@ -798,7 +793,7 @@ export const ServicesPage: React.FC = () => {
                   Track Your Council Service Application
                 </h3>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  Enter a service tracking code, or a live database reference (ZKT-… / JNZ-…) with the phone number used at submission.
+                  Enter your service tracking code and the contact phone number used at submission.
                 </p>
               </div>
             </div>
@@ -808,20 +803,23 @@ export const ServicesPage: React.FC = () => {
                 type="text"
                 placeholder="Tracking No (REQ-…, ZKT-…, or JNZ-…)"
                 value={trackQuery}
-                onChange={(e) => setTrackQuery(e.target.value)}
+                onChange={(e) => {
+                  setTrackQuery(e.target.value);
+                  setSearchedRequest(null);
+                }}
                 className="flex-1 px-4 py-2.5 text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden font-mono text-stone-900 dark:text-stone-100"
               />
-              {(trackQuery.trim().toUpperCase().startsWith('ZKT-') ||
-                trackQuery.trim().toUpperCase().startsWith('JNZ-')) && (
-                <input
-                  type="tel"
-                  required
-                  placeholder="Contact phone"
-                  value={trackPhone}
-                  onChange={(e) => setTrackPhone(e.target.value)}
-                  className="w-full sm:w-48 px-3 py-2.5 text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden font-mono text-stone-900 dark:text-stone-100"
-                />
-              )}
+              <input
+                type="tel"
+                required
+                placeholder="Contact phone used when applying"
+                value={trackPhone}
+                onChange={(e) => {
+                  setTrackPhone(e.target.value);
+                  setSearchedRequest(null);
+                }}
+                className="w-full sm:w-56 px-3 py-2.5 text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden font-mono text-stone-900 dark:text-stone-100"
+              />
               <Button variant="primary" type="submit" disabled={isTrackingApplication} icon={<Search className="w-4 h-4" />}>
                 Track
               </Button>
@@ -836,7 +834,7 @@ export const ServicesPage: React.FC = () => {
                   type="button"
                   onClick={() => {
                     setTrackQuery(req.trackingNo);
-                    setSearchedRequest(req);
+                    setSearchedRequest(null);
                   }}
                   className="px-2 py-0.5 bg-stone-100 dark:bg-stone-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-mono text-[11px] rounded-md transition-colors cursor-pointer border border-stone-200 dark:border-stone-700"
                 >
