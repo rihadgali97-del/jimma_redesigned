@@ -74,7 +74,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     {
       title: 'Main Operations',
       items: [
-        ...(roleCategory === 'Teacher'
+        ...(roleCategory === 'Teacher' ||
+          (Boolean(currentUser.authRole) && checkRoutePermission(currentUser, '/admin/teacher').isAuthorized)
           ? [
               {
                 label: 'Tahfeez Sabaq Workbench',
@@ -138,7 +139,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { label: 'Staff & Role Access', path: '/admin/users', icon: <ShieldCheck className="w-4 h-4" /> },
       ],
     },
-    ...(roleCategory === 'Admin'
+    ...(roleCategory === 'Admin' || Boolean(currentUser.authRole)
       ? [{
           title: 'Administration',
           items: [

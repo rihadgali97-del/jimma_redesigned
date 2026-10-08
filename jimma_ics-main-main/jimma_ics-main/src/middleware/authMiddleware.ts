@@ -26,6 +26,69 @@ export interface RouteAccessResult {
   suggestedAction?: string;
 }
 
+const permissionAliases: Record<string, string[]> = {
+  'mosque.create': ['mosques.write'],
+  'mosque.edit': ['mosques.write'],
+  'mosque.grant_approve': ['mosques.write'],
+  'mosque.delete': ['mosques.write'],
+  'madrasa.accredit': ['madrasas.write'],
+  'student.manage': ['madrasas.write'],
+  'hifz.record_progress': ['madrasas.write'],
+  'teacher.manage': ['madrasas.write'],
+  'attendance.submit': ['madrasas.write'],
+  'ulema.license': ['fatwas.write'],
+  'fatwa.publish': ['fatwas.write'],
+  'finance.record_entry': ['finance.write'],
+  'finance.approve_l1': ['finance.write'],
+  'finance.approve_l2': ['finance.write'],
+  'zakat.disburse': ['zakat.manage'],
+  'services.process': ['janazah.manage', 'zakat.manage'],
+  'events.schedule': ['events.write'],
+  'documents.publish': ['documents.write'],
+  'gateway.send_sabaq': ['broadcast.send'],
+  'gateway.send_janazah': ['broadcast.send'],
+  'gateway.mass_broadcast': ['broadcast.send'],
+  'gateway.topup': ['broadcast.send'],
+};
+
+function hasPermission(user: User, keys: string[]) {
+  const grantedPermissions = user.permissions || [];
+  const permissions = new Set(grantedPermissions);
+  for (const permission of grantedPermissions) {
+    for (const alias of permissionAliases[permission] || []) permissions.add(alias);
+  }
+  return keys.some((key) => permissions.has(key));
+}
+
+const authorizedRouteCandidates = [
+  '/admin',
+  '/admin/teacher',
+  '/admin/mosques',
+  '/admin/madrasas',
+  '/admin/students',
+  '/admin/teachers',
+  '/admin/resources',
+  '/admin/ulema',
+  '/admin/finance',
+  '/admin/finance/approvals',
+  '/admin/finance/donations',
+  '/admin/zakat/applications',
+  '/admin/audit',
+  '/admin/gateway',
+  '/admin/services',
+  '/admin/events',
+  '/admin/announcements',
+  '/admin/waqf',
+  '/admin/documents',
+  '/admin/users',
+  '/admin/woredas',
+  '/admin/settings',
+];
+
+export function getFirstAuthorizedRoute(user: User | null | undefined) {
+  return authorizedRouteCandidates.find((path) => checkRoutePermission(user, path).isAuthorized) || null;
+}
+
 /**
  * Classifies any user role into one of the 3 primary authorization tiers:
  * - Admin: Supreme Executive & System Administrators
@@ -387,6 +450,16 @@ export function checkRoutePermission(user: User | null | undefined, pathname: st
   const cleanPath = pathname.split('?')[0].split('#')[0].replace(/\/$/, '') || '/admin';
 
   if (user.authRole) {
+    if (!cleanPath.startsWith('/admin')) {
+      return {
+        isAuthorized: true,
+        category,
+        currentRole: user.role,
+        attemptedPath: cleanPath,
+        authorizedDashboard: config.dashboardPath,
+        authorizedDashboardTitle: config.dashboardTitle,
+      };
+    }
     if (user.authRole === 'super_admin') {
       return {
         isAuthorized: true,
@@ -398,8 +471,10 @@ export function checkRoutePermission(user: User | null | undefined, pathname: st
       };
     }
 
-    const permissionRules: Array<{ prefix: string; keys: string[] }> = [
+    const permissionRules: Array<{ prefix: string; keys?: string[]; roleName?: string }> = [
       { prefix: '/admin/woredas', keys: ['woredas.write'] },
+      { prefix: '/admin/audit', keys: ['users.manage'] },
+      { prefix: '/admin/compliance', keys: ['users.manage'] },
       { prefix: '/admin/users', keys: ['users.manage'] },
       { prefix: '/admin/staff', keys: ['users.manage'] },
       { prefix: '/admin/roles', keys: ['roles.manage'] },
@@ -419,11 +494,13 @@ export function checkRoutePermission(user: User | null | undefined, pathname: st
       { prefix: '/admin/announcements', keys: ['announcements.write'] },
       { prefix: '/admin/documents', keys: ['documents.write'] },
       { prefix: '/admin/gateway', keys: ['broadcast.send'] },
-      { prefix: '/admin/settings', keys: ['system.settings.read'] },
+      { prefix: '/admin/settings', roleName: 'super_admin' },
       { prefix: '/admin', keys: ['dashboard.view'] },
     ];
     const rule = permissionRules.find(({ prefix }) => cleanPath === prefix || cleanPath.startsWith(`${prefix}/`));
-    const isAuthorized = Boolean(rule && rule.keys.some((key) => user.permissions?.includes(key)));
+    const isAuthorized = Boolean(rule && (
+      rule.roleName ? user.authRole === rule.roleName : rule.keys && hasPermission(user, rule.keys)
+    ));
     return {
       isAuthorized,
       category,

@@ -14,7 +14,8 @@ export function authorize(...requiredPermissions) {
       return next();
     }
 
-    const hasAll = requiredPermissions.every((perm) => req.user.permissions.includes(perm));
+    const grantedPermissions = Array.isArray(req.user.permissions) ? req.user.permissions : [];
+    const hasAll = requiredPermissions.every((perm) => grantedPermissions.includes(perm));
 
     if (!hasAll) {
       return next(
@@ -45,7 +46,8 @@ export function requireRole(...roleNames) {
 export function authorizeAny(...permissions) {
   return function authorizeAnyMiddleware(req, res, next) {
     if (!req.user) return next(new ForbiddenError('Authentication is required before authorization'));
-    if (req.user.roleName === 'super_admin' || permissions.some((permission) => req.user.permissions.includes(permission))) {
+    const grantedPermissions = Array.isArray(req.user.permissions) ? req.user.permissions : [];
+    if (req.user.roleName === 'super_admin' || permissions.some((permission) => grantedPermissions.includes(permission))) {
       return next();
     }
     return next(new ForbiddenError(`Requires one of these permissions: ${permissions.join(', ')}`));

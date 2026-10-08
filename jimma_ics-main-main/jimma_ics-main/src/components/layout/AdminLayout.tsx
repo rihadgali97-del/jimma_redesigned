@@ -5,7 +5,7 @@ import { AdminSidebar } from './AdminSidebar';
 import { AdminTopNav } from './AdminTopNav';
 import { ToastContainer } from '../ui/ToastContainer';
 import { GlobalSearchModal } from '../common/GlobalSearchModal';
-import { checkRoutePermission } from '../../middleware/authMiddleware';
+import { checkRoutePermission, getFirstAuthorizedRoute } from '../../middleware/authMiddleware';
 import { AccessDeniedView } from '../common/AccessDeniedView';
 
 const SIDEBAR_COLLAPSED_KEY = 'jimma_council_admin_sidebar_collapsed';
@@ -57,6 +57,11 @@ export const AdminLayout: React.FC = () => {
 
   // Middleware authorization check: verify user role (Admin vs. Teacher vs. Staff) against attempted route
   const routeAccess = checkRoutePermission(currentUser, location.pathname);
+  const authorizedFallback = routeAccess.isAuthorized ? null : getFirstAuthorizedRoute(currentUser);
+
+  if (authorizedFallback && authorizedFallback !== routeAccess.attemptedPath) {
+    return <Navigate to={authorizedFallback} replace />;
+  }
 
   return (
     <div className="admin-shell public-site min-h-screen bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans transition-colors selection:bg-emerald-200 selection:text-emerald-950">
