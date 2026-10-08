@@ -1,4 +1,3 @@
-import jsPDF from 'jspdf';
 import { CertificateData, CertificateTheme } from '../components/certificates/CertificateTemplate';
 
 export interface ThemeColors {
@@ -501,10 +500,11 @@ export function drawCertificateOnCanvas(
 /**
  * Downloads a rendered Canvas as a high-quality PDF using jsPDF
  */
-export function downloadCanvasAsPdf(
+export async function downloadCanvasAsPdf(
   canvas: HTMLCanvasElement,
   fileName: string = 'Certificate.pdf'
-): void {
+): Promise<void> {
+  const { default: jsPDF } = await import('jspdf');
   const imgData = canvas.toDataURL('image/png', 1.0);
 
   const pdf = new jsPDF({

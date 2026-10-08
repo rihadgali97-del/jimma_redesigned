@@ -53,12 +53,12 @@ export const EventPassModal: React.FC<EventPassModalProps> = ({
 
   if (!isOpen || !passNumber) return null;
 
-  const handleDownloadPdf = () => {
+  const handleDownloadPdf = async () => {
     if (!canvasRef.current) return;
     setIsGenerating(true);
     try {
       const safeName = registration.fullName.replace(/[^a-zA-Z0-9]/g, '_');
-      downloadPassAsPdf(canvasRef.current, `Pass_${safeName}_${passNumber}.pdf`);
+      await downloadPassAsPdf(canvasRef.current, `Pass_${safeName}_${passNumber}.pdf`);
       addToast('Pass Downloaded', 'High-resolution PDF pass has been saved to your downloads.', 'success');
     } catch (e) {
       console.error(e);

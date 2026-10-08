@@ -1,4 +1,3 @@
-import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 import { CouncilEvent, EventRegistration } from '../types';
 
@@ -241,10 +240,11 @@ export function drawEventPassOnCanvas(
   ctx.fillText('Authorized by Jimma Islamic Council', stubCenterX, height - 48);
 }
 
-export function downloadPassAsPdf(
+export async function downloadPassAsPdf(
   canvas: HTMLCanvasElement,
   fileName: string = 'Event_Pass.pdf'
-) {
+): Promise<void> {
+  const { default: jsPDF } = await import('jspdf');
   const imgData = canvas.toDataURL('image/png', 1.0);
 
   const pdf = new jsPDF({

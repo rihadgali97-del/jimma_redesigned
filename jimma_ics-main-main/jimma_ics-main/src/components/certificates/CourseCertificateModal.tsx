@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import jsPDF from 'jspdf';
 import {
   Download,
   Printer,
@@ -208,7 +207,7 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
       const safeCourse = courseTitle.replace(/[^a-zA-Z0-9]/g, '_');
       const fileName = `Certificate_${safeStudentName}_${safeCourse}.pdf`;
 
-      downloadCanvasAsPdf(canvas, fileName);
+      await downloadCanvasAsPdf(canvas, fileName);
     } catch (err) {
       console.error('Failed to generate PDF certificate:', err);
     } finally {
