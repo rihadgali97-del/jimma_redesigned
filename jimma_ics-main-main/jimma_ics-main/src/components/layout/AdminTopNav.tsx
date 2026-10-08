@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -24,6 +24,18 @@ interface AdminTopNavProps {
   onToggleCollapse?: () => void;
 }
 
+function loadReadNotificationIds(storageKey: string) {
+  try {
+    const stored = localStorage.getItem(storageKey);
+    if (!stored) return [];
+    const parsed: unknown = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : [];
+  } catch (error) {
+    console.warn('Could not load read admin notifications.', error);
+    return [];
+  }
+}
+
 export const AdminTopNav: React.FC<AdminTopNavProps> = ({
   onMenuToggle,
   isCollapsed = false,
@@ -39,9 +51,21 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
+  const notificationStorageKey = `jic_admin_read_notifications_${currentUser.id}`;
 
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [readNotificationIds, setReadNotificationIds] = useState<string[]>(() =>
+    loadReadNotificationIds(notificationStorageKey)
+  );
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(notificationStorageKey, JSON.stringify(readNotificationIds));
+    } catch (error) {
+      console.warn('Could not save read admin notifications.', error);
+    }
+  }, [notificationStorageKey, readNotificationIds]);
 
   // Generate breadcrumbs from path
   const pathParts = location.pathname.split('/').filter(Boolean);
@@ -62,6 +86,15 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
         link: '/admin/services',
       })),
   ];
+  const unreadCount = pendingItems.filter((item) => !readNotificationIds.includes(item.id)).length;
+
+  const handleNotificationClick = (item: (typeof pendingItems)[number]) => {
+    setReadNotificationIds((previous) =>
+      previous.includes(item.id) ? previous : [...previous, item.id]
+    );
+    navigate(item.link);
+    setNotificationsOpen(false);
+  };
 
   return (
     <header className="admin-topnav sticky top-0 z-30 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 h-16 flex items-center justify-between px-3 sm:px-6 lg:px-8 transition-colors">
@@ -141,9 +174,9 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
             aria-label="Notifications"
           >
             <Bell className="w-4 h-4" />
-            {pendingItems.length > 0 && (
+            {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-stone-950 rounded-full text-[10px] font-bold flex items-center justify-center animate-pulse shadow-xs">
-                {pendingItems.length}
+                {unreadCount}
               </span>
             )}
           </button>
@@ -152,7 +185,7 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
             <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xl p-3 z-50 animate-in fade-in zoom-in-95">
               <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-2 mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
-                  Action Required ({pendingItems.length})
+                  Action Required ({unreadCount})
                 </span>
                 <span className="text-[10px] text-stone-400">Live Council Queue</span>
               </div>
@@ -166,14 +199,18 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
                   pendingItems.map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => {
-                        navigate(item.link);
-                        setNotificationsOpen(false);
-                      }}
-                      className="w-full text-left p-2 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                      onClick={() => handleNotificationClick(item)}
+                      className={`w-full text-left p-2 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors ${
+                        readNotificationIds.includes(item.id) ? 'opacity-60' : ''
+                      }`}
                     >
-                      <div className="text-xs font-semibold text-stone-800 dark:text-stone-200 line-clamp-1">
-                        {item.title}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-xs font-semibold text-stone-800 dark:text-stone-200 line-clamp-1">
+                          {item.title}
+                        </div>
+                        {readNotificationIds.includes(item.id) && (
+                          <span className="text-[10px] text-emerald-700 dark:text-emerald-400 shrink-0">Read</span>
+                        )}
                       </div>
                       <div className="text-[10px] text-stone-400 mt-0.5">{item.time}</div>
                     </button>
