@@ -323,4 +323,44 @@ describe('Notification outbox triggers', () => {
       notificationType: 'ANNOUNCEMENT',
     });
   });
+
+  it('queues a confirmation containing the downloadable pass details for the applicant email', async () => {
+    mockRepository.enqueueMany.mockResolvedValue(1);
+    const registration = {
+      id: 81,
+      email: 'amina@example.com',
+      fullName: 'Amina Ahmed',
+      passNumber: 'JIC-PASS-2026-ABC1234567',
+      attendeesCount: 2,
+      event: {
+        id: 18,
+        title: 'Community Lecture',
+        date: new Date('2026-11-10T00:00:00.000Z'),
+        time: '09:00',
+        location: 'Jimma Mosque',
+      },
+    };
+
+    await expect(service.queueRegistrationConfirmation(registration)).resolves.toBe(1);
+
+    expect(mockRepository.enqueueMany).toHaveBeenCalledWith([
+      expect.objectContaining({
+        channel: 'EMAIL',
+        notificationType: 'EVENT_REGISTRATION',
+        recipient: 'amina@example.com',
+        payload: expect.objectContaining({
+          notificationType: 'EVENT_REGISTRATION',
+          name: 'Amina Ahmed',
+          eventTitle: 'Community Lecture',
+          passNumber: 'JIC-PASS-2026-ABC1234567',
+          attendeesCount: 2,
+        }),
+      }),
+    ]);
+  });
+
+  it('does not queue an event confirmation when the applicant omitted email', async () => {
+    await expect(service.queueRegistrationConfirmation({ email: null })).resolves.toBe(0);
+    expect(mockRepository.enqueueMany).not.toHaveBeenCalled();
+  });
 });

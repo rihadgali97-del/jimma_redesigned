@@ -50,6 +50,40 @@ describe('Notification delivery providers', () => {
     expect(result).toEqual({ messageId: 'test-message' });
   });
 
+  it('emails event registrants an inline and downloadable QR pass', async () => {
+    env.GMAIL_SMTP_USER = 'sender@gmail.com';
+    env.GMAIL_APP_PASSWORD = 'test app password';
+    const sendMail = jest.fn().mockResolvedValue({ messageId: 'event-pass-message' });
+    jest.spyOn(nodemailer, 'createTransport').mockReturnValue({ sendMail, close: jest.fn() });
+
+    await sendEmail('attendee@example.org', {
+      notificationType: 'EVENT_REGISTRATION',
+      subject: 'Registration confirmed: Community Lecture',
+      name: 'Amina Ahmed',
+      eventTitle: 'Community Lecture',
+      eventDate: '2026-11-10',
+      eventTime: '09:00',
+      eventLocation: 'Jimma Mosque',
+      passNumber: 'JIC-PASS-2026-ABC1234567',
+      attendeesCount: 2,
+    });
+
+    const mail = sendMail.mock.calls[0][0];
+    expect(mail.html).toContain('cid:event-pass-qr');
+    expect(mail.html).toContain('Community Lecture');
+    expect(mail.text).toContain('downloadable QR pass is attached as a PNG');
+    expect(mail.attachments).toHaveLength(1);
+    expect(mail.attachments[0]).toMatchObject({
+      filename: 'Event-Pass-JIC-PASS-2026-ABC1234567.png',
+      contentType: 'image/png',
+      cid: 'event-pass-qr',
+      contentDisposition: 'inline',
+    });
+    expect(mail.attachments[0].content.subarray(0, 8)).toEqual(
+      Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
+    );
+  });
+
   it('sends Telegram messages to the configured information channel', async () => {
     env.TELEGRAM_BOT_TOKEN = 'test-token';
     env.TELEGRAM_CHANNEL_ID = '@riho_information';

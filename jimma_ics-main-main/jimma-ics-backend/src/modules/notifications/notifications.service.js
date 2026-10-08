@@ -438,6 +438,7 @@ export async function queueRegistrationConfirmation(registration) {
     referenceId: registration.id,
     recipient: registration.email,
     payload: {
+      notificationType: 'EVENT_REGISTRATION',
       subject: `Registration confirmed: ${registration.event.title}`,
       name: registration.fullName,
       eventTitle: registration.event.title,
