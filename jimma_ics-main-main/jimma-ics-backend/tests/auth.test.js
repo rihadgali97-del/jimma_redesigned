@@ -140,6 +140,46 @@ describe('GET /api/v1/auth/me', () => {
   });
 });
 
+describe('POST /api/v1/auth/register', () => {
+  const registration = {
+    fullName: 'New Staff',
+    email: 'new.staff@example.com',
+    phone: '+251911223344',
+    password: 'correct-password-123',
+  };
+
+  beforeEach(() => {
+    mockPrisma.user.findUnique.mockResolvedValue(null);
+    mockPrisma.role.findUnique.mockResolvedValue({ id: 2, name: 'pending_staff' });
+  });
+
+  it('reports when the phone number is already in use', async () => {
+    mockPrisma.user.create.mockRejectedValue({
+      code: 'P2002',
+      meta: { target: 'users_phone_key' },
+    });
+
+    const app = createApp();
+    const res = await request(app).post('/api/v1/auth/register').send(registration);
+
+    expect(res.status).toBe(409);
+    expect(res.body.error.message).toBe('An account with this phone number already exists');
+  });
+
+  it('continues to report when the email is already in use', async () => {
+    mockPrisma.user.create.mockRejectedValue({
+      code: 'P2002',
+      meta: { target: ['email'] },
+    });
+
+    const app = createApp();
+    const res = await request(app).post('/api/v1/auth/register').send(registration);
+
+    expect(res.status).toBe(409);
+    expect(res.body.error.message).toBe('An account with this email already exists');
+  });
+});
+
 describe('POST /api/v1/auth/forgot-password', () => {
   it('always returns a generic success message', async () => {
     mockPrisma.user.findUnique.mockResolvedValue(null);

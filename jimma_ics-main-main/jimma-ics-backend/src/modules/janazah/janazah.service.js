@@ -83,6 +83,7 @@ export async function submitJanazahRequest(data) {
 
   const woreda = await janazahRepository.findWoredaById(data.woredaId);
   if (!woreda) throw new BadRequestError('woredaId does not reference an existing woreda');
+  if (woreda.isActive === false) throw new BadRequestError('Janazah requests must use an active woreda');
 
   const referenceNumber = await generateReferenceNumber(SERVICE_CODES.janazah);
 
@@ -217,6 +218,7 @@ export async function listCemeteryPlots(query) {
 export async function createCemeteryPlot({ woredaId, code, isAvailable }, actorId) {
   const woreda = await janazahRepository.findWoredaById(woredaId);
   if (!woreda) throw new BadRequestError('woredaId does not reference an existing woreda');
+  if (woreda.isActive === false) throw new BadRequestError('Cemetery plots must use an active woreda');
 
   const existing = await janazahRepository.findPlotByCode(code);
   if (existing) throw new ConflictError('A cemetery plot with this code already exists');

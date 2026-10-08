@@ -88,6 +88,7 @@ export async function getWaqfAsset(id, locale = DEFAULT_LOCALE, { publicOnly } =
 export async function createWaqfAsset({ name, description, ...fields }, actorId) {
   const woreda = await waqfRepository.findWoredaById(fields.woredaId);
   if (!woreda) throw new BadRequestError('woredaId does not reference an existing woreda');
+  if (woreda.isActive === false) throw new BadRequestError('New Waqf assets must use an active woreda');
 
   const asset = await waqfRepository.create(fields);
 
@@ -111,6 +112,9 @@ export async function updateWaqfAsset(id, { name, description, ...fields }, acto
   if (fields.woredaId) {
     const woreda = await waqfRepository.findWoredaById(fields.woredaId);
     if (!woreda) throw new BadRequestError('woredaId does not reference an existing woreda');
+    if (woreda.isActive === false && existing.woredaId !== fields.woredaId) {
+      throw new BadRequestError('Waqf assets can only be reassigned to an active woreda');
+    }
   }
 
   if (Object.keys(fields).length > 0) {

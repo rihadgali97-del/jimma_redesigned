@@ -171,8 +171,9 @@ export async function register({ fullName, email, phone, password }) {
     throw new BadRequestError('Account registration is not configured. Run the database seed first.');
   }
 
+  let user;
   try {
-    const user = await authRepository.createUser({
+    user = await authRepository.createUser({
       fullName,
       email,
       phone,
@@ -180,17 +181,30 @@ export async function register({ fullName, email, phone, password }) {
       roleId: pendingRole.id,
       isActive: true,
     });
-
-    await writeAuditLog({
-      actorId: user.id,
-      action: 'register_pending_staff',
-      entityType: 'user',
-      entityId: user.id,
-    });
-
-    return { accountCreated: true, awaitingRoleAssignment: true, user: toPublicUser(user) };
   } catch (err) {
-    if (err.code === 'P2002') throw new ConflictError('An account with this email already exists');
+    if (err.code === 'P2002') {
+      const target = err.meta?.target;
+      const targets = (Array.isArray(target) ? target : [target])
+        .filter(Boolean)
+        .map((field) => String(field).toLowerCase());
+
+      if (targets.some((field) => field.includes('phone'))) {
+        throw new ConflictError('An account with this phone number already exists');
+      }
+      if (targets.some((field) => field.includes('email'))) {
+        throw new ConflictError('An account with this email already exists');
+      }
+      throw new ConflictError('An account with these details already exists');
+    }
     throw err;
   }
+
+  await writeAuditLog({
+    actorId: user.id,
+    action: 'register_pending_staff',
+    entityType: 'user',
+    entityId: user.id,
+  });
+
+  return { accountCreated: true, awaitingRoleAssignment: true, user: toPublicUser(user) };
 }

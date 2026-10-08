@@ -51,6 +51,7 @@ export async function submitZakatApplication(data) {
 
   const woreda = await zakatRepository.findWoredaById(data.woredaId);
   if (!woreda) throw new BadRequestError('woredaId does not reference an existing woreda');
+  if (woreda.isActive === false) throw new BadRequestError('Zakat applications must use an active woreda');
 
   const referenceNumber = await generateReferenceNumber(SERVICE_CODES.zakat);
 

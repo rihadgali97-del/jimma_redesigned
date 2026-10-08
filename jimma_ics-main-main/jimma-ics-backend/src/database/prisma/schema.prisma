@@ -112,10 +112,27 @@ model PasswordResetToken {
 // ---------------------------------------------------------------------------
 
 model Woreda {
-  id        Int      @id @default(autoincrement())
-  code      String   @unique // e.g. "agaro", "kersa", "limmu-kosa"
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                Int      @id @default(autoincrement())
+  code              String   @unique // e.g. "agaro", "kersa", "limmu-kosa"
+  isActive          Boolean  @default(true) @map("is_active")
+  oromoName         String?  @map("oromo_name") @db.VarChar(180)
+  arabicName        String?  @map("arabic_name") @db.VarChar(180)
+  zone              String?  @db.VarChar(120)
+  climateZone       String?  @map("climate_zone") @db.VarChar(40)
+  centerLatitude    Float?   @map("center_latitude")
+  centerLongitude   Float?   @map("center_longitude")
+  svgPath           String?  @map("svg_path") @db.Text
+  labelX            Float?   @map("label_x")
+  labelY            Float?   @map("label_y")
+  areaKm2           Float?   @map("area_km2")
+  elevationMeters   Int?     @map("elevation_meters")
+  population        Int?
+  muslimPercentage  Float?   @map("muslim_percentage")
+  councilBranchHead String?  @map("council_branch_head") @db.VarChar(180)
+  headContact       String?  @map("head_contact") @db.VarChar(40)
+  notableFeatures   Json?    @map("notable_features")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
   mosques  Mosque[]
   madrasas Madrasa[]
@@ -235,26 +252,26 @@ enum NotificationStatus {
 }
 
 model EventNotificationSubscription {
-  id                  Int      @id @default(autoincrement())
-  email               String?  @db.VarChar(255)
-  normalizedEmail     String?  @unique @map("normalized_email") @db.VarChar(255)
-  name                String   @default("Community Member") @db.VarChar(180)
-  manageToken         String   @unique @map("manage_token") @db.VarChar(64)
-  emailVerified      Boolean  @default(false) @map("email_verified")
-  emailVerificationToken String? @unique @map("email_verification_token") @db.VarChar(64)
-  emailVerificationExpiresAt DateTime? @map("email_verification_expires_at")
-  enableEmail         Boolean  @default(false) @map("enable_email")
-  enableBrowser       Boolean  @default(false) @map("enable_browser")
-  enableAnnouncements Boolean  @default(false) @map("enable_announcements")
-  categories          Json
-  districts           Json
-  reminderTiming      String   @default("24h_before") @map("reminder_timing") @db.VarChar(30)
-  specificEventIds    Json     @map("specific_event_ids")
-  subscribedAt        DateTime @default(now()) @map("subscribed_at")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
-  notifications       NotificationLog[]
-  pushSubscriptions   WebPushSubscription[]
+  id                         Int                   @id @default(autoincrement())
+  email                      String?               @db.VarChar(255)
+  normalizedEmail            String?               @unique @map("normalized_email") @db.VarChar(255)
+  name                       String                @default("Community Member") @db.VarChar(180)
+  manageToken                String                @unique @map("manage_token") @db.VarChar(64)
+  emailVerified              Boolean               @default(false) @map("email_verified")
+  emailVerificationToken     String?               @unique @map("email_verification_token") @db.VarChar(64)
+  emailVerificationExpiresAt DateTime?             @map("email_verification_expires_at")
+  enableEmail                Boolean               @default(false) @map("enable_email")
+  enableBrowser              Boolean               @default(false) @map("enable_browser")
+  enableAnnouncements        Boolean               @default(false) @map("enable_announcements")
+  categories                 Json
+  districts                  Json
+  reminderTiming             String                @default("24h_before") @map("reminder_timing") @db.VarChar(30)
+  specificEventIds           Json                  @map("specific_event_ids")
+  subscribedAt               DateTime              @default(now()) @map("subscribed_at")
+  createdAt                  DateTime              @default(now()) @map("created_at")
+  updatedAt                  DateTime              @updatedAt @map("updated_at")
+  notifications              NotificationLog[]
+  pushSubscriptions          WebPushSubscription[]
 
   @@map("event_notification_subscriptions")
 }
@@ -276,23 +293,23 @@ model WebPushSubscription {
 }
 
 model NotificationLog {
-  id             Int                           @id @default(autoincrement())
-  subscriptionId Int?                          @map("subscription_id")
-  subscription   EventNotificationSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-  pushSubscriptionId Int?                      @map("push_subscription_id")
-  pushSubscription WebPushSubscription?        @relation(fields: [pushSubscriptionId], references: [id], onDelete: SetNull)
-  channel        NotificationChannel
-  notificationType String                      @map("notification_type") @db.VarChar(40)
-  referenceType  String?                       @map("reference_type") @db.VarChar(40)
-  referenceId    Int?                          @map("reference_id")
-  recipient      String                        @db.VarChar(2048)
-  payload        Json
-  status         NotificationStatus            @default(QUEUED)
-  scheduledAt    DateTime                      @map("scheduled_at")
-  sentAt         DateTime?                     @map("sent_at")
-  errorMessage   String?                       @map("error_message") @db.Text
-  deduplicationKey String                      @unique @map("deduplication_key") @db.VarChar(191)
-  createdAt      DateTime                      @default(now()) @map("created_at")
+  id                 Int                            @id @default(autoincrement())
+  subscriptionId     Int?                           @map("subscription_id")
+  subscription       EventNotificationSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  pushSubscriptionId Int?                           @map("push_subscription_id")
+  pushSubscription   WebPushSubscription?           @relation(fields: [pushSubscriptionId], references: [id], onDelete: SetNull)
+  channel            NotificationChannel
+  notificationType   String                         @map("notification_type") @db.VarChar(40)
+  referenceType      String?                        @map("reference_type") @db.VarChar(40)
+  referenceId        Int?                           @map("reference_id")
+  recipient          String                         @db.VarChar(2048)
+  payload            Json
+  status             NotificationStatus             @default(QUEUED)
+  scheduledAt        DateTime                       @map("scheduled_at")
+  sentAt             DateTime?                      @map("sent_at")
+  errorMessage       String?                        @map("error_message") @db.Text
+  deduplicationKey   String                         @unique @map("deduplication_key") @db.VarChar(191)
+  createdAt          DateTime                       @default(now()) @map("created_at")
 
   @@index([status, scheduledAt])
   @@index([referenceType, referenceId])
@@ -336,30 +353,30 @@ model Document {
 }
 
 model CouncilArchiveDocument {
-  id                  Int      @id @default(autoincrement())
-  title               String   @db.VarChar(255)
-  category            String   @default("General") @db.VarChar(100)
-  description         String?  @db.Text
-  fileName            String   @map("file_name") @db.VarChar(255)
-  mimeType            String   @map("mime_type") @db.VarChar(255)
-  sizeBytes           Int      @map("size_bytes")
-  cloudinaryPublicId  String   @unique @map("cloudinary_public_id") @db.VarChar(255)
-  cloudinaryVersion   Int      @map("cloudinary_version")
-  uploadedBy          Int?     @map("uploaded_by")
-  createdAt           DateTime @default(now()) @map("created_at")
-  shareLinks          CouncilDocumentShareLink[]
+  id                 Int                        @id @default(autoincrement())
+  title              String                     @db.VarChar(255)
+  category           String                     @default("General") @db.VarChar(100)
+  description        String?                    @db.Text
+  fileName           String                     @map("file_name") @db.VarChar(255)
+  mimeType           String                     @map("mime_type") @db.VarChar(255)
+  sizeBytes          Int                        @map("size_bytes")
+  cloudinaryPublicId String                     @unique @map("cloudinary_public_id") @db.VarChar(255)
+  cloudinaryVersion  Int                        @map("cloudinary_version")
+  uploadedBy         Int?                       @map("uploaded_by")
+  createdAt          DateTime                   @default(now()) @map("created_at")
+  shareLinks         CouncilDocumentShareLink[]
 
   @@index([createdAt])
   @@map("council_archive_documents")
 }
 
 model CouncilDocumentShareLink {
-  id                Int                   @id @default(autoincrement())
-  documentId        Int                   @map("document_id")
-  document          CouncilArchiveDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  tokenHash         String                @unique @map("token_hash") @db.Char(64)
-  expiresAt         DateTime              @map("expires_at")
-  createdAt         DateTime              @default(now()) @map("created_at")
+  id         Int                    @id @default(autoincrement())
+  documentId Int                    @map("document_id")
+  document   CouncilArchiveDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  tokenHash  String                 @unique @map("token_hash") @db.Char(64)
+  expiresAt  DateTime               @map("expires_at")
+  createdAt  DateTime               @default(now()) @map("created_at")
 
   @@index([documentId, expiresAt])
   @@index([expiresAt])
@@ -427,15 +444,15 @@ model MosquePrayerTime {
 }
 
 model Madrasa {
-  id          Int      @id @default(autoincrement())
-  woredaId    Int      @map("woreda_id")
-  woreda      Woreda   @relation(fields: [woredaId], references: [id])
-  latitude    Float?
-  longitude   Float?
-  capacity    Int?
-  hasBoarding Boolean  @default(false) @map("has_boarding")
-  mosqueId    Int?     @unique @map("mosque_id")
-  mosque      Mosque?  @relation(fields: [mosqueId], references: [id], onDelete: SetNull)
+  id                 Int       @id @default(autoincrement())
+  woredaId           Int       @map("woreda_id")
+  woreda             Woreda    @relation(fields: [woredaId], references: [id])
+  latitude           Float?
+  longitude          Float?
+  capacity           Int?
+  hasBoarding        Boolean   @default(false) @map("has_boarding")
+  mosqueId           Int?      @unique @map("mosque_id")
+  mosque             Mosque?   @relation(fields: [mosqueId], references: [id], onDelete: SetNull)
   photoUrl           String?   @map("photo_url") @db.VarChar(1000)
   photoPublicId      String?   @map("photo_public_id") @db.VarChar(255)
   headTeacherId      Int?      @map("head_teacher_id")
@@ -453,26 +470,26 @@ model Madrasa {
 }
 
 model Teacher {
-  id                   Int      @id @default(autoincrement())
-  madrasaId            Int      @map("madrasa_id")
-  madrasa              Madrasa  @relation(fields: [madrasaId], references: [id])
-  name                 String   @db.VarChar(180)
-  qualification        String   @db.Text
-  specialization       String   @db.VarChar(240)
-  experienceYears      Int      @default(0) @map("experience_years")
-  studentsCount        Int      @default(0) @map("students_count")
-  assignedStudentsCount Int?    @map("assigned_students_count")
-  phone                String   @db.VarChar(30)
-  email                String   @db.VarChar(255)
-  status               String   @default("Active") @db.VarChar(30)
-  avatar               String?  @db.VarChar(1000)
-  sanad                String?  @db.Text
-  salaryETB            Float?   @map("salary_etb")
-  isCertified          Boolean  @default(false) @map("is_certified")
-  isFeatured           Boolean  @default(false) @map("is_featured")
-  isPublished          Boolean  @default(false) @map("is_published")
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
+  id                    Int       @id @default(autoincrement())
+  madrasaId             Int       @map("madrasa_id")
+  madrasa               Madrasa   @relation(fields: [madrasaId], references: [id])
+  name                  String    @db.VarChar(180)
+  qualification         String    @db.Text
+  specialization        String    @db.VarChar(240)
+  experienceYears       Int       @default(0) @map("experience_years")
+  studentsCount         Int       @default(0) @map("students_count")
+  assignedStudentsCount Int?      @map("assigned_students_count")
+  phone                 String    @db.VarChar(30)
+  email                 String    @db.VarChar(255)
+  status                String    @default("Active") @db.VarChar(30)
+  avatar                String?   @db.VarChar(1000)
+  sanad                 String?   @db.Text
+  salaryETB             Float?    @map("salary_etb")
+  isCertified           Boolean   @default(false) @map("is_certified")
+  isFeatured            Boolean   @default(false) @map("is_featured")
+  isPublished           Boolean   @default(false) @map("is_published")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
   headOfMadrasas        Madrasa[] @relation("MadrasaHeadTeacher")
 
   @@index([madrasaId])
@@ -481,40 +498,40 @@ model Teacher {
 }
 
 model Student {
-  id                  Int      @id @default(autoincrement())
-  name                String   @db.VarChar(180)
-  arabicName          String?  @map("arabic_name") @db.VarChar(180)
-  gender              String   @db.VarChar(20)
-  age                 Int
-  madrasaId           Int      @map("madrasa_id")
-  madrasa             Madrasa  @relation(fields: [madrasaId], references: [id])
-  className           String   @map("class_name") @db.VarChar(180)
-  teacherId           String?  @map("teacher_id") @db.VarChar(80)
-  teacherName         String?  @map("teacher_name") @db.VarChar(180)
-  enrollmentDate      String   @map("enrollment_date") @db.VarChar(10)
-  attendanceRate      Float    @default(100) @map("attendance_rate")
-  quranJuzCompleted   Int      @default(0) @map("quran_juz_completed")
-  currentJuz          Int      @default(1) @map("current_juz")
-  currentJuzProgress  Float    @default(0) @map("current_juz_progress")
-  hifzStatus          Json     @map("hifz_status")
-  tajweedRating       String   @map("tajweed_rating") @db.VarChar(40)
-  examScoreAvg        Float    @default(0) @map("exam_score_avg")
-  parentName          String   @map("parent_name") @db.VarChar(180)
-  parentPhone         String   @map("parent_phone") @db.VarChar(40)
-  guardianName        String?  @map("guardian_name") @db.VarChar(180)
-  guardianPhone       String?  @map("guardian_phone") @db.VarChar(40)
-  sabaqSurah          String?  @map("sabaq_surah") @db.VarChar(180)
-  sabaqAyahStart      Int?     @map("sabaq_ayah_start")
-  sabaqAyahEnd        Int?     @map("sabaq_ayah_end")
-  sabaqiJuz           Int?     @map("sabaqi_juz")
-  manzilJuz           String?  @map("manzil_juz") @db.VarChar(180)
-  dailyAttendance     String?  @map("daily_attendance") @db.VarChar(30)
-  level               String?  @db.VarChar(180)
-  status              String   @default("Active") @db.VarChar(30)
-  graduationYear      Int?     @map("graduation_year")
-  avatar              String?  @db.VarChar(1000)
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  id                 Int      @id @default(autoincrement())
+  name               String   @db.VarChar(180)
+  arabicName         String?  @map("arabic_name") @db.VarChar(180)
+  gender             String   @db.VarChar(20)
+  age                Int
+  madrasaId          Int      @map("madrasa_id")
+  madrasa            Madrasa  @relation(fields: [madrasaId], references: [id])
+  className          String   @map("class_name") @db.VarChar(180)
+  teacherId          String?  @map("teacher_id") @db.VarChar(80)
+  teacherName        String?  @map("teacher_name") @db.VarChar(180)
+  enrollmentDate     String   @map("enrollment_date") @db.VarChar(10)
+  attendanceRate     Float    @default(100) @map("attendance_rate")
+  quranJuzCompleted  Int      @default(0) @map("quran_juz_completed")
+  currentJuz         Int      @default(1) @map("current_juz")
+  currentJuzProgress Float    @default(0) @map("current_juz_progress")
+  hifzStatus         Json     @map("hifz_status")
+  tajweedRating      String   @map("tajweed_rating") @db.VarChar(40)
+  examScoreAvg       Float    @default(0) @map("exam_score_avg")
+  parentName         String   @map("parent_name") @db.VarChar(180)
+  parentPhone        String   @map("parent_phone") @db.VarChar(40)
+  guardianName       String?  @map("guardian_name") @db.VarChar(180)
+  guardianPhone      String?  @map("guardian_phone") @db.VarChar(40)
+  sabaqSurah         String?  @map("sabaq_surah") @db.VarChar(180)
+  sabaqAyahStart     Int?     @map("sabaq_ayah_start")
+  sabaqAyahEnd       Int?     @map("sabaq_ayah_end")
+  sabaqiJuz          Int?     @map("sabaqi_juz")
+  manzilJuz          String?  @map("manzil_juz") @db.VarChar(180)
+  dailyAttendance    String?  @map("daily_attendance") @db.VarChar(30)
+  level              String?  @db.VarChar(180)
+  status             String   @default("Active") @db.VarChar(30)
+  graduationYear     Int?     @map("graduation_year")
+  avatar             String?  @db.VarChar(1000)
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
   @@index([madrasaId])
   @@index([name])
@@ -522,27 +539,27 @@ model Student {
 }
 
 model UlemaProfile {
-  id                Int      @id @default(autoincrement())
-  name              String   @db.VarChar(180)
-  arabicName        String?  @map("arabic_name") @db.VarChar(180)
-  title             String   @db.VarChar(180)
-  specializations   Json
-  district          String   @db.VarChar(120)
-  assignedMosqueId  String?  @map("assigned_mosque_id") @db.VarChar(120)
-  assignedMosqueName String? @map("assigned_mosque_name") @db.VarChar(180)
-  qualifications    Json
-  languages         Json
-  areasOfService    Json     @map("areas_of_service")
-  biography         String   @db.Text
-  contactPhone      String   @map("contact_phone") @db.VarChar(30)
-  email             String   @db.VarChar(255)
-  status            String   @default("Active") @db.VarChar(30)
-  avatar            String?  @db.VarChar(1000)
-  yearsOfDawah      Int      @default(0) @map("years_of_dawah")
-  isFeatured        Boolean  @default(false) @map("is_featured")
-  isPublished       Boolean  @default(false) @map("is_published")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  id                 Int      @id @default(autoincrement())
+  name               String   @db.VarChar(180)
+  arabicName         String?  @map("arabic_name") @db.VarChar(180)
+  title              String   @db.VarChar(180)
+  specializations    Json
+  district           String   @db.VarChar(120)
+  assignedMosqueId   String?  @map("assigned_mosque_id") @db.VarChar(120)
+  assignedMosqueName String?  @map("assigned_mosque_name") @db.VarChar(180)
+  qualifications     Json
+  languages          Json
+  areasOfService     Json     @map("areas_of_service")
+  biography          String   @db.Text
+  contactPhone       String   @map("contact_phone") @db.VarChar(30)
+  email              String   @db.VarChar(255)
+  status             String   @default("Active") @db.VarChar(30)
+  avatar             String?  @db.VarChar(1000)
+  yearsOfDawah       Int      @default(0) @map("years_of_dawah")
+  isFeatured         Boolean  @default(false) @map("is_featured")
+  isPublished        Boolean  @default(false) @map("is_published")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
   @@index([isPublished, isFeatured])
   @@index([district])

@@ -15,12 +15,16 @@ import { parsePagination, buildPaginationMeta } from '../../common/utils/paginat
 const ENTITY_TYPE = 'madrasa';
 const TRANSLATED_FIELDS = ['name', 'description'];
 
-function toPublic(madrasa, translations, photos, locale) {
+function toPublic(madrasa, translations, photos, locale, woredaTranslations = {}) {
   return {
     id: madrasa.id,
     name: resolveLocale(translations?.name, locale),
     description: resolveLocale(translations?.description, locale),
-    woreda: { id: madrasa.woreda.id, code: madrasa.woreda.code },
+    woreda: {
+      id: madrasa.woreda.id,
+      code: madrasa.woreda.code,
+      name: resolveLocale(woredaTranslations?.name, locale),
+    },
     mosqueId: madrasa.mosqueId,
     latitude: madrasa.latitude,
     longitude: madrasa.longitude,
@@ -63,6 +67,11 @@ export async function listMadrasas(query, { publicOnly }) {
     items.map((m) => m.id),
     TRANSLATED_FIELDS
   );
+  const woredaTranslations = await getTranslationsForEntities(
+    'woreda',
+    items.map((madrasa) => madrasa.woreda.id),
+    ['name']
+  );
   const photosById = new Map();
   for (const photo of await documentsRepository.findByEntities(ENTITY_TYPE, items.map((m) => m.id))) {
     const photos = photosById.get(photo.entityId) ?? [];
@@ -71,7 +80,7 @@ export async function listMadrasas(query, { publicOnly }) {
   }
 
   return {
-    items: items.map((m) => toPublic(m, translations[m.id], photosById.get(m.id), locale)),
+    items: items.map((m) => toPublic(m, translations[m.id], photosById.get(m.id), locale, woredaTranslations[m.woreda.id])),
     meta: buildPaginationMeta({ page, pageSize, totalItems }),
   };
 }
@@ -83,14 +92,16 @@ export async function getMadrasa(id, locale = DEFAULT_LOCALE, { publicOnly } = {
   }
 
   const translations = await getTranslationsForEntity(ENTITY_TYPE, id, TRANSLATED_FIELDS);
+  const woredaTranslations = await getTranslationsForEntity('woreda', madrasa.woreda.id, ['name']);
   const photos = await documentsRepository.findByEntity(ENTITY_TYPE, id);
 
-  return toPublic(madrasa, translations, photos, locale);
+  return toPublic(madrasa, translations, photos, locale, woredaTranslations);
 }
 
 export async function createMadrasa({ name, description, ...fields }, actorId) {
   const woreda = await madrasasRepository.findWoredaById(fields.woredaId);
   if (!woreda) throw new BadRequestError('woredaId does not reference an existing woreda');
+  if (woreda.isActive === false) throw new BadRequestError('New madrasa records must use an active woreda');
 
   const madrasa = await madrasasRepository.create(fields);
 
@@ -121,6 +132,9 @@ export async function updateMadrasa(id, { name, description, ...fields }, actorI
   if (fields.woredaId) {
     const woreda = await madrasasRepository.findWoredaById(fields.woredaId);
     if (!woreda) throw new BadRequestError('woredaId does not reference an existing woreda');
+    if (woreda.isActive === false && existing.woredaId !== fields.woredaId) {
+      throw new BadRequestError('Madrasas can only be reassigned to an active woreda');
+    }
   }
 
   if (Object.keys(fields).length > 0) {

@@ -66,6 +66,15 @@ describe('Zakat application service', () => {
     expect(mockRepository.create).not.toHaveBeenCalled();
   });
 
+  it('rejects submissions for an inactive woreda', async () => {
+    mockRepository.findWoredaById.mockResolvedValue({ id: 3, code: 'JIMMA-TOWN', isActive: false });
+
+    await expect(zakatService.submitZakatApplication({ woredaId: 3 })).rejects.toMatchObject({
+      statusCode: 400,
+    });
+    expect(mockRepository.create).not.toHaveBeenCalled();
+  });
+
   it('creates an application with a reference number and writes an audit record', async () => {
     mockRepository.findWoredaById.mockResolvedValue({ id: 3, code: 'JIMMA-TOWN' });
     mockGenerateReferenceNumber.mockResolvedValue('ZKT-2026-00012');

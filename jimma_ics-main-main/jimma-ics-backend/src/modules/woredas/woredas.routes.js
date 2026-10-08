@@ -35,6 +35,28 @@ woredasRouter.get('/', validate(listWoredasSchema), woredasController.list);
 
 /**
  * @openapi
+ * /locations/woredas/admin:
+ *   get:
+ *     summary: List all Woredas, including inactive records
+ *     tags: [Locations]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Paginated administrative list of Woredas }
+ *       401: { description: Authentication required }
+ *       403: { description: Missing permission }
+ */
+woredasRouter.get(
+  '/admin',
+  authenticate,
+  authorize('woredas.write'),
+  validate(listWoredasSchema),
+  woredasController.listAdmin
+);
+
+woredasRouter.get('/gis', validate(listWoredasSchema), woredasController.listGis);
+
+/**
+ * @openapi
  * /locations/woredas/{id}:
  *   get:
  *     summary: Get a single woreda
@@ -92,7 +114,7 @@ woredasRouter.post(
  * @openapi
  * /locations/woredas/{id}:
  *   patch:
- *     summary: Update a woreda's translated name
+ *     summary: Update a Woreda's translated name or public availability
  *     tags: [Locations]
  *     security: [{ bearerAuth: [] }]
  *     parameters:
@@ -100,6 +122,15 @@ woredasRouter.post(
  *         name: id
  *         required: true
  *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: object }
+ *               isActive: { type: boolean }
  *     responses:
  *       200: { description: Updated }
  *       404: { description: Not found }

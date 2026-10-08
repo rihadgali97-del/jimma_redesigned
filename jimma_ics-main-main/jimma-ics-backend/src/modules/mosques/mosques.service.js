@@ -15,12 +15,16 @@ import { parsePagination, buildPaginationMeta } from '../../common/utils/paginat
 const ENTITY_TYPE = 'mosque';
 const TRANSLATED_FIELDS = ['name', 'description'];
 
-function toPublic(mosque, translations, photos, locale, madrasaTranslations = {}) {
+function toPublic(mosque, translations, photos, locale, madrasaTranslations = {}, woredaTranslations = {}) {
   return {
     id: mosque.id,
     name: resolveLocale(translations?.name, locale),
     description: resolveLocale(translations?.description, locale),
-    woreda: { id: mosque.woreda.id, code: mosque.woreda.code },
+    woreda: {
+      id: mosque.woreda.id,
+      code: mosque.woreda.code,
+      name: resolveLocale(woredaTranslations?.name, locale),
+    },
     latitude: mosque.latitude,
     longitude: mosque.longitude,
     capacity: mosque.capacity,
@@ -79,9 +83,21 @@ export async function listMosques(query, { publicOnly }) {
     items.flatMap((mosque) => mosque.madrasa ? [mosque.madrasa.id] : []),
     ['name']
   );
+  const woredaTranslations = await getTranslationsForEntities(
+    'woreda',
+    items.map((mosque) => mosque.woreda.id),
+    ['name']
+  );
 
   return {
-    items: items.map((m) => toPublic(m, translations[m.id], photosById.get(m.id), locale, madrasaTranslations)),
+    items: items.map((m) => toPublic(
+      m,
+      translations[m.id],
+      photosById.get(m.id),
+      locale,
+      madrasaTranslations,
+      woredaTranslations[m.woreda.id]
+    )),
     meta: buildPaginationMeta({ page, pageSize, totalItems }),
   };
 }
@@ -97,13 +113,15 @@ export async function getMosque(id, locale = DEFAULT_LOCALE, { publicOnly } = {}
   const madrasaTranslations = mosque.madrasa
     ? await getTranslationsForEntities('madrasa', [mosque.madrasa.id], ['name'])
     : {};
+  const woredaTranslations = await getTranslationsForEntity('woreda', mosque.woreda.id, ['name']);
 
-  return toPublic(mosque, translations, photos, locale, madrasaTranslations);
+  return toPublic(mosque, translations, photos, locale, madrasaTranslations, woredaTranslations);
 }
 
 export async function createMosque({ name, description, madrasaId, ...fields }, actorId) {
   const woreda = await mosquesRepository.findWoredaById(fields.woredaId);
   if (!woreda) throw new BadRequestError('woredaId does not reference an existing woreda');
+  if (woreda.isActive === false) throw new BadRequestError('New mosque records must use an active woreda');
 
   if (madrasaId != null) {
     const madrasa = await mosquesRepository.findMadrasaById(madrasaId);
@@ -133,6 +151,9 @@ export async function updateMosque(id, { name, description, madrasaId, ...fields
   if (fields.woredaId) {
     const woreda = await mosquesRepository.findWoredaById(fields.woredaId);
     if (!woreda) throw new BadRequestError('woredaId does not reference an existing woreda');
+    if (woreda.isActive === false && existing.woredaId !== fields.woredaId) {
+      throw new BadRequestError('Mosques can only be reassigned to an active woreda');
+    }
   }
 
   if (madrasaId != null && madrasaId !== existing.madrasa?.id) {
