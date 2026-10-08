@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import {
   createMadrasaRecord,
+  fetchAdminDirectoryWoredas,
   fetchAdminDirectoryMadrasas,
   uploadMadrasaPhoto,
   updateMadrasaRecord,
+  DirectoryWoreda,
 } from '../../services/directoryApi';
 import { fetchAdminTeachers } from '../../services/teachersApi';
 import { Teacher } from '../../types';
@@ -28,6 +30,7 @@ import { Modal } from '../../components/ui/Modal';
 export const AdminMadrasasPage: React.FC = () => {
   const { madrasas, refreshDirectoryData, addToast } = useApp();
   const [directoryMadrasas, setDirectoryMadrasas] = useState(madrasas);
+  const [woredas, setWoredas] = useState<DirectoryWoreda[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('All');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -37,12 +40,29 @@ export const AdminMadrasasPage: React.FC = () => {
 
   // Form state
   const [name, setName] = useState('');
-  const [district, setDistrict] = useState('Jimma Central');
+  const [district, setDistrict] = useState('');
+  const [selectedWoredaId, setSelectedWoredaId] = useState<number | null>(null);
   const [totalStudents, setTotalStudents] = useState(150);
   const [description, setDescription] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
   const [headTeacherId, setHeadTeacherId] = useState('');
   const [hifzGraduatesCount, setHifzGraduatesCount] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchAdminDirectoryWoredas()
+      .then((rows) => {
+        if (isMounted) setWoredas(rows);
+      })
+      .catch((error) => {
+        if (isMounted) {
+          addToast('Could not load district options', error instanceof Error ? error.message : 'Check your connection and try again.', 'error');
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -77,16 +97,7 @@ export const AdminMadrasasPage: React.FC = () => {
   }, []);
 
   const districts = ['All', ...Array.from(new Set(directoryMadrasas.map((m) => m.district)))];
-  const districtOptions = Array.from(new Set([
-    'Jimma Central',
-    'Agaro Town',
-    'Kersa District',
-    'Mana District',
-    'Gomma District',
-    'Limmu Kosa',
-    'Seka Chekorsa',
-    ...directoryMadrasas.map((m) => m.district),
-  ]));
+  const districtOptions = woredas.filter((woreda) => woreda.isActive || woreda.name === district);
 
   const filtered = directoryMadrasas.filter((m) => {
     const s = (searchTerm || '').toLowerCase();
@@ -101,7 +112,9 @@ export const AdminMadrasasPage: React.FC = () => {
   const openAddModal = () => {
     setEditingMadrasa(null);
     setName('');
-    setDistrict('Jimma Central');
+    const firstActiveWoreda = woredas.find((woreda) => woreda.isActive);
+    setDistrict(firstActiveWoreda?.name || '');
+    setSelectedWoredaId(firstActiveWoreda?.id || null);
     setTotalStudents(150);
     setDescription('');
     setPhoto(null);
@@ -113,7 +126,9 @@ export const AdminMadrasasPage: React.FC = () => {
   const openEditModal = (madrasa: (typeof madrasas)[number]) => {
     setEditingMadrasa(madrasa);
     setName(madrasa.name);
-    setDistrict(madrasa.district);
+    const selectedWoreda = woredas.find((woreda) => woreda.id === madrasa.woredaId);
+    setDistrict(selectedWoreda?.name || madrasa.district);
+    setSelectedWoredaId(selectedWoreda?.id || null);
     setTotalStudents(madrasa.totalStudents || 150);
     setDescription(madrasa.description);
     setPhoto(null);
@@ -146,7 +161,7 @@ export const AdminMadrasasPage: React.FC = () => {
       const record = editingMadrasa
         ? await updateMadrasaRecord(editingMadrasa.id, {
           name: name.trim(),
-          district,
+          woredaId: Number(selectedWoredaId),
           capacity: Number(totalStudents),
           description: description || 'Islamic education institution registered with Jimma Islamic Council.',
           headTeacherId: headTeacherId ? Number(headTeacherId) : null,
@@ -154,7 +169,7 @@ export const AdminMadrasasPage: React.FC = () => {
         })
         : await createMadrasaRecord({
           name: name.trim(),
-          district,
+          woredaId: Number(selectedWoredaId),
           capacity: Number(totalStudents),
           description: description || 'Islamic education institution registered with Jimma Islamic Council.',
         });
@@ -353,11 +368,22 @@ export const AdminMadrasasPage: React.FC = () => {
                 District *
               </label>
               <select
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
+                required
+                value={selectedWoredaId || ''}
+                onChange={(e) => {
+                  const selected = woredas.find((woreda) => woreda.id === Number(e.target.value));
+                  setSelectedWoredaId(selected?.id || null);
+                  setDistrict(selected?.name || '');
+                }}
+                disabled={districtOptions.length === 0}
                 className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700"
               >
-                {districtOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+                {districtOptions.length === 0 && <option value="">No registered woredas available</option>}
+                {districtOptions.map((option) => (
+                  <option key={option.id} value={option.id} disabled={!option.isActive}>
+                    {option.name}{option.isActive ? '' : ' (inactive; existing records only)'}
+                  </option>
+                ))}
               </select>
             </div>
 

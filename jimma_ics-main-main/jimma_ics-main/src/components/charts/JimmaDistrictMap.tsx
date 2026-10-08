@@ -1,214 +1,172 @@
-import React, { useState } from 'react';
-import { MapPin, Building, BookOpen, Users, Compass } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { BookOpen, Building, Compass, MapPin } from 'lucide-react';
+import { useApp } from '../../context/AppContext';
+import { fetchDirectoryWoredas, DirectoryWoreda } from '../../services/directoryApi';
 
-interface DistrictInfo {
-  id: string;
-  name: string;
-  afaanOromoo: string;
-  mosques: number;
-  madrasas: number;
-  students: number;
-  ulema: number;
-  x: number; // grid position percentage
+interface DistrictPoint extends DirectoryWoreda {
+  x: number;
   y: number;
-  isHub?: boolean;
+}
+
+function getDistrictPoints(woredas: DirectoryWoreda[]): DistrictPoint[] {
+  return woredas.map((woreda, index) => {
+    const angle = (index / Math.max(woredas.length, 1)) * Math.PI * 2 - Math.PI / 2;
+    return {
+      ...woreda,
+      x: 50 + 38 * Math.cos(angle),
+      y: 50 + 36 * Math.sin(angle),
+    };
+  });
 }
 
 export const JimmaDistrictMap: React.FC<{ className?: string }> = ({ className = '' }) => {
-  const [selectedDistrict, setSelectedDistrict] = useState<DistrictInfo | null>(null);
+  const { mosques, madrasas } = useApp();
+  const [woredas, setWoredas] = useState<DirectoryWoreda[]>([]);
+  const [selectedWoredaId, setSelectedWoredaId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
-  const districts: DistrictInfo[] = [
-    { id: 'd1', name: 'Jimma Central / City', afaanOromoo: 'Magaalaa Jimmaa', mosques: 32, madrasas: 18, students: 1450, ulema: 14, x: 50, y: 50, isHub: true },
-    { id: 'd2', name: 'Agaro Town', afaanOromoo: 'Magaalaa Aggaaroo', mosques: 16, madrasas: 9, students: 680, ulema: 5, x: 30, y: 35, isHub: true },
-    { id: 'd3', name: 'Kersa District', afaanOromoo: 'Aanaa Qarsaa', mosques: 12, madrasas: 6, students: 410, ulema: 3, x: 62, y: 38 },
-    { id: 'd4', name: 'Mana District (Yebu)', afaanOromoo: 'Aanaa Maannaa', mosques: 10, madrasas: 5, students: 340, ulema: 2, x: 42, y: 40 },
-    { id: 'd5', name: 'Gomma District', afaanOromoo: 'Aanaa Gommaa', mosques: 14, madrasas: 8, students: 560, ulema: 4, x: 26, y: 48 },
-    { id: 'd6', name: 'Limmu Kosa (Genji)', afaanOromoo: 'Aanaa Limmuu Saqqaa/Kosaa', mosques: 11, madrasas: 6, students: 390, ulema: 3, x: 40, y: 22 },
-    { id: 'd7', name: 'Seka Chekorsa', afaanOromoo: 'Aanaa Saqqaa Coqorsaa', mosques: 9, madrasas: 4, students: 280, ulema: 2, x: 48, y: 65 },
-    { id: 'd8', name: 'Dedo District', afaanOromoo: 'Aanaa Deedo', mosques: 8, madrasas: 4, students: 240, ulema: 2, x: 60, y: 68 },
-    { id: 'd9', name: 'Sigmo District', afaanOromoo: 'Aanaa Sigmoo', mosques: 7, madrasas: 3, students: 180, ulema: 1, x: 18, y: 38 },
-    { id: 'd10', name: 'Gera District', afaanOromoo: 'Aanaa Geeraa', mosques: 8, madrasas: 4, students: 220, ulema: 2, x: 16, y: 62 },
-    { id: 'd11', name: 'Shebe Senbo', afaanOromoo: 'Aanaa Shabee Somboo', mosques: 6, madrasas: 3, students: 160, ulema: 1, x: 34, y: 75 },
-    { id: 'd12', name: 'Omo Nada', afaanOromoo: 'Aanaa Oomoo Naaddaa', mosques: 10, madrasas: 5, students: 310, ulema: 2, x: 74, y: 55 },
-    { id: 'd13', name: 'Tiro Afeta', afaanOromoo: 'Aanaa Xiroo Affaata', mosques: 7, madrasas: 3, students: 190, ulema: 1, x: 68, y: 26 },
-    { id: 'd14', name: 'Chora Botor', afaanOromoo: 'Aanaa Cooraa Botor', mosques: 6, madrasas: 2, students: 150, ulema: 1, x: 78, y: 18 },
-    { id: 'd15', name: 'Limmu Seka', afaanOromoo: 'Aanaa Limmuu Saqqaa', mosques: 7, madrasas: 3, students: 170, ulema: 1, x: 30, y: 15 },
-    { id: 'd16', name: 'Setema District', afaanOromoo: 'Aanaa Seexamaa', mosques: 5, madrasas: 2, students: 130, ulema: 1, x: 15, y: 22 },
-    { id: 'd17', name: 'Sokoru District', afaanOromoo: 'Aanaa Soqorruu', mosques: 8, madrasas: 4, students: 210, ulema: 2, x: 80, y: 40 },
-    { id: 'd18', name: 'Nonno Benja', afaanOromoo: 'Aanaa Noonnoo Beenjaa', mosques: 5, madrasas: 2, students: 120, ulema: 1, x: 22, y: 10 },
-  ];
+  useEffect(() => {
+    let active = true;
+    fetchDirectoryWoredas()
+      .then((rows) => {
+        if (!active) return;
+        setWoredas(rows);
+        setSelectedWoredaId((current) => current ?? rows[0]?.id ?? null);
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setLoadError(error instanceof Error ? error.message : 'Could not load registered districts.');
+        }
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  const current = selectedDistrict || districts[0];
+  const points = getDistrictPoints(woredas);
+  const current = points.find((woreda) => woreda.id === selectedWoredaId) || points[0];
+  const countForWoreda = (items: Array<{ woredaId?: number }>, woredaId: number) =>
+    items.filter((item) => item.woredaId === woredaId).length;
+  const activeWoredaIds = new Set(woredas.map((woreda) => woreda.id));
+  const totalMosques = mosques.filter((mosque) => mosque.woredaId !== undefined && activeWoredaIds.has(mosque.woredaId)).length;
 
   return (
-    <div className={`grid grid-cols-1 lg:grid-cols-12 gap-6 ${className}`}>
-      {/* Visual Interactive Map Area */}
-      <div className="lg:col-span-8 bg-stone-900 text-stone-100 rounded-2xl p-6 relative min-h-[380px] sm:min-h-[440px] flex flex-col justify-between overflow-hidden border border-stone-800 shadow-xl">
-        {/* Stylized Topographic / Geometric Background */}
-        <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:20px_20px]" />
-
-        {/* Map Header */}
-        <div className="relative z-10 flex items-start justify-between">
+    <div className={`grid grid-cols-1 gap-6 lg:grid-cols-12 ${className}`}>
+      <section className="relative flex min-h-[380px] flex-col justify-between overflow-hidden rounded-2xl border border-stone-800 bg-stone-900 p-6 text-stone-100 shadow-xl sm:min-h-[440px] lg:col-span-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:20px_20px] opacity-15" />
+        <div className="relative z-10 flex items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
-              <Compass className="w-4 h-4" />
-              <span>Jimma Zone Geographic Coverage</span>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400">
+              <Compass className="h-4 w-4" />
+              <span>Jimma Zone coverage</span>
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-white font-serif mt-1">
-              18 Administrative Districts Representation
+            <h3 className="mt-1 font-serif text-lg font-bold text-white sm:text-xl">
+              {woredas.length} registered districts
             </h3>
           </div>
-          <span className="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-3 py-1 rounded-full font-mono">
-            128+ Mosques Connected
+          <span className="rounded-full border border-emerald-800 bg-emerald-950 px-3 py-1 font-mono text-xs text-emerald-300">
+            {totalMosques} registered mosques
           </span>
         </div>
 
-        {/* Interactive District Nodes on Map Canvas */}
-        <div className="relative w-full h-64 sm:h-72 my-auto z-10">
-          {/* Subtle connecting lines */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none text-emerald-800/40 stroke-current">
-            <line x1="50%" y1="50%" x2="30%" y2="35%" strokeWidth="1.5" strokeDasharray="3 3" />
-            <line x1="50%" y1="50%" x2="62%" y2="38%" strokeWidth="1.5" strokeDasharray="3 3" />
-            <line x1="50%" y1="50%" x2="42%" y2="40%" strokeWidth="1.5" strokeDasharray="3 3" />
-            <line x1="50%" y1="50%" x2="26%" y2="48%" strokeWidth="1.5" strokeDasharray="3 3" />
-            <line x1="50%" y1="50%" x2="48%" y2="65%" strokeWidth="1.5" strokeDasharray="3 3" />
-            <line x1="50%" y1="50%" x2="60%" y2="68%" strokeWidth="1.5" strokeDasharray="3 3" />
-            <line x1="50%" y1="50%" x2="74%" y2="55%" strokeWidth="1.5" strokeDasharray="3 3" />
-            <line x1="50%" y1="50%" x2="40%" y2="22%" strokeWidth="1.5" strokeDasharray="3 3" />
-          </svg>
-
-          {districts.map((d) => {
-            const isSelected = current.id === d.id;
-            return (
-              <button
-                key={d.id}
-                onClick={() => setSelectedDistrict(d)}
-                style={{ left: `${d.x}%`, top: `${d.y}%` }}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 group transition-all duration-200 cursor-pointer ${
-                  isSelected ? 'z-20 scale-125' : 'z-10 hover:scale-115'
-                }`}
-                title={`${d.name} (${d.mosques} Mosques)`}
-              >
-                <div className="flex flex-col items-center">
-                  <div
-                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg border-2 transition-all ${
+        {isLoading ? (
+          <div className="relative z-10 grid min-h-64 place-items-center text-sm text-stone-400">Loading registered districts…</div>
+        ) : loadError ? (
+          <div role="alert" className="relative z-10 my-8 rounded-xl border border-rose-800 bg-rose-950/60 p-4 text-sm text-rose-200">
+            District information is unavailable: {loadError}
+          </div>
+        ) : points.length === 0 ? (
+          <div className="relative z-10 grid min-h-64 place-items-center text-sm text-stone-400">No districts have been registered yet.</div>
+        ) : (
+          <div className="relative z-10 my-auto h-64 w-full sm:h-72">
+            <svg className="pointer-events-none absolute inset-0 h-full w-full stroke-emerald-800/50">
+              {points.map((point) => (
+                <line
+                  key={point.id}
+                  x1="50%"
+                  y1="50%"
+                  x2={`${point.x}%`}
+                  y2={`${point.y}%`}
+                  strokeWidth="1.5"
+                  strokeDasharray="3 3"
+                />
+              ))}
+            </svg>
+            {points.map((woreda) => {
+              const isSelected = current?.id === woreda.id;
+              return (
+                <button
+                  key={woreda.id}
+                  type="button"
+                  onClick={() => setSelectedWoredaId(woreda.id)}
+                  style={{ left: `${woreda.x}%`, top: `${woreda.y}%` }}
+                  className={`group absolute -translate-x-1/2 -translate-y-1/2 transition-transform ${
+                    isSelected ? 'z-20 scale-125' : 'z-10 hover:scale-110'
+                  }`}
+                  title={`${woreda.name}: ${countForWoreda(mosques, woreda.id)} mosques, ${countForWoreda(madrasas, woreda.id)} madrasas`}
+                >
+                  <span className="flex flex-col items-center">
+                    <span className={`flex h-7 w-7 items-center justify-center rounded-full border-2 shadow-lg sm:h-8 sm:w-8 ${
                       isSelected
-                        ? 'bg-amber-500 border-white text-stone-950 ring-4 ring-amber-400/30'
-                        : d.isHub
-                        ? 'bg-emerald-600 border-amber-400 text-white'
-                        : 'bg-stone-800 border-emerald-500/50 text-emerald-300 hover:bg-emerald-700 hover:text-white'
-                    }`}
-                  >
-                    <MapPin className="w-3.5 h-3.5" />
-                  </div>
-                  <span
-                    className={`mt-1 text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-md whitespace-nowrap shadow-sm transition-colors ${
-                      isSelected
-                        ? 'bg-amber-400 text-stone-950 font-bold'
-                        : 'bg-stone-900/90 text-stone-300 group-hover:text-white'
-                    }`}
-                  >
-                    {d.name.split(' ')[0]}
+                        ? 'border-white bg-amber-500 text-stone-950 ring-4 ring-amber-400/30'
+                        : woreda.code === 'jimma-town'
+                          ? 'border-amber-400 bg-emerald-600 text-white'
+                          : 'border-emerald-500/50 bg-stone-800 text-emerald-300 group-hover:bg-emerald-700 group-hover:text-white'
+                    }`}>
+                      <MapPin className="h-3.5 w-3.5" />
+                    </span>
+                    <span className={`mt-1 max-w-28 truncate rounded-md px-2 py-0.5 text-[10px] font-semibold shadow-sm sm:text-xs ${
+                      isSelected ? 'bg-amber-400 font-bold text-stone-950' : 'bg-stone-900/90 text-stone-300 group-hover:text-white'
+                    }`}>
+                      {woreda.name}
+                    </span>
                   </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-        {/* Map Footer Tip */}
-        <div className="relative z-10 text-[11px] text-stone-400 flex items-center justify-between border-t border-stone-800 pt-3">
-          <span>* Interactive Prototype Node Model — Click any district marker to inspect details</span>
-          <span className="text-amber-400">Jimma Zone, Oromia, Ethiopia</span>
-        </div>
-      </div>
+        <p className="relative z-10 border-t border-stone-800 pt-3 text-[11px] text-stone-400">
+          Schematic district view — nodes show registered locations and are not geographic boundaries or to scale.
+        </p>
+      </section>
 
-      {/* Selected District Details Card */}
-      <div className="lg:col-span-4 bg-white dark:bg-stone-900 rounded-2xl p-6 border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col justify-between">
-        <div>
-          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3 mb-4">
+      <aside className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-800 dark:bg-stone-900 lg:col-span-4">
+        {current ? (
+          <>
             <div>
-              <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-                District Profile
-              </span>
-              <h4 className="text-lg font-bold text-stone-900 dark:text-stone-100 font-serif">
-                {current.name}
-              </h4>
-              <p className="text-xs text-stone-500 dark:text-stone-400">
-                {current.afaanOromoo}
-              </p>
-            </div>
-            {current.isHub && (
-              <span className="px-2.5 py-1 text-[11px] font-semibold bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 rounded-full border border-amber-300">
-                Regional Hub
-              </span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40">
-              <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 text-xs font-medium mb-1">
-                <Building className="w-3.5 h-3.5" />
-                <span>Mosques</span>
+              <div className="mb-4 flex items-center justify-between border-b border-stone-100 pb-3 dark:border-stone-800">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Selected district</span>
+                  <h4 className="mt-1 text-lg font-bold text-stone-900 dark:text-stone-100">{current.name}</h4>
+                  <span className="font-mono text-xs text-stone-500">{current.code}</span>
+                </div>
+                <MapPin className="h-6 w-6 text-emerald-600" />
               </div>
-              <div className="text-2xl font-bold text-stone-900 dark:text-stone-100 font-mono">
-                {current.mosques}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between rounded-xl bg-stone-50 p-3 dark:bg-stone-800/60">
+                  <span className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-300"><Building className="h-4 w-4 text-emerald-600" />Registered mosques</span>
+                  <strong className="font-mono text-stone-900 dark:text-stone-100">{countForWoreda(mosques, current.id)}</strong>
+                </div>
+                <div className="flex items-center justify-between rounded-xl bg-stone-50 p-3 dark:bg-stone-800/60">
+                  <span className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-300"><BookOpen className="h-4 w-4 text-amber-600" />Registered madrasas</span>
+                  <strong className="font-mono text-stone-900 dark:text-stone-100">{countForWoreda(madrasas, current.id)}</strong>
+                </div>
               </div>
             </div>
-
-            <div className="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40">
-              <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300 text-xs font-medium mb-1">
-                <BookOpen className="w-3.5 h-3.5" />
-                <span>Madrasas</span>
-              </div>
-              <div className="text-2xl font-bold text-stone-900 dark:text-stone-100 font-mono">
-                {current.madrasas}
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40">
-              <div className="flex items-center gap-1.5 text-blue-800 dark:text-blue-300 text-xs font-medium mb-1">
-                <Users className="w-3.5 h-3.5" />
-                <span>Students</span>
-              </div>
-              <div className="text-2xl font-bold text-stone-900 dark:text-stone-100 font-mono">
-                {current.students.toLocaleString()}
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-teal-50/70 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900/40">
-              <div className="flex items-center gap-1.5 text-teal-800 dark:text-teal-300 text-xs font-medium mb-1">
-                <Users className="w-3.5 h-3.5" />
-                <span>Ulema Scholars</span>
-              </div>
-              <div className="text-2xl font-bold text-stone-900 dark:text-stone-100 font-mono">
-                {current.ulema}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2 text-xs text-stone-600 dark:text-stone-300">
-            <div className="flex justify-between py-1 border-b border-stone-100 dark:border-stone-800">
-              <span className="text-stone-500">Zakat Disbursal Rate:</span>
-              <span className="font-semibold text-emerald-600">Active (Quarterly)</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-stone-100 dark:border-stone-800">
-              <span className="text-stone-500">Curriculum Standardization:</span>
-              <span className="font-semibold">100% Accredited</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span className="text-stone-500">Emergency Janazah Unit:</span>
-              <span className="font-semibold text-stone-800 dark:text-stone-200">On Call 24/7</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 pt-4 border-t border-stone-100 dark:border-stone-800">
-          <p className="text-[11px] text-stone-400 leading-relaxed italic">
-            Coordinated via Jimma Central Secretariat & District Shari'ah Desks.
-          </p>
-        </div>
-      </div>
+            <p className="mt-6 text-xs leading-5 text-stone-500">
+              Counts are based on published directory records currently loaded from the council registry.
+            </p>
+          </>
+        ) : (
+          <p className="text-sm text-stone-500">{loadError || 'Select a registered district to inspect its directory records.'}</p>
+        )}
+      </aside>
     </div>
   );
 };

@@ -1,16 +1,18 @@
 import React from 'react';
-import { JIMMA_ZONE_WOREDAS, JIMMA_GIS_POIS } from '../../data/mockGisData';
+import { WoredaGisData } from '../../types/gis';
 import { X, Printer, Landmark, ShieldCheck, Download } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 interface PrintableGisDossierProps {
   isOpen: boolean;
   onClose: () => void;
+  woredas: WoredaGisData[];
 }
 
 export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
   isOpen,
   onClose,
+  woredas,
 }) => {
   if (!isOpen) return null;
 
@@ -18,11 +20,11 @@ export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
     window.print();
   };
 
-  const totalMosques = JIMMA_ZONE_WOREDAS.reduce((acc, w) => acc + w.totalMosques, 0);
-  const totalJummah = JIMMA_ZONE_WOREDAS.reduce((acc, w) => acc + w.jummahMosques, 0);
-  const totalMadrasas = JIMMA_ZONE_WOREDAS.reduce((acc, w) => acc + w.totalMadrasas, 0);
-  const totalStudents = JIMMA_ZONE_WOREDAS.reduce((acc, w) => acc + w.tahfeezStudents, 0);
-  const totalZakat = JIMMA_ZONE_WOREDAS.reduce((acc, w) => acc + w.annualZakatETB, 0);
+  const totalMosques = woredas.reduce((acc, w) => acc + w.totalMosques, 0);
+  const totalJummah = woredas.reduce((acc, w) => acc + w.jummahMosques, 0);
+  const totalMadrasas = woredas.reduce((acc, w) => acc + w.totalMadrasas, 0);
+  const totalStudents = woredas.reduce((acc, w) => acc + w.tahfeezStudents, 0);
+  const totalZakat = woredas.reduce((acc, w) => acc + w.annualZakatETB, 0);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/75 backdrop-blur-sm animate-in fade-in overflow-y-auto">
@@ -31,10 +33,10 @@ export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
         <div className="flex items-center justify-between pb-4 border-b border-stone-200 mb-6 print:hidden">
           <div>
             <h3 className="font-serif font-bold text-lg text-stone-900">
-              Official Jimma Zone GIS Spatial Planning Dossier
+              Jimma Zone GIS District Profile Report
             </h3>
             <p className="text-xs text-stone-500">
-              Ready for council distribution, governmental liaison, and endowment archiving
+              Generated from the current Woreda registry and linked records
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -75,7 +77,7 @@ export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
               Department of Spatial GIS, Waqf Lands & Mosque Infrastructure
             </div>
             <div className="text-[11px] text-stone-500 mt-0.5">
-              Comprehensive 18-Woreda Geospatial Infrastructure Audit • Reference: JZC-GIS/2026/08
+              Live data snapshot • Generated {new Date().toLocaleDateString()}
             </div>
           </div>
 
@@ -83,7 +85,7 @@ export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
           <div className="grid grid-cols-5 gap-3 text-center p-3 bg-stone-50 rounded-xl border border-stone-200">
             <div>
               <div className="text-[10px] text-stone-500 uppercase font-bold">Woredas</div>
-              <div className="text-lg font-bold text-stone-900">18</div>
+              <div className="text-lg font-bold text-stone-900">{woredas.length}</div>
             </div>
             <div>
               <div className="text-[10px] text-stone-500 uppercase font-bold">Total Mosques</div>
@@ -98,12 +100,12 @@ export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
               <div className="text-lg font-bold text-amber-700">{totalStudents.toLocaleString()}</div>
             </div>
             <div>
-              <div className="text-[10px] text-stone-500 uppercase font-bold">Annual Zakat</div>
+              <div className="text-[10px] text-stone-500 uppercase font-bold">Zakat Disbursed This Year</div>
               <div className="text-lg font-bold text-teal-800">{(totalZakat / 1000000).toFixed(1)}M ETB</div>
             </div>
           </div>
 
-          {/* Table of all 18 Woredas */}
+          {/* Current Woreda registry */}
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse border border-stone-200">
               <thead>
@@ -119,22 +121,22 @@ export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-200">
-                {JIMMA_ZONE_WOREDAS.map((w, idx) => (
+                {woredas.map((w, idx) => (
                   <tr key={w.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-stone-50/60'}>
                     <td className="p-2 border border-stone-200 font-mono text-stone-500">{idx + 1}</td>
                     <td className="p-2 border border-stone-200 font-semibold text-stone-900">
                       {w.name}
                       <div className="text-[10px] text-stone-500 font-normal">{w.oromoName}</div>
                     </td>
-                    <td className="p-2 border border-stone-200 text-stone-600">{w.zone}</td>
-                    <td className="p-2 border border-stone-200 font-mono text-stone-600">{w.elevationMeters}m</td>
+                    <td className="p-2 border border-stone-200 text-stone-600">{w.zone || '—'}</td>
+                    <td className="p-2 border border-stone-200 font-mono text-stone-600">{w.elevationMeters == null ? '—' : `${w.elevationMeters}m`}</td>
                     <td className="p-2 border border-stone-200">
                       <strong className="text-emerald-800">{w.totalMosques}</strong>{' '}
                       <span className="text-stone-500">({w.jummahMosques})</span>
                     </td>
                     <td className="p-2 border border-stone-200 font-semibold text-stone-700">{w.totalMadrasas}</td>
                     <td className="p-2 border border-stone-200 font-mono text-amber-800">{w.tahfeezStudents.toLocaleString()}</td>
-                    <td className="p-2 border border-stone-200 text-stone-700">{w.councilBranchHead}</td>
+                    <td className="p-2 border border-stone-200 text-stone-700">{w.councilBranchHead || '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -144,19 +146,19 @@ export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
           {/* Official Verification Sign-off */}
           <div className="pt-6 border-t-2 border-stone-900 grid grid-cols-2 gap-8 text-xs">
             <div>
-              <div className="font-bold text-stone-900">Verified & Certified by:</div>
-              <div className="text-stone-600 mt-1 font-serif">Sheikh Abdullah Ahmed Al-Jimmawi</div>
-              <div className="text-stone-500 text-[11px]">Directorate of Mosque Affairs & GIS Mapping</div>
+              <div className="font-bold text-stone-900">Reviewed by:</div>
+              <div className="text-stone-600 mt-1 font-serif">Name / title</div>
+              <div className="text-stone-500 text-[11px]">District information reviewer</div>
               <div className="mt-4 border-b border-stone-400 w-48" />
-              <div className="text-[10px] text-stone-400 mt-0.5">Signature & Official Council Seal</div>
+              <div className="text-[10px] text-stone-400 mt-0.5">Signature</div>
             </div>
 
             <div className="text-right">
               <div className="font-bold text-stone-900">Executive Approval:</div>
-              <div className="text-stone-600 mt-1 font-serif">Dr. Sheikh Jamaluddin Al-Azhari</div>
-              <div className="text-stone-500 text-[11px]">President, Jimma Supreme Islamic Council</div>
+              <div className="text-stone-600 mt-1 font-serif">Name / title</div>
+              <div className="text-stone-500 text-[11px]">Authorized approver</div>
               <div className="mt-4 border-b border-stone-400 w-48 ml-auto" />
-              <div className="text-[10px] text-stone-400 mt-0.5">Official Stamp of Verification</div>
+              <div className="text-[10px] text-stone-400 mt-0.5">Official stamp</div>
             </div>
           </div>
         </div>

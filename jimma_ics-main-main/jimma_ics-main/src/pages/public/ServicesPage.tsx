@@ -30,7 +30,7 @@ import { Modal } from '../../components/ui/Modal';
 import { ServiceItem } from '../../data/mockServices';
 import { ZakatCalculator } from '../../components/services/ZakatCalculator';
 import { IslamicPattern } from '../../components/common/IslamicPattern';
-import { fetchDirectoryWoredas } from '../../services/directoryApi';
+import { DirectoryWoreda, fetchDirectoryWoredas } from '../../services/directoryApi';
 import { submitZakatApplication, trackZakatApplication } from '../../services/zakatApi';
 import {
   JANAZAH_CATALOGUE_ID,
@@ -38,29 +38,6 @@ import {
   trackJanazahRequest,
 } from '../../services/janazahApi';
 import { WaqfTransparencyPage } from './WaqfTransparencyPage';
-
-async function resolveWoredaId(district: string) {
-  const woredas = await fetchDirectoryWoredas();
-  const normalize = (value: string) =>
-    value
-      .toLowerCase()
-      .replace(/[-_]/g, ' ')
-      .replace(/\b(town|district|woreda|sub city)\b/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  const districtKey = normalize(district);
-  const aliases: Record<string, string> = {
-    'jimma central': 'jimma town',
-    'jimma central hermata': 'jimma town',
-  };
-  const woreda = woredas.find((item) => {
-    const code = normalize(item.code);
-    const name = normalize(item.name);
-    return code === (aliases[districtKey] || districtKey) || name === districtKey;
-  });
-  if (!woreda) throw new Error(`No registered woreda matches "${district}".`);
-  return woreda.id;
-}
 
 const applicationStatusLabels: Record<string, string> = {
   SUBMITTED: 'Submitted',
@@ -98,6 +75,8 @@ export const ServicesPage: React.FC = () => {
   const [copiedCode, setCopiedCode] = useState(false);
   const [isSubmittingApplication, setIsSubmittingApplication] = useState(false);
   const [isTrackingApplication, setIsTrackingApplication] = useState(false);
+  const [woredas, setWoredas] = useState<DirectoryWoreda[]>([]);
+  const [woredasLoadError, setWoredasLoadError] = useState('');
   const zakatServiceEnabled = publicServiceAvailability['srv-2'] !== false;
 
   useEffect(() => {
@@ -193,13 +172,34 @@ export const ServicesPage: React.FC = () => {
   // Form state
   const [applicantName, setApplicantName] = useState('');
   const [phone, setPhone] = useState('');
-  const [district, setDistrict] = useState('Jimma Central');
+  const [district, setDistrict] = useState('');
+  const [selectedWoredaId, setSelectedWoredaId] = useState<number | null>(null);
   const [householdSize, setHouseholdSize] = useState('1');
   const [details, setDetails] = useState('');
   const [deceasedName, setDeceasedName] = useState('');
   const [needsGhusl, setNeedsGhusl] = useState(true);
   const [needsTransport, setNeedsTransport] = useState(true);
   const [needsCemeteryPlot, setNeedsCemeteryPlot] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetchDirectoryWoredas()
+      .then((rows) => {
+        if (!active) return;
+        setWoredas(rows);
+        setDistrict((current) => current || rows[0]?.name || '');
+        setSelectedWoredaId((current) => current ?? rows[0]?.id ?? null);
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        const message = error instanceof Error ? error.message : 'Could not load registered districts.';
+        setWoredasLoadError(message);
+        addToast('District Options Unavailable', message, 'error');
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const isJanazahService = (service: ServiceItem | null) =>
     Boolean(
@@ -269,9 +269,8 @@ export const ServicesPage: React.FC = () => {
     if (selectedService.title.toLowerCase().includes('zakat assistance')) {
       setIsSubmittingApplication(true);
       try {
-        const woredaId = await resolveWoredaId(district);
         const application = await submitZakatApplication({
-          woredaId,
+          woredaId: Number(selectedWoredaId),
           applicantFullName: applicantName.trim(),
           applicantPhone: phone.trim(),
           householdSize: Number(householdSize),
@@ -324,9 +323,8 @@ export const ServicesPage: React.FC = () => {
       }
       setIsSubmittingApplication(true);
       try {
-        const woredaId = await resolveWoredaId(district);
         const request = await submitJanazahRequest({
-          woredaId,
+          woredaId: Number(selectedWoredaId),
           deceasedName: deceasedName.trim(),
           contactName: applicantName.trim(),
           contactPhone: phone.trim(),
@@ -1094,20 +1092,20 @@ export const ServicesPage: React.FC = () => {
                   District Desk *
                 </label>
                 <select
-                  value={district}
-                  onChange={(e) => setDistrict(e.target.value)}
+                  required
+                  value={selectedWoredaId || ''}
+                  onChange={(e) => {
+                    const selected = woredas.find((woreda) => woreda.id === Number(e.target.value));
+                    setSelectedWoredaId(selected?.id || null);
+                    setDistrict(selected?.name || '');
+                  }}
+                  disabled={woredas.length === 0}
                   className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100"
                 >
-                  <option value="Jimma Central">Jimma Central (Hermata)</option>
-                  <option value="Agaro Town">Agaro Town</option>
-                  <option value="Kersa District">Kersa District</option>
-                  <option value="Mana District">Mana District</option>
-                  <option value="Gomma District">Gomma District</option>
-                  <option value="Limmu Kosa">Limmu Kosa</option>
-                  <option value="Seka Chekorsa">Seka Chekorsa</option>
-                  <option value="Dedo District">Dedo District</option>
-                  <option value="Omo Nada">Omo Nada</option>
+                  {woredas.length === 0 && <option value="">No registered districts available</option>}
+                  {woredas.map((woreda) => <option key={woreda.id} value={woreda.id}>{woreda.name}</option>)}
                 </select>
+                {woredasLoadError && <p role="alert" className="mt-1 text-xs text-rose-700 dark:text-rose-300">{woredasLoadError}</p>}
               </div>
             </div>
 

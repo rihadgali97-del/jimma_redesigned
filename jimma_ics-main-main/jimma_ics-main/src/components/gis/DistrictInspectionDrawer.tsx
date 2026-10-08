@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { WoredaGisData, GisPoi, JIMMA_GIS_POIS } from '../../data/mockGisData';
+import { WoredaGisData, GisPoi } from '../../types/gis';
 import { useApp } from '../../context/AppContext';
 import {
   X,
@@ -159,7 +159,7 @@ export const DistrictInspectionDrawer: React.FC<DistrictInspectionDrawerProps> =
   }
 
   // If a Woreda is selected
-  const woredaPois = JIMMA_GIS_POIS.filter((p) => p.woredaId === woreda!.id);
+  const woredaPois: GisPoi[] = [];
 
   return (
     <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-2xl p-6 relative overflow-hidden transition-colors">
@@ -178,14 +178,14 @@ export const DistrictInspectionDrawer: React.FC<DistrictInspectionDrawerProps> =
             {woreda!.zone}
           </Badge>
           <span className="text-xs font-medium text-stone-400">
-            {woreda!.climateZone}
+            {woreda!.climateZone || 'Climate not recorded'}
           </span>
         </div>
         <h3 className="font-serif font-bold text-2xl text-stone-900 dark:text-stone-100">
           {woreda!.name}
         </h3>
         <p className="text-sm font-serif text-amber-700 dark:text-amber-400 mt-0.5">
-          {woreda!.arabicName} • <span className="font-sans text-xs text-stone-500">{woreda!.oromoName}</span>
+          {[woreda!.arabicName, woreda!.oromoName].filter(Boolean).join(' • ')}
         </p>
       </div>
 
@@ -223,10 +223,14 @@ export const DistrictInspectionDrawer: React.FC<DistrictInspectionDrawerProps> =
             <span>Population</span>
           </div>
           <div className="text-xl font-bold text-stone-900 dark:text-stone-100 mt-1">
-            {(woreda!.population / 1000).toFixed(0)}k
+            {woreda!.population == null
+              ? 'Not recorded'
+              : woreda!.population >= 1000
+                ? `${(woreda!.population / 1000).toFixed(0)}k`
+                : woreda!.population.toLocaleString()}
           </div>
           <div className="text-[10px] text-stone-500 dark:text-stone-400">
-            {woreda!.muslimPercentage}% Muslim
+            {woreda!.muslimPercentage == null ? 'Muslim share not recorded' : `${woreda!.muslimPercentage}% Muslim`}
           </div>
         </div>
 
@@ -239,7 +243,7 @@ export const DistrictInspectionDrawer: React.FC<DistrictInspectionDrawerProps> =
             {(woreda!.annualZakatETB / 1000000).toFixed(1)}M
           </div>
           <div className="text-[10px] text-stone-500 dark:text-stone-400">
-            ETB Managed
+            ETB disbursed this year
           </div>
         </div>
       </div>
@@ -250,15 +254,15 @@ export const DistrictInspectionDrawer: React.FC<DistrictInspectionDrawerProps> =
           District Council Secretariat
         </div>
         <div className="font-semibold text-stone-900 dark:text-stone-100 text-sm mt-1">
-          {woreda!.councilBranchHead}
+          {woreda!.councilBranchHead || 'Council representative not recorded'}
         </div>
         <div className="flex items-center justify-between mt-2 text-xs text-stone-600 dark:text-stone-300">
           <span className="flex items-center gap-1 text-stone-500">
             <Phone className="w-3 h-3" />
-            {woreda!.headContact}
+            {woreda!.headContact || 'Contact not recorded'}
           </span>
           <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400">
-            {woreda!.elevationMeters}m Alt. • {woreda!.areaKm2} km²
+            {woreda!.elevationMeters == null ? '—' : `${woreda!.elevationMeters}m`} Alt. • {woreda!.areaKm2 == null ? '—' : `${woreda!.areaKm2} km²`}
           </span>
         </div>
       </div>

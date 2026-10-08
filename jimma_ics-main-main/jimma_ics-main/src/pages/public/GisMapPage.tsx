@@ -1,16 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import { JIMMA_ZONE_WOREDAS, JIMMA_GIS_POIS, WoredaGisData, GisPoi } from '../../data/mockGisData';
+import { WoredaGisData, GisPoi } from '../../types/gis';
 import { JimmaGisSvgMap, HeatmapMode } from '../../components/gis/JimmaGisSvgMap';
 import { DistrictInspectionDrawer } from '../../components/gis/DistrictInspectionDrawer';
 import { RouteCalculatorModal } from '../../components/gis/RouteCalculatorModal';
 import { PrintableGisDossier } from '../../components/gis/PrintableGisDossier';
 import {
-  MapPin,
   Compass,
-  Layers,
   Search,
-  Filter,
   Navigation,
   Printer,
   Building,
@@ -32,6 +29,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
+import { fetchWoredaGisRecords } from '../../services/directoryApi';
 import {
   BarChart,
   Bar,
@@ -48,6 +46,18 @@ import {
 
 export const GisMapPage: React.FC = () => {
   const { t, language } = useLanguage();
+  const [woredas, setWoredas] = useState<WoredaGisData[]>([]);
+  const [gisSummary, setGisSummary] = useState({
+    woredaCount: 0,
+    mosqueCount: 0,
+    jummahCount: 0,
+    madrasaCount: 0,
+    studentCount: 0,
+    population: 0,
+    annualZakatETB: 0,
+  });
+  const [woredaLoadError, setWoredaLoadError] = useState('');
+  const [isLoadingWoredas, setIsLoadingWoredas] = useState(true);
 
   // Active view tab
   const [activeTab, setActiveTab] = useState<'map' | 'districts' | 'analytics' | 'routes'>('map');
@@ -55,18 +65,8 @@ export const GisMapPage: React.FC = () => {
   // Map Filter State
   const [selectedWoreda, setSelectedWoreda] = useState<WoredaGisData | null>(null);
   const [selectedPoi, setSelectedPoi] = useState<GisPoi | null>(null);
-  const [activePoiTypes, setActivePoiTypes] = useState<string[]>([
-    'mosque',
-    'madrasa',
-    'council_office',
-    'zakat_center',
-    'historic_site',
-    'janazah_center',
-  ]);
   const [heatmapMode, setHeatmapMode] = useState<HeatmapMode>('none');
   const [showLabels, setShowLabels] = useState(true);
-  const [filterSolarOnly, setFilterSolarOnly] = useState(false);
-  const [filterWaterWellOnly, setFilterWaterWellOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'mosques' | 'students' | 'zakat' | 'population'>('mosques');
 
@@ -74,16 +74,66 @@ export const GisMapPage: React.FC = () => {
   const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
-  // Aggregate Totals
-  const totalMosques = useMemo(() => JIMMA_ZONE_WOREDAS.reduce((acc, w) => acc + w.totalMosques, 0), []);
-  const totalJummah = useMemo(() => JIMMA_ZONE_WOREDAS.reduce((acc, w) => acc + w.jummahMosques, 0), []);
-  const totalMadrasas = useMemo(() => JIMMA_ZONE_WOREDAS.reduce((acc, w) => acc + w.totalMadrasas, 0), []);
-  const totalStudents = useMemo(() => JIMMA_ZONE_WOREDAS.reduce((acc, w) => acc + w.tahfeezStudents, 0), []);
-  const totalZakat = useMemo(() => JIMMA_ZONE_WOREDAS.reduce((acc, w) => acc + w.annualZakatETB, 0), []);
+  useEffect(() => {
+    fetchWoredaGisRecords()
+      .then((records) => {
+        const summary = records.reduce((totals, record) => ({
+          woredaCount: totals.woredaCount + 1,
+          mosqueCount: totals.mosqueCount + Number(record.totalMosques || 0),
+          jummahCount: totals.jummahCount + Number(record.jummahMosques || 0),
+          madrasaCount: totals.madrasaCount + Number(record.totalMadrasas || 0),
+          studentCount: totals.studentCount + Number(record.tahfeezStudents || 0),
+          population: totals.population + Number(record.population || 0),
+          annualZakatETB: totals.annualZakatETB + Number(record.annualZakatETB || 0),
+        }), {
+          woredaCount: 0,
+          mosqueCount: 0,
+          jummahCount: 0,
+          madrasaCount: 0,
+          studentCount: 0,
+          population: 0,
+          annualZakatETB: 0,
+        });
+        console.info('[GIS] Loaded profile totals', summary);
+        setGisSummary(summary);
+        setWoredas(records.map((record) => ({
+          id: record.gisId,
+          name: record.name,
+          oromoName: record.oromoName || '',
+          arabicName: record.arabicName || '',
+          zone: record.zone,
+          centerCoordinates: {
+            lat: record.centerCoordinates.lat,
+            lng: record.centerCoordinates.lng,
+          },
+          svgPath: record.svgPath || null,
+          labelPos: { x: record.labelPos.x, y: record.labelPos.y },
+          areaKm2: record.areaKm2 ?? null,
+          elevationMeters: record.elevationMeters ?? null,
+          population: record.population ?? null,
+          muslimPercentage: record.muslimPercentage ?? null,
+          totalMosques: record.totalMosques,
+          jummahMosques: record.jummahMosques,
+          totalMadrasas: record.totalMadrasas,
+          tahfeezStudents: record.tahfeezStudents,
+          annualZakatETB: record.annualZakatETB,
+          councilBranchHead: record.councilBranchHead || null,
+          headContact: record.headContact || null,
+          climateZone: record.climateZone || null,
+          notableFeatures: record.notableFeatures || [],
+        })));
+      })
+      .catch((error: unknown) => {
+        setWoredaLoadError(error instanceof Error ? error.message : 'Could not load live GIS data.');
+      })
+      .finally(() => {
+        setIsLoadingWoredas(false);
+      });
+  }, []);
 
   // Filtered & Sorted Woredas for District Matrix
   const sortedWoredas = useMemo(() => {
-    return [...JIMMA_ZONE_WOREDAS]
+    return [...woredas]
       .filter((w) => {
         if (!searchQuery.trim()) return true;
         const q = searchQuery.toLowerCase();
@@ -91,8 +141,8 @@ export const GisMapPage: React.FC = () => {
           w.name.toLowerCase().includes(q) ||
           w.oromoName.toLowerCase().includes(q) ||
           w.arabicName.toLowerCase().includes(q) ||
-          w.councilBranchHead.toLowerCase().includes(q) ||
-          w.zone.toLowerCase().includes(q)
+          (w.councilBranchHead || '').toLowerCase().includes(q) ||
+          (w.zone || '').toLowerCase().includes(q)
         );
       })
       .sort((a, b) => {
@@ -100,36 +150,30 @@ export const GisMapPage: React.FC = () => {
         if (sortBy === 'mosques') return b.totalMosques - a.totalMosques;
         if (sortBy === 'students') return b.tahfeezStudents - a.tahfeezStudents;
         if (sortBy === 'zakat') return b.annualZakatETB - a.annualZakatETB;
-        if (sortBy === 'population') return b.population - a.population;
+        if (sortBy === 'population') return (b.population ?? 0) - (a.population ?? 0);
         return 0;
       });
-  }, [searchQuery, sortBy]);
+  }, [searchQuery, sortBy, woredas]);
 
   // Chart Data
   const barChartData = useMemo(() => {
-    return JIMMA_ZONE_WOREDAS.slice(0, 10).map((w) => ({
+    return woredas.slice(0, 10).map((w) => ({
       name: w.name.split(' (')[0],
       mosques: w.totalMosques,
       madrasas: w.totalMadrasas,
       students: Math.round(w.tahfeezStudents / 10), // scaled
     }));
-  }, []);
+  }, [woredas]);
 
   const climateChartData = useMemo(() => {
     const counts: Record<string, number> = {};
-    JIMMA_ZONE_WOREDAS.forEach((w) => {
-      counts[w.climateZone] = (counts[w.climateZone] || 0) + 1;
+    woredas.forEach((w) => {
+      if (w.climateZone) counts[w.climateZone] = (counts[w.climateZone] || 0) + 1;
     });
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  }, []);
+  }, [woredas]);
 
   const CLIMATE_COLORS = ['#059669', '#d97706', '#3b82f6'];
-
-  const togglePoiType = (type: string) => {
-    setActivePoiTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-    );
-  };
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-stone-950 py-8 px-4 sm:px-6 lg:px-8 transition-colors">
@@ -147,8 +191,7 @@ export const GisMapPage: React.FC = () => {
                 Interactive Jimma Zone GIS Map
               </h1>
               <p className="text-sm sm:text-base text-emerald-100/80 max-w-2xl mt-2 leading-relaxed font-sans">
-                Comprehensive geospatial intelligence mapping all 18 woredas, 920+ accredited mosques,
-                tahfeez academies, Waqf properties, solar wells, and council administrative seats.
+                District facts come from the official registry. Institution and Zakat metrics are calculated from linked records; geographic boundaries appear as administrators enter verified data.
               </p>
             </div>
 
@@ -160,7 +203,7 @@ export const GisMapPage: React.FC = () => {
                 className="bg-stone-900/60 hover:bg-stone-800 text-stone-100 border-stone-700 text-xs font-semibold"
               >
                 <Navigation className="w-4 h-4 mr-1.5 text-emerald-400" />
-                Route & Distance Matrix
+                Woreda Center Distance
               </Button>
               <Button
                 variant="primary"
@@ -168,7 +211,7 @@ export const GisMapPage: React.FC = () => {
                 className="bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs shadow-lg"
               >
                 <Printer className="w-4 h-4 mr-1.5" />
-                Official GIS Dossier Report
+                District Profile Report
               </Button>
             </div>
           </div>
@@ -177,33 +220,46 @@ export const GisMapPage: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 mt-8 pt-6 border-t border-emerald-800/60">
             <div className="p-3 bg-white/5 backdrop-blur-xs rounded-2xl border border-white/10">
               <div className="text-[11px] text-emerald-300 font-medium">Districts (Woredas)</div>
-              <div className="text-xl sm:text-2xl font-bold text-white mt-0.5">18</div>
-              <div className="text-[10px] text-emerald-200/60">Fully Mapped</div>
+              <div className="text-xl sm:text-2xl font-bold text-white mt-0.5">{gisSummary.woredaCount}</div>
+              <div className="text-[10px] text-emerald-200/60">Registered Woredas</div>
             </div>
             <div className="p-3 bg-white/5 backdrop-blur-xs rounded-2xl border border-white/10">
               <div className="text-[11px] text-emerald-300 font-medium">Total Masajid</div>
-              <div className="text-xl sm:text-2xl font-bold text-white mt-0.5">{totalMosques}</div>
-              <div className="text-[10px] text-emerald-200/60">{totalJummah} Jumu’ah Centers</div>
+              <div className="text-xl sm:text-2xl font-bold text-white mt-0.5">{gisSummary.mosqueCount}</div>
+              <div className="text-[10px] text-emerald-200/60">{gisSummary.jummahCount} Jumu’ah Centers</div>
             </div>
             <div className="p-3 bg-white/5 backdrop-blur-xs rounded-2xl border border-white/10">
-              <div className="text-[11px] text-amber-300 font-medium">Tahfeez Madrasas</div>
-              <div className="text-xl sm:text-2xl font-bold text-amber-300 mt-0.5">{totalMadrasas}</div>
-              <div className="text-[10px] text-amber-200/60">{totalStudents.toLocaleString()} Students</div>
+              <div className="text-[11px] text-amber-300 font-medium">Registered Madrasas</div>
+              <div className="text-xl sm:text-2xl font-bold text-amber-300 mt-0.5">{gisSummary.madrasaCount}</div>
+              <div className="text-[10px] text-amber-200/60">{gisSummary.studentCount.toLocaleString()} Students</div>
             </div>
             <div className="p-3 bg-white/5 backdrop-blur-xs rounded-2xl border border-white/10">
               <div className="text-[11px] text-blue-300 font-medium">Zonal Population</div>
-              <div className="text-xl sm:text-2xl font-bold text-white mt-0.5">3.15M</div>
-              <div className="text-[10px] text-blue-200/60">83.4% Muslim Avg</div>
+              <div className="text-xl sm:text-2xl font-bold text-white mt-0.5">
+                {gisSummary.population.toLocaleString()}
+              </div>
+              <div className="text-[10px] text-blue-200/60">Sum of recorded population figures</div>
             </div>
             <div className="p-3 bg-white/5 backdrop-blur-xs rounded-2xl border border-white/10">
               <div className="text-[11px] text-teal-300 font-medium">Annual Zakat Tracked</div>
               <div className="text-xl sm:text-2xl font-bold text-teal-300 mt-0.5">
-                {(totalZakat / 1000000).toFixed(0)}M
+                {(gisSummary.annualZakatETB / 1000000).toFixed(0)}M
               </div>
-              <div className="text-[10px] text-teal-200/60">ETB Managed</div>
+              <div className="text-[10px] text-teal-200/60">ETB disbursed this year</div>
             </div>
           </div>
         </div>
+
+        {woredaLoadError && (
+          <div role="alert" className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-sm text-rose-800">
+            GIS data could not be loaded: {woredaLoadError}
+          </div>
+        )}
+        {isLoadingWoredas && (
+          <div className="rounded-xl border border-stone-200 bg-white p-4 text-sm text-stone-600">
+            Loading live Woreda profiles…
+          </div>
+        )}
 
         {/* View Mode Navigation Tabs */}
         <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-stone-900 p-2.5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
@@ -229,7 +285,7 @@ export const GisMapPage: React.FC = () => {
               }`}
             >
               <TableIcon className="w-4 h-4" />
-              <span>18-Woredas Intelligence Matrix</span>
+              <span>{woredas.length}-Woreda Intelligence Matrix</span>
             </button>
 
             <button
@@ -263,117 +319,25 @@ export const GisMapPage: React.FC = () => {
           <div className="space-y-6">
             {/* Map Controls Filter Bar */}
             <div className="bg-white dark:bg-stone-900 p-4 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm flex flex-wrap items-center justify-between gap-4 text-xs">
-              {/* Left POI Category Toggles */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider text-[10px] mr-1">
-                  POI Layers:
-                </span>
-                <button
-                  onClick={() => togglePoiType('mosque')}
-                  className={`px-3 py-1.5 rounded-xl font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
-                    activePoiTypes.includes('mosque')
-                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
-                      : 'bg-stone-50 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
-                  }`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  Mosques
-                </button>
-
-                <button
-                  onClick={() => togglePoiType('madrasa')}
-                  className={`px-3 py-1.5 rounded-xl font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
-                    activePoiTypes.includes('madrasa')
-                      ? 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800'
-                      : 'bg-stone-50 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
-                  }`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-amber-500" />
-                  Madrasas
-                </button>
-
-                <button
-                  onClick={() => togglePoiType('council_office')}
-                  className={`px-3 py-1.5 rounded-xl font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
-                    activePoiTypes.includes('council_office')
-                      ? 'bg-indigo-100 text-indigo-800 border-indigo-300 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800'
-                      : 'bg-stone-50 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
-                  }`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-indigo-500" />
-                  Council Seats
-                </button>
-
-                <button
-                  onClick={() => togglePoiType('zakat_center')}
-                  className={`px-3 py-1.5 rounded-xl font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
-                    activePoiTypes.includes('zakat_center')
-                      ? 'bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800'
-                      : 'bg-stone-50 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
-                  }`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-teal-500" />
-                  Zakat Hubs
-                </button>
-
-                <button
-                  onClick={() => togglePoiType('historic_site')}
-                  className={`px-3 py-1.5 rounded-xl font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
-                    activePoiTypes.includes('historic_site')
-                      ? 'bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800'
-                      : 'bg-stone-50 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
-                  }`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-rose-500" />
-                  Heritage Sites
-                </button>
-              </div>
-
-              {/* Right Heatmap Mode & Facility Filters */}
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider text-[10px]">
-                    Heatmap:
-                  </span>
-                  <select
-                    value={heatmapMode}
-                    onChange={(e) => setHeatmapMode(e.target.value as HeatmapMode)}
-                    className="px-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-xs font-semibold text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer"
-                  >
-                    <option value="none">Topographic / Elevation</option>
-                    <option value="mosques">Mosque Density</option>
-                    <option value="students">Tahfeez Enrollment</option>
-                    <option value="zakat">Annual Zakat Volume</option>
-                    <option value="muslim_ratio">Muslim Population Ratio</option>
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-2 pl-2 border-l border-stone-200 dark:border-stone-700">
-                  <button
-                    onClick={() => setFilterSolarOnly(!filterSolarOnly)}
-                    className={`px-2.5 py-1.5 rounded-xl font-medium border text-[11px] flex items-center gap-1 transition-all cursor-pointer ${
-                      filterSolarOnly
-                        ? 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-300'
-                        : 'bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border-stone-200 dark:border-stone-700'
-                    }`}
-                  >
-                    <Sun className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Solar Only</span>
-                  </button>
-
-                  <button
-                    onClick={() => setFilterWaterWellOnly(!filterWaterWellOnly)}
-                    className={`px-2.5 py-1.5 rounded-xl font-medium border text-[11px] flex items-center gap-1 transition-all cursor-pointer ${
-                      filterWaterWellOnly
-                        ? 'bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950 dark:text-blue-300'
-                        : 'bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border-stone-200 dark:border-stone-700'
-                    }`}
-                  >
-                    <Droplets className="w-3.5 h-3.5 text-blue-500" />
-                    <span>Water Borehole</span>
-                  </button>
-                </div>
-              </div>
+            <p className="text-stone-500 dark:text-stone-400">
+              Institution map markers and facility layers are hidden until verified coordinates and layer records are connected.
+            </p>
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider text-[10px]">
+                Heatmap:
+              </span>
+              <select
+                value={heatmapMode}
+                onChange={(e) => setHeatmapMode(e.target.value as HeatmapMode)}
+                className="px-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-xs font-semibold text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer"
+              >
+                <option value="none">Climate Zone</option>
+                <option value="mosques">Mosque Density</option>
+                <option value="students">Student Enrollment</option>
+                <option value="zakat">Annual Zakat Disbursement</option>
+                <option value="muslim_ratio">Muslim Population Ratio</option>
+              </select>
+            </div>
             </div>
 
             {/* Interactive Map and Side Drawer Grid */}
@@ -381,15 +345,17 @@ export const GisMapPage: React.FC = () => {
               {/* Map Canvas (8 cols or 12 cols if no selection) */}
               <div className={selectedWoreda || selectedPoi ? 'lg:col-span-8' : 'lg:col-span-12'}>
                 <JimmaGisSvgMap
+                  woredas={woredas}
+                  pois={[]}
                   selectedWoredaId={selectedWoreda?.id || null}
                   selectedPoiId={selectedPoi?.id || null}
-                  activePoiTypes={activePoiTypes}
+                  activePoiTypes={[]}
                   heatmapMode={heatmapMode}
                   onSelectWoreda={(w) => setSelectedWoreda(w)}
                   onSelectPoi={(p) => setSelectedPoi(p)}
                   showLabels={showLabels}
-                  filterSolarOnly={filterSolarOnly}
-                  filterWaterWellOnly={filterWaterWellOnly}
+                  filterSolarOnly={false}
+                  filterWaterWellOnly={false}
                   searchQuery={searchQuery}
                 />
               </div>
@@ -413,10 +379,10 @@ export const GisMapPage: React.FC = () => {
             {/* Quick Woreda Chip Selector Ribbon */}
             <div className="bg-white dark:bg-stone-900 p-4 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
               <div className="text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-3">
-                Quick Jump to Woreda ({JIMMA_ZONE_WOREDAS.length} Districts)
+                Quick Jump to Woreda ({woredas.length} Districts)
               </div>
               <div className="flex flex-wrap gap-2">
-                {JIMMA_ZONE_WOREDAS.map((w) => {
+                {woredas.map((w) => {
                   const isSelected = selectedWoreda?.id === w.id;
                   return (
                     <button
@@ -455,15 +421,15 @@ export const GisMapPage: React.FC = () => {
                   className="px-3 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-xs font-semibold text-stone-900 dark:text-stone-100 outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                 >
                   <option value="mosques">Mosque Count (Highest First)</option>
-                  <option value="students">Tahfeez Enrollment</option>
-                  <option value="zakat">Annual Zakat Collection</option>
+                  <option value="students">Student Enrollment</option>
+                  <option value="zakat">Annual Zakat Disbursement</option>
                   <option value="population">District Population</option>
                   <option value="name">Alphabetical Order</option>
                 </select>
               </div>
 
               <div className="text-stone-500 font-medium">
-                Showing {sortedWoredas.length} of {JIMMA_ZONE_WOREDAS.length} Woredas
+                Showing {sortedWoredas.length} of {woredas.length} Woredas
               </div>
             </div>
 
@@ -481,7 +447,7 @@ export const GisMapPage: React.FC = () => {
                         {w.zone}
                       </Badge>
                       <span className="text-xs font-mono text-stone-400">
-                        {w.elevationMeters}m Alt.
+                        {w.elevationMeters ?? '—'}m Alt.
                       </span>
                     </div>
 
@@ -489,7 +455,7 @@ export const GisMapPage: React.FC = () => {
                       {w.name}
                     </h3>
                     <p className="text-xs font-serif text-amber-700 dark:text-amber-400 mt-0.5">
-                      {w.arabicName} • <span className="font-sans text-stone-500">{w.oromoName}</span>
+                      {[w.arabicName, w.oromoName].filter(Boolean).join(' • ')}
                     </p>
 
                     {/* Stats Grid */}
@@ -515,9 +481,9 @@ export const GisMapPage: React.FC = () => {
                       <div>
                         <span className="text-stone-400 text-[10px] uppercase font-bold">Muslim Pop:</span>
                         <div className="font-bold text-stone-800 dark:text-stone-200 text-sm">
-                          {w.muslimPercentage}%{' '}
+                          {w.muslimPercentage == null ? '—' : `${w.muslimPercentage}%`}{' '}
                           <span className="text-[10px] text-stone-400 font-normal">
-                            ({(w.population / 1000).toFixed(0)}k)
+                            ({w.population == null ? 'population unavailable' : `${(w.population / 1000).toFixed(0)}k`})
                           </span>
                         </div>
                       </div>
@@ -532,14 +498,14 @@ export const GisMapPage: React.FC = () => {
                     {/* Liaison Head */}
                     <div className="mt-4 text-xs text-stone-600 dark:text-stone-300">
                       <span className="text-stone-400 text-[11px] font-medium">Council Head:</span>{' '}
-                      <strong className="text-stone-800 dark:text-stone-200">{w.councilBranchHead}</strong>
+                      <strong className="text-stone-800 dark:text-stone-200">{w.councilBranchHead || 'Not recorded'}</strong>
                     </div>
                   </div>
 
                   {/* Action Button */}
                   <div className="mt-5 pt-4 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between">
                     <span className="text-[11px] text-stone-400 font-medium">
-                      {w.climateZone}
+                      {w.climateZone || 'Climate not recorded'}
                     </span>
                     <button
                       onClick={() => {
@@ -570,7 +536,7 @@ export const GisMapPage: React.FC = () => {
                     Mosque and Madrasa Distribution by District
                   </h3>
                   <p className="text-xs text-stone-500">
-                    Comparative capacity across the 10 largest agricultural and urban woredas of Jimma Zone
+                    Live mosque, madrasa, and student records by woreda
                   </p>
                 </div>
                 <div className="flex items-center gap-4 text-xs font-medium">
@@ -730,10 +696,12 @@ export const GisMapPage: React.FC = () => {
 
         {/* Floating Modals */}
         <RouteCalculatorModal
+          woredas={woredas}
           isOpen={isRouteModalOpen}
           onClose={() => setIsRouteModalOpen(false)}
         />
         <PrintableGisDossier
+          woredas={woredas}
           isOpen={isPrintModalOpen}
           onClose={() => setIsPrintModalOpen(false)}
         />

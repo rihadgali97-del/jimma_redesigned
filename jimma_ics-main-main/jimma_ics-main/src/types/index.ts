@@ -97,6 +97,7 @@ export interface SecurityAuditLog {
 
 export interface Mosque {
   id: string;
+  woredaId?: number;
   name: string;
   arabicName?: string;
   district: string;
@@ -124,6 +125,7 @@ export interface Mosque {
 
 export interface Madrasa {
   id: string;
+  woredaId?: number;
   name: string;
   arabicName?: string;
   mosqueId: string;

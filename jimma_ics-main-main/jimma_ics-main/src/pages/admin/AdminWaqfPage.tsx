@@ -3,7 +3,7 @@ import { Edit3, HandCoins, Plus, Search, Trash2, X } from 'lucide-react';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { useApp } from '../../context/AppContext';
-import { fetchDirectoryWoredas } from '../../services/directoryApi';
+import { DirectoryWoreda, fetchAdminDirectoryWoredas } from '../../services/directoryApi';
 import {
   createWaqfAssetRecord,
   deleteWaqfAssetRecord,
@@ -17,7 +17,6 @@ import { WaqfAsset, WaqfAssetStatus, WaqfAssetType } from '../../types';
 const types: WaqfAssetType[] = ['LAND', 'COMMERCIAL_RENTAL', 'AGRICULTURAL', 'CEMETERY'];
 const statuses: WaqfAssetStatus[] = ['ACTIVE', 'UNDER_MAINTENANCE', 'DISPUTED', 'INACTIVE'];
 const inputClass = 'w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500 dark:border-stone-700 dark:bg-stone-900';
-type WoredaOption = { id: number; code: string; name: string };
 type Draft = Omit<WaqfAssetInput, 'name' | 'description'> & { name: string; description: string };
 const emptyDraft = (woredaId = 0): Draft => ({
   woredaId, type: 'LAND', status: 'ACTIVE', locationNote: '', monthlyIncome: undefined,
@@ -42,7 +41,7 @@ function assetPayload(draft: Draft): WaqfAssetInput {
 export const AdminWaqfPage: React.FC = () => {
   const { addToast } = useApp();
   const [assets, setAssets] = useState<WaqfAsset[]>([]);
-  const [woredas, setWoredas] = useState<WoredaOption[]>([]);
+  const [woredas, setWoredas] = useState<DirectoryWoreda[]>([]);
   const [draft, setDraft] = useState<Draft>(emptyDraft());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -64,10 +63,11 @@ export const AdminWaqfPage: React.FC = () => {
   const load = async () => {
     setIsLoading(true);
     try {
-      const [rows, locations] = await Promise.all([fetchAdminWaqfAssets(), fetchDirectoryWoredas()]);
+      const [rows, locations] = await Promise.all([fetchAdminWaqfAssets(), fetchAdminDirectoryWoredas()]);
       setAssets(rows);
       setWoredas(locations);
-      setDraft((previous) => previous.woredaId ? previous : { ...previous, woredaId: locations[0]?.id || 0 });
+      const firstActiveWoreda = locations.find((location) => location.isActive);
+      setDraft((previous) => previous.woredaId ? previous : { ...previous, woredaId: firstActiveWoreda?.id || 0 });
     } catch (error) {
       addToast('Waqf Registry Could Not Load', error instanceof Error ? error.message : 'Check your staff access and API connection.', 'error');
     } finally {
@@ -78,14 +78,14 @@ export const AdminWaqfPage: React.FC = () => {
   useEffect(() => { void load(); }, []);
 
   const resetForm = () => {
-    setDraft(emptyDraft(woredas[0]?.id || 0));
+    setDraft(emptyDraft(woredas.find((woreda) => woreda.isActive)?.id || 0));
     setEditingId(null);
     setIsFormOpen(false);
     setImageFile(null);
   };
 
   const openNewForm = () => {
-    setDraft(emptyDraft(woredas[0]?.id || 0));
+    setDraft(emptyDraft(woredas.find((woreda) => woreda.isActive)?.id || 0));
     setEditingId(null);
     setIsFormOpen(true);
     setImageFile(null);
@@ -168,7 +168,13 @@ export const AdminWaqfPage: React.FC = () => {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <input required className={`${inputClass} sm:col-span-2`} placeholder="Asset name" value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} />
           <select required className={inputClass} value={draft.woredaId || ''} onChange={(event) => setDraft({ ...draft, woredaId: Number(event.target.value) })}>
-            <option value="" disabled>Select district / woreda</option>{woredas.map((woreda) => <option key={woreda.id} value={woreda.id}>{woreda.name}</option>)}
+            <option value="" disabled>Select district / woreda</option>{woredas
+              .filter((woreda) => woreda.isActive || woreda.id === Number(draft.woredaId))
+              .map((woreda) => (
+                <option key={woreda.id} value={woreda.id} disabled={!woreda.isActive}>
+                  {woreda.name}{woreda.isActive ? '' : ' (inactive; existing records only)'}
+                </option>
+              ))}
           </select>
           <select className={inputClass} value={draft.type} onChange={(event) => setDraft({ ...draft, type: event.target.value as WaqfAssetType })}>{types.map((type) => <option key={type} value={type}>{type.replaceAll('_', ' ')}</option>)}</select>
           <select className={inputClass} value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value as WaqfAssetStatus })}>{statuses.map((status) => <option key={status} value={status}>{status.replaceAll('_', ' ')}</option>)}</select>

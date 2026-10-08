@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import {
   createMosqueRecord,
+  fetchAdminDirectoryWoredas,
   fetchAdminDirectoryMosques,
   fetchAdminDirectoryMadrasas,
   uploadMosquePhoto,
   updateMosqueRecord,
+  DirectoryWoreda,
 } from '../../services/directoryApi';
 import { Madrasa } from '../../types';
 import {
@@ -24,6 +26,7 @@ export const AdminMosquesPage: React.FC = () => {
   const { mosques, refreshDirectoryData, addToast } = useApp();
   const [directoryMosques, setDirectoryMosques] = useState(mosques);
   const [directoryMadrasas, setDirectoryMadrasas] = useState<Madrasa[]>([]);
+  const [woredas, setWoredas] = useState<DirectoryWoreda[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('All');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -31,12 +34,29 @@ export const AdminMosquesPage: React.FC = () => {
   const [editingMosque, setEditingMosque] = useState<(typeof mosques)[number] | null>(null);
 
   const [name, setName] = useState('');
-  const [district, setDistrict] = useState('Jimma Central');
+  const [district, setDistrict] = useState('');
+  const [selectedWoredaId, setSelectedWoredaId] = useState<number | null>(null);
   const [imam, setImam] = useState('');
   const [capacity, setCapacity] = useState(1000);
   const [description, setDescription] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
   const [selectedMadrasaId, setSelectedMadrasaId] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchAdminDirectoryWoredas()
+      .then((rows) => {
+        if (isMounted) setWoredas(rows);
+      })
+      .catch((error) => {
+        if (isMounted) {
+          addToast('Could not load district options', error instanceof Error ? error.message : 'Check your connection and try again.', 'error');
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -71,16 +91,7 @@ export const AdminMosquesPage: React.FC = () => {
   }, []);
 
   const districts = ['All', ...Array.from(new Set(directoryMosques.map((m) => m.district)))];
-  const districtOptions = Array.from(new Set([
-    'Jimma Central',
-    'Agaro Town',
-    'Kersa District',
-    'Mana District',
-    'Gomma District',
-    'Limmu Kosa',
-    'Seka Chekorsa',
-    ...directoryMosques.map((m) => m.district),
-  ]));
+  const districtOptions = woredas.filter((woreda) => woreda.isActive || woreda.name === district);
 
   const filtered = directoryMosques.filter((m) => {
     const s = (searchTerm || '').toLowerCase();
@@ -95,7 +106,9 @@ export const AdminMosquesPage: React.FC = () => {
   const openAddModal = () => {
     setEditingMosque(null);
     setName('');
-    setDistrict('Jimma Central');
+    const firstActiveWoreda = woredas.find((woreda) => woreda.isActive);
+    setDistrict(firstActiveWoreda?.name || '');
+    setSelectedWoredaId(firstActiveWoreda?.id || null);
     setImam('');
     setCapacity(1000);
     setDescription('');
@@ -107,7 +120,9 @@ export const AdminMosquesPage: React.FC = () => {
   const openEditModal = (mosque: (typeof mosques)[number]) => {
     setEditingMosque(mosque);
     setName(mosque.name);
-    setDistrict(mosque.district);
+    const selectedWoreda = woredas.find((woreda) => woreda.id === mosque.woredaId);
+    setDistrict(selectedWoreda?.name || mosque.district);
+    setSelectedWoredaId(selectedWoreda?.id || null);
     setImam(mosque.imam === 'Not listed' ? '' : mosque.imam);
     setCapacity(mosque.capacity || 1000);
     setDescription(mosque.description);
@@ -138,7 +153,7 @@ export const AdminMosquesPage: React.FC = () => {
       const record = editingMosque
         ? await updateMosqueRecord(editingMosque.id, {
           name: name.trim(),
-          district,
+          woredaId: Number(selectedWoredaId),
           imam: imam.trim(),
           capacity: Number(capacity),
           description: description || 'Registered mosque under Jimma Islamic Council jurisdiction.',
@@ -146,7 +161,7 @@ export const AdminMosquesPage: React.FC = () => {
         })
         : await createMosqueRecord({
           name: name.trim(),
-          district,
+          woredaId: Number(selectedWoredaId),
           imam: imam.trim(),
           capacity: Number(capacity),
           description: description || 'Registered mosque under Jimma Islamic Council jurisdiction.',
@@ -334,11 +349,22 @@ export const AdminMosquesPage: React.FC = () => {
               District Jurisdiction *
             </label>
             <select
-              value={district}
-              onChange={(e) => setDistrict(e.target.value)}
+              required
+              value={selectedWoredaId || ''}
+              onChange={(e) => {
+                const selected = woredas.find((woreda) => woreda.id === Number(e.target.value));
+                setSelectedWoredaId(selected?.id || null);
+                setDistrict(selected?.name || '');
+              }}
+              disabled={districtOptions.length === 0}
               className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700"
             >
-              {districtOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+              {districtOptions.length === 0 && <option value="">No registered woredas available</option>}
+              {districtOptions.map((option) => (
+              <option key={option.id} value={option.id} disabled={!option.isActive}>
+                  {option.name}{option.isActive ? '' : ' (inactive; existing records only)'}
+                </option>
+              ))}
             </select>
           </div>
 

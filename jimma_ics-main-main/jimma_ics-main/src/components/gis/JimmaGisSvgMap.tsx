@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { WoredaGisData, GisPoi, JIMMA_ZONE_WOREDAS, JIMMA_GIS_POIS } from '../../data/mockGisData';
+import { WoredaGisData, GisPoi } from '../../types/gis';
 import {
   ZoomIn,
   ZoomOut,
@@ -24,6 +24,8 @@ import {
 export type HeatmapMode = 'none' | 'mosques' | 'students' | 'zakat' | 'muslim_ratio';
 
 interface JimmaGisSvgMapProps {
+  woredas: WoredaGisData[];
+  pois: GisPoi[];
   selectedWoredaId: string | null;
   selectedPoiId: string | null;
   activePoiTypes: string[];
@@ -37,6 +39,8 @@ interface JimmaGisSvgMapProps {
 }
 
 export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
+  woredas,
+  pois,
   selectedWoredaId,
   selectedPoiId,
   activePoiTypes,
@@ -148,6 +152,7 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
     }
 
     if (heatmapMode === 'muslim_ratio') {
+      if (woreda.muslimPercentage == null) return '#334155';
       // 75% to 88%
       const ratio = (woreda.muslimPercentage - 75) / 13;
       if (ratio > 0.75) return '#1d4ed8'; // Blue
@@ -173,7 +178,7 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
   };
 
   // Filtered POIs
-  const filteredPois = JIMMA_GIS_POIS.filter((poi) => {
+  const filteredPois = pois.filter((poi) => {
     if (activePoiTypes.length > 0 && !activePoiTypes.includes(poi.type)) {
       return false;
     }
@@ -191,6 +196,7 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
     }
     return true;
   });
+  const hasBoundaries = woredas.some((woreda) => Boolean(woreda.svgPath));
 
   const getPoiColor = (type: GisPoi['type']) => {
     switch (type) {
@@ -244,7 +250,7 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
           <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
           <span className="font-semibold text-emerald-400 truncate">Jimma Zone Spatial GIS</span>
           <span className="hidden sm:inline text-stone-500">|</span>
-          <span className="hidden sm:inline text-stone-300">18 Woredas</span>
+          <span className="hidden sm:inline text-stone-300">{woredas.length} Woredas</span>
           {heatmapMode !== 'none' && (
             <span className="px-1.5 sm:px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] sm:text-[10px] uppercase font-bold truncate">
               {heatmapMode.replace('_', ' ')}
@@ -320,22 +326,22 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
 
           <rect width="1000" height="650" fill="url(#gisGrid)" />
 
-          {/* Major Rivers & Waterways (Gilgel Gibe / Gojeb River Basin) */}
-          <path
-            d="M 120 480 Q 240 510 350 490 T 520 490 T 700 450 T 880 430"
-            fill="none"
-            stroke="url(#riverGrad)"
-            strokeWidth="5"
-            strokeLinecap="round"
-            opacity="0.6"
-          />
-          <text x="730" y="475" fill="#38bdf8" fontSize="10" fontStyle="italic" opacity="0.8" letterSpacing="1">
-            ~ Gilgel Gibe Basin ~
-          </text>
+          {!hasBoundaries && (
+            <text
+              x="500"
+              y="325"
+              textAnchor="middle"
+              fill="#cbd5e1"
+              fontSize="18"
+              fontWeight="600"
+            >
+              Verified district boundaries have not been added yet
+            </text>
+          )}
 
           {/* Woredas / District Boundaries (Polygons) */}
           <g id="woredas-layer">
-            {JIMMA_ZONE_WOREDAS.map((woreda) => {
+            {woredas.filter((woreda) => Boolean(woreda.svgPath)).map((woreda) => {
               const isSelected = selectedWoredaId === woreda.id;
               const isHovered = hoveredWoreda?.id === woreda.id;
               const fillColor = getWoredaFill(woreda, isSelected, isHovered);
@@ -370,8 +376,8 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
                   {showLabels && (
                     <g pointerEvents="none">
                       <text
-                        x={woreda.labelPos.x}
-                        y={woreda.labelPos.y}
+                        x={woreda.labelPos.x ?? 0}
+                        y={woreda.labelPos.y ?? 0}
                         textAnchor="middle"
                         fill={isSelected ? '#ffffff' : '#f1f5f9'}
                         fontSize={isSelected ? '12' : '10'}
@@ -381,14 +387,14 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
                         {woreda.name.split(' (')[0]}
                       </text>
                       <text
-                        x={woreda.labelPos.x}
-                        y={woreda.labelPos.y + 11}
+                        x={woreda.labelPos.x ?? 0}
+                        y={(woreda.labelPos.y ?? 0) + 11}
                         textAnchor="middle"
                         fill={isSelected ? '#a7f3d0' : '#94a3b8'}
                         fontSize="8"
                         className="font-sans select-none"
                       >
-                        {woreda.totalMosques} Masjids • {woreda.elevationMeters}m
+                        {woreda.totalMosques} Masjids • {woreda.elevationMeters ?? '—'}m
                       </text>
                     </g>
                   )}
@@ -521,7 +527,7 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
             <div className="flex items-center justify-between gap-3">
               <span className="font-bold text-stone-100 text-sm">{hoveredWoreda.name}</span>
               <span className="px-2 py-0.5 rounded-md bg-emerald-900/60 text-emerald-300 font-medium text-[10px]">
-                {hoveredWoreda.elevationMeters}m Alt.
+                {hoveredWoreda.elevationMeters ?? '—'}m Alt.
               </span>
             </div>
             <div className="text-[11px] text-stone-400 mt-0.5">{hoveredWoreda.arabicName}</div>
@@ -536,7 +542,7 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
               </div>
               <div>
                 <span className="text-stone-400">Muslim %:</span>{' '}
-                <strong className="text-blue-400">{hoveredWoreda.muslimPercentage}%</strong>
+                <strong className="text-blue-400">{hoveredWoreda.muslimPercentage == null ? '—' : `${hoveredWoreda.muslimPercentage}%`}</strong>
               </div>
             </div>
           </div>

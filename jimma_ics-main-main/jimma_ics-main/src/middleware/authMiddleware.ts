@@ -399,6 +399,7 @@ export function checkRoutePermission(user: User | null | undefined, pathname: st
     }
 
     const permissionRules: Array<{ prefix: string; keys: string[] }> = [
+      { prefix: '/admin/woredas', keys: ['woredas.write'] },
       { prefix: '/admin/users', keys: ['users.manage'] },
       { prefix: '/admin/staff', keys: ['users.manage'] },
       { prefix: '/admin/roles', keys: ['roles.manage'] },

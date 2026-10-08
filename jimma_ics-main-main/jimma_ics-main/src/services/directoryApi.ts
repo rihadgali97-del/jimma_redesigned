@@ -5,7 +5,7 @@ type ApiMosque = {
   id: number;
   name: string;
   description: string | null;
-  woreda: { id: number; code: string };
+  woreda: { id: number; code: string; name?: string | null };
   latitude: number | null;
   longitude: number | null;
   capacity: number | null;
@@ -24,7 +24,46 @@ type ApiMadrasa = Omit<ApiMosque, 'hasWuduFacility' | 'imamName' | 'madrasa'> & 
   headTeacher: string | null;
   hifzGraduatesCount: number | null;
 };
-type ApiWoreda = { id: number; code: string; name: string | null };
+export type WoredaGisProfile = {
+  oromoName?: string | null;
+  arabicName?: string | null;
+  zone?: string | null;
+  climateZone?: 'Highland (Dega)' | 'Midland (Weyna Dega)' | 'Lowland (Kolla)' | null;
+  centerLatitude?: number | null;
+  centerLongitude?: number | null;
+  svgPath?: string | null;
+  labelX?: number | null;
+  labelY?: number | null;
+  areaKm2?: number | null;
+  elevationMeters?: number | null;
+  population?: number | null;
+  muslimPercentage?: number | null;
+  councilBranchHead?: string | null;
+  headContact?: string | null;
+  notableFeatures?: string[] | null;
+};
+type ApiWoreda = { id: number; code: string; name: string | null; isActive: boolean } & WoredaGisProfile;
+export type DirectoryWoreda = { id: number; code: string; name: string; isActive: boolean } & WoredaGisProfile;
+export type WoredaGisRecord = DirectoryWoreda & WoredaGisProfile & {
+  gisId: string;
+  centerCoordinates: { lat: number | null; lng: number | null };
+  labelPos: { x: number | null; y: number | null };
+  totalMosques: number;
+  jummahMosques: number;
+  totalMadrasas: number;
+  tahfeezStudents: number;
+  annualZakatETB: number;
+};
+type ApiGisWoreda = ApiWoreda & WoredaGisProfile & {
+  gisId: string;
+  centerCoordinates: { lat: number | null; lng: number | null };
+  labelPos: { x: number | null; y: number | null };
+  totalMosques: number;
+  jummahMosques: number;
+  totalMadrasas: number;
+  tahfeezStudents: number;
+  annualZakatETB: number;
+};
 
 function formatWoreda(code: string) {
   return code.replace(/[-_]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -40,21 +79,7 @@ async function fetchAll<T>(path: string): Promise<T[]> {
   return rows;
 }
 
-async function resolveWoredaId(district: string) {
-  const woredas = await fetchAll<ApiWoreda>('/locations/woredas');
-  const normalize = (value: string) => value.toLowerCase().replace(/[-_]/g, ' ').replace(/\b(town|district|woreda|sub city)\b/g, '').replace(/\s+/g, ' ').trim();
-  const normalizedDistrict = normalize(district);
-  const aliases: Record<string, string> = { 'jimma central': 'jimma town', 'jimma central town': 'jimma town' };
-  const match = woredas.find((woreda) => {
-    const normalizedCode = normalize(woreda.code);
-    const normalizedName = normalize(woreda.name || '');
-    return normalizedCode === (aliases[normalizedDistrict] || normalizedDistrict) || normalizedName === normalizedDistrict;
-  });
-  if (!match) throw new Error(`No registered woreda matches “${district}”. Refresh the district list and try again.`);
-  return match.id;
-}
-
-export async function fetchDirectoryWoredas(): Promise<{ id: number; code: string; name: string }[]> {
+export async function fetchDirectoryWoredas(): Promise<DirectoryWoreda[]> {
   const rows = await fetchAll<ApiWoreda>('/locations/woredas');
   return rows.map((woreda) => ({
     ...woreda,
@@ -62,12 +87,58 @@ export async function fetchDirectoryWoredas(): Promise<{ id: number; code: strin
   }));
 }
 
-export async function createMosqueRecord(data: { name: string; district: string; imam: string; capacity: number; description: string; madrasaId: number | null }): Promise<{ id: number }> {
-  const woredaId = await resolveWoredaId(data.district);
+export async function fetchAdminDirectoryWoredas(): Promise<DirectoryWoreda[]> {
+  const rows = await fetchAll<ApiWoreda>('/locations/woredas/admin');
+  return rows.map((woreda) => ({
+    ...woreda,
+    name: woreda.name || formatWoreda(woreda.code),
+  }));
+}
+
+export async function fetchWoredaGisRecords(): Promise<WoredaGisRecord[]> {
+  const rows = await fetchAll<ApiGisWoreda>('/locations/woredas/gis');
+  return rows.map((woreda) => ({
+    ...woreda,
+    name: woreda.name || formatWoreda(woreda.code),
+  }));
+}
+
+export async function createWoredaRecord(
+  data: { code: string; name: string } & WoredaGisProfile
+): Promise<DirectoryWoreda> {
+  const woreda = await apiRequest<ApiWoreda>('/locations/woredas', {
+    method: 'POST',
+    body: JSON.stringify({
+      ...data,
+      code: data.code.trim().toLowerCase(),
+      name: { en: data.name.trim() },
+    }),
+  });
+  return { ...woreda, name: woreda.name || formatWoreda(woreda.code) };
+}
+
+export async function updateWoredaRecord(
+  id: number,
+  data: { name?: string; isActive?: boolean } & WoredaGisProfile
+): Promise<DirectoryWoreda> {
+  const woreda = await apiRequest<ApiWoreda>(`/locations/woredas/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({
+      ...(data.name !== undefined ? { name: { en: data.name.trim() } } : {}),
+      ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+      ...Object.fromEntries(
+        Object.entries(data).filter(([key]) => !['name', 'isActive'].includes(key))
+      ),
+    }),
+  });
+  return { ...woreda, name: woreda.name || formatWoreda(woreda.code) };
+}
+
+export async function createMosqueRecord(data: { name: string; woredaId: number; imam: string; capacity: number; description: string; madrasaId: number | null }): Promise<{ id: number }> {
   return apiRequest<{ id: number }>('/admin/mosques', {
     method: 'POST',
     body: JSON.stringify({
-      woredaId,
+      woredaId: data.woredaId,
       imamName: data.imam,
       capacity: data.capacity,
       madrasaId: data.madrasaId,
@@ -78,12 +149,11 @@ export async function createMosqueRecord(data: { name: string; district: string;
   });
 }
 
-export async function updateMosqueRecord(id: string, data: { name: string; district: string; imam: string; capacity: number; description: string; madrasaId: number | null }): Promise<{ id: number }> {
-  const woredaId = await resolveWoredaId(data.district);
+export async function updateMosqueRecord(id: string, data: { name: string; woredaId: number; imam: string; capacity: number; description: string; madrasaId: number | null }): Promise<{ id: number }> {
   return apiRequest<{ id: number }>(`/admin/mosques/${id}`, {
     method: 'PATCH',
     body: JSON.stringify({
-      woredaId,
+      woredaId: data.woredaId,
       imamName: data.imam,
       capacity: data.capacity,
       madrasaId: data.madrasaId,
@@ -110,12 +180,11 @@ export async function uploadMadrasaPhoto(id: number, photo: File) {
   return uploadDirectoryPhoto('madrasa', id, photo);
 }
 
-export async function createMadrasaRecord(data: { name: string; district: string; capacity: number; description: string }): Promise<{ id: number }> {
-  const woredaId = await resolveWoredaId(data.district);
+export async function createMadrasaRecord(data: { name: string; woredaId: number; capacity: number; description: string }): Promise<{ id: number }> {
   return apiRequest<{ id: number }>('/admin/madrasas', {
     method: 'POST',
     body: JSON.stringify({
-      woredaId,
+      woredaId: data.woredaId,
       capacity: data.capacity,
       isPublished: true,
       name: { en: data.name },
@@ -126,17 +195,16 @@ export async function createMadrasaRecord(data: { name: string; district: string
 
 export async function updateMadrasaRecord(id: string, data: {
   name: string;
-  district: string;
+  woredaId: number;
   capacity: number;
   description: string;
   headTeacherId: number | null;
   hifzGraduatesCount: number | null;
 }): Promise<{ id: number }> {
-  const woredaId = await resolveWoredaId(data.district);
   return apiRequest<{ id: number }>(`/admin/madrasas/${id}`, {
     method: 'PATCH',
     body: JSON.stringify({
-      woredaId,
+      woredaId: data.woredaId,
       capacity: data.capacity,
       headTeacherId: data.headTeacherId,
       hifzGraduatesCount: data.hifzGraduatesCount,
@@ -157,9 +225,10 @@ export async function fetchDirectoryMosques(): Promise<Mosque[]> {
 }
 
 function mapMosque(row: ApiMosque): Mosque {
-  const district = formatWoreda(row.woreda.code);
+  const district = row.woreda.name || formatWoreda(row.woreda.code);
   return {
     id: String(row.id),
+    woredaId: row.woreda.id,
     name: row.name,
     district,
     hasMadrasa: Boolean(row.madrasa),
@@ -203,9 +272,10 @@ export async function fetchAdminDirectoryMadrasas(): Promise<Madrasa[]> {
 }
 
 function mapMadrasa(row: ApiMadrasa): Madrasa {
-  const district = formatWoreda(row.woreda.code);
+  const district = row.woreda.name || formatWoreda(row.woreda.code);
   return {
     id: String(row.id),
+    woredaId: row.woreda.id,
     name: row.name,
     mosqueId: row.mosqueId == null ? '' : String(row.mosqueId),
     mosqueName: '',

@@ -52,6 +52,7 @@ import { AdminAuditPage } from './pages/admin/AdminAuditPage';
 import { TeacherWorkbenchPage } from './pages/admin/TeacherWorkbenchPage';
 import { AdminZakatApplicationsPage } from './pages/admin/AdminZakatApplicationsPage';
 import { AdminSystemSettingsPage } from './pages/admin/AdminSystemSettingsPage';
+import { AdminWoredasPage } from './pages/admin/AdminWoredasPage';
 
 export default function App() {
   return (
@@ -117,6 +118,7 @@ export default function App() {
                 <Route path="users" element={<AdminStaffAndRolesPage />} />
                 <Route path="staff" element={<AdminStaffAndRolesPage />} />
                 <Route path="settings" element={<AdminSystemSettingsPage />} />
+                <Route path="woredas" element={<AdminWoredasPage />} />
               </Route>
 
               {/* Fallback */}

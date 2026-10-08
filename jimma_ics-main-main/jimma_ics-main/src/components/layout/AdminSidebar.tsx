@@ -142,6 +142,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       ? [{
           title: 'Administration',
           items: [
+            { label: 'Woredas & Districts', path: '/admin/woredas', icon: <MapPin className="w-4 h-4 text-amber-400" /> },
             { label: 'System Settings', path: '/admin/settings', icon: <Settings className="w-4 h-4 text-amber-400" /> },
           ],
         }]
