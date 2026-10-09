@@ -8,7 +8,6 @@ import {
   Phone,
   Mail,
   Clock,
-  Shield,
   HeartHandshake,
   ExternalLink,
   ChevronRight,
@@ -301,12 +300,6 @@ export const Footer: React.FC = () => {
                 <Link to="/contact" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
                   <span>{t('contact')} & Secretariat</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/admin" className="text-amber-400 hover:text-amber-300 font-semibold transition-colors flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5" />
-                  <span>Council Management Portal</span>
                 </Link>
               </li>
             </ul>
