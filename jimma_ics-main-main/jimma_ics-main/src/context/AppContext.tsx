@@ -444,7 +444,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         serviceType: 'Janazah Support',
         applicantName: request.contactName,
         applicantPhone: request.contactPhone,
-        applicantDistrict: request.woreda ? `Kebele ${request.woreda.code}` : 'Jimma Zone',
+        applicantDistrict: request.woreda ? `Kebele ${request.woreda.code}` : 'Jimma City',
         submissionDate: new Date(request.createdAt).toLocaleDateString(),
         status: request.status === 'SUBMITTED' ? 'Submitted'
           : request.status === 'UNDER_REVIEW' ? 'Under Review'
@@ -1329,7 +1329,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       senderId: currentUser.id,
       recipientTarget: `${targetStudents.length} Parent(s) (${session.madrasaName})`,
       recipientCount: targetStudents.length,
-      content: `Assalamu Alaikum. This is an official notice from ${session.madrasaName} (Jimma Zone Islamic Affairs Council). Your child was recorded as ABSENT for the ${session.shift} session on ${session.hijriDate} (${session.date}). For inquiries: ${currentUser.phone || '+251 47 111 8290'}.`,
+      content: `Assalamu Alaikum. This is an official notice from ${session.madrasaName} (Jimma City Islamic Affairs Council). Your child was recorded as ABSENT for the ${session.shift} session on ${session.hijriDate} (${session.date}). For inquiries: ${currentUser.phone || '+251 47 111 8290'}.`,
       costETB: totalCost,
     });
 

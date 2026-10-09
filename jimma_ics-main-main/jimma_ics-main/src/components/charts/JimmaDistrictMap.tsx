@@ -62,7 +62,7 @@ export const JimmaDistrictMap: React.FC<{ className?: string }> = ({ className =
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400">
               <Compass className="h-4 w-4" />
-              <span>Jimma Zone coverage</span>
+              <span>Jimma City coverage</span>
             </div>
             <h3 className="mt-1 font-serif text-lg font-bold text-white sm:text-xl">
               {woredas.length} registered kebeles

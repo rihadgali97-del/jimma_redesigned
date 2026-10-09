@@ -45,7 +45,7 @@ export const MosqueDetailPage: React.FC = () => {
       establishedYear: 1940,
       status: 'Active',
       facilities: ['Main Prayer Hall', 'Women Gallery', 'Wudhu Stations (120 taps)', 'Library & Manuscript Archive'],
-      description: 'The historical spiritual epicenter of Jimma Zone, established in 1940.',
+      description: 'The historical spiritual epicenter of Jimma City, established in 1940.',
       contactPhone: '+251 47 111 8290',
     };
 

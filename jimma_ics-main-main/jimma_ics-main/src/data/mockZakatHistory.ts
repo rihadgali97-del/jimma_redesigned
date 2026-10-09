@@ -144,7 +144,7 @@ export const mockZakatCalculations: ZakatCalculationRecord[] = [
       agricultureUshrETB: 0,
       livestockETB: 0,
     },
-    notes: 'Discharged through Jimma Zone Central Zakat Office receipt.',
+    notes: 'Discharged through Jimma City Central Zakat Office receipt.',
   },
   {
     id: 'zcalc-mukhtar-01',

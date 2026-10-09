@@ -160,7 +160,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
 
       setSenderId('@JimmaIslamicCouncilBot');
       setMessageTitle(`Unified Khutbah: ${khutbahTheme.slice(0, 30)}...`);
-      setRecipientTarget('Jimma Zone Imams & Ulema League (142 Imams across 18 Kebeles)');
+      setRecipientTarget('Jimma City Imams & Ulema League (142 Imams across 18 Kebeles)');
       setRecipientCount(142);
     } else {
       setMessageTitle('Official Council Announcement');
@@ -258,7 +258,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
 
         setMessageContent(raw);
         setMessageTitle(`Unified Khutbah: ${khutbahTheme.slice(0, 30)}...`);
-        setRecipientTarget('Jimma Zone Imams & Ulema League (142 Imams across 18 Kebeles)');
+        setRecipientTarget('Jimma City Imams & Ulema League (142 Imams across 18 Kebeles)');
       }
     }
   }, [deceasedName, deceasedAge, janazahTime, cemeteryName, familyContact, selectedMosqueId, selectedCategory, selectedLanguage, activeStudent, khutbahTheme, moonOccasion, eidLocation, gatewayStats.telegramSubscribers]);

@@ -42,7 +42,7 @@ interface DonationInflowTrendsChartProps {
   onViewModeChange?: (mode: TrendsViewMode) => void;
 }
 
-// 12 Months Fiscal Cycle Model for Jimma Zone
+// 12 Months Fiscal Cycle Model for Jimma City
 interface MonthlyTrendPoint {
   key: string;
   month: string;
@@ -57,7 +57,7 @@ interface MonthlyTrendPoint {
   transactionCount: number;
 }
 
-// Multi-Year Annual Growth Model for Jimma Zone Islamic Supreme Council
+// Multi-Year Annual Growth Model for Jimma City Islamic Supreme Council
 interface AnnualTrendPoint {
   year: string;
   zakatUshr: number; // in ETB
@@ -92,7 +92,7 @@ export const DonationInflowTrendsChart: React.FC<DonationInflowTrendsChartProps>
   const [annualRange, setAnnualRange] = useState<'5yr' | 'all'>('5yr');
   const [activeLegendItem, setActiveLegendItem] = useState<string | null>(null);
 
-  // Base 12-month baseline data tailored to Jimma Zone's religious and agricultural calendar
+  // Base 12-month baseline data tailored to Jimma City's religious and agricultural calendar
   const monthlyData = useMemo<MonthlyTrendPoint[]>(() => {
     const baseTemplate: {
       key: string;
@@ -546,7 +546,7 @@ export const DonationInflowTrendsChart: React.FC<DonationInflowTrendsChartProps>
           <p className="text-xs text-stone-500 dark:text-stone-400 max-w-2xl">
             {viewMode === 'monthly'
               ? 'Tracking monthly cycles across Zakat ul-Mal, Coffee Harvest Ushr, and voluntary Sadaqah contributions.'
-              : 'Tracking long-term institutional financial growth, year-over-year expansion, and Jimma Zone welfare capacity.'}
+              : 'Tracking long-term institutional financial growth, year-over-year expansion, and Jimma City welfare capacity.'}
           </p>
         </div>
 
@@ -999,7 +999,7 @@ export const DonationInflowTrendsChart: React.FC<DonationInflowTrendsChartProps>
         <div className="bg-stone-50/70 dark:bg-stone-800/30 rounded-xl p-3 border border-stone-200/80 dark:border-stone-700/50">
           <div className="flex items-center gap-1.5 text-xs font-bold text-stone-700 dark:text-stone-300 mb-2">
             <History className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Key Institutional Growth Milestones (Jimma Zone Council)</span>
+            <span>Key Institutional Growth Milestones (Jimma City Council)</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-[11px]">
             <div className="bg-white dark:bg-stone-900/60 p-2 rounded-lg border border-stone-200/60 dark:border-stone-700/60">

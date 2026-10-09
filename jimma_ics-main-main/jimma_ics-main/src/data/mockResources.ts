@@ -15,7 +15,7 @@ export const initialCouncilResources: CouncilResource[] = [
     fileSize: '1.4 MB',
     downloadUrl: '#',
     uploadedBy: 'Sheikh Mustafa Jamal (Fatwa Board)',
-    author: 'Supreme Shari’ah & Ifta Directorate of Jimma Zone',
+    author: 'Supreme Shari’ah & Ifta Directorate of Jimma City',
     department: 'Shariah & Fatwa Board',
     uploadDate: '2026-08-25',
     hijriDate: '13 Safar 1448 AH',
@@ -52,11 +52,11 @@ Encourage worshippers to contribute to the local mosque waqf welfare box, check 
       tableOfContents: [
         '1. Khutbah Khutbat-ul-Haajah (Arabic Opening)',
         '2. Core Theological Injunctions on Mutual Aid',
-        '3. Practical Community Examples in Jimma Zone',
+        '3. Practical Community Examples in Jimma City',
         '4. Second Khutbah Arabic & Afaan Oromoo Translations',
         '5. Recommended Supplications (Ad’iyah)'
       ],
-      sampleExcerpt: 'Standard 15-minute Friday Khutbah text endorsed by Jimma Zone Islamic Affairs Supreme Council for all Jami’ mosques.'
+      sampleExcerpt: 'Standard 15-minute Friday Khutbah text endorsed by Jimma City Islamic Affairs Supreme Council for all Jami’ mosques.'
     }
   },
   {
@@ -73,14 +73,14 @@ Encourage worshippers to contribute to the local mosque waqf welfare box, check 
     fileSize: '5.8 MB',
     downloadUrl: '#',
     uploadedBy: 'Ustadh Fuad Jamal (Curriculum Director)',
-    author: 'Jimma Zone Islamic Education Directorate',
+    author: 'Jimma City Islamic Education Directorate',
     department: 'Education Directorate',
     uploadDate: '2026-08-18',
     hijriDate: '6 Safar 1448 AH',
     downloadsCount: 1120,
     isFeatured: true,
     seasonOrOccasion: 'Annual Madrasa Academic Cycle',
-    description: 'The official 2026-2027 curriculum guide detailing daily lesson quotas (Sabaq, Sabqi, Manzil), weekly review milestones, Tajweed theory modules, and standardized evaluation rubrics for all accredited madrasas in Jimma Zone.',
+    description: 'The official 2026-2027 curriculum guide detailing daily lesson quotas (Sabaq, Sabqi, Manzil), weekly review milestones, Tajweed theory modules, and standardized evaluation rubrics for all accredited madrasas in Jimma City.',
     summaryPoints: [
       'Level 1 (Preparatory): Noorani Qa’idah mastery, Juz Amma memorization, Makharij & Sifaat foundations.',
       'Level 2 (Intermediate): Juz Tabarak to Juz 15, Noon Sakinah rules, Madd types, and daily retention systems.',
@@ -106,7 +106,7 @@ Encourage worshippers to contribute to the local mosque waqf welfare box, check 
         'Chapter 4: Level 3 Advanced Khatm & Sanad Readiness',
         'Chapter 5: Examination Standards & Certificate Issuance Guidelines'
       ],
-      sampleExcerpt: 'Approved by the Council Education Directorate for implementation across all 240+ accredited centers in Jimma Zone.'
+      sampleExcerpt: 'Approved by the Council Education Directorate for implementation across all 240+ accredited centers in Jimma City.'
     }
   },
   {
@@ -226,7 +226,7 @@ This sermon encourages Imams to avoid harsh condemnation and instead offer pract
     downloadsCount: 890,
     isFeatured: false,
     seasonOrOccasion: 'Fiqh & Community Services',
-    description: 'A comprehensive Shari’ah protocol manual covering washing (Ghusl), shrouding (Kafan), Janazah prayer steps, cemetery registry protocols in Jimma Zone, and standard Mirath (inheritance) calculation worksheets.',
+    description: 'A comprehensive Shari’ah protocol manual covering washing (Ghusl), shrouding (Kafan), Janazah prayer steps, cemetery registry protocols in Jimma City, and standard Mirath (inheritance) calculation worksheets.',
     summaryPoints: [
       'Step-by-step Ghusl & Kafan instructions with illustrated supply checklists.',
       'Etiquette of condolences (Ta’ziyah) and eliminating un-Islamic costly mourning customs.',
@@ -317,7 +317,7 @@ Section 2: Positive Reinforcement Over Corporal Punishment. The Jimma Islamic Co
     isFeatured: true,
     isPinnedForJummah: false,
     seasonOrOccasion: 'Rabi’ al-Awwal Season / Seerah',
-    description: 'A rich seasonal sermon text celebrating the birth and sublime moral character of the Prophet Muhammad (SAW), detailing honesty in business, mercy to children, and fostering inter-communal peace in Jimma Zone.',
+    description: 'A rich seasonal sermon text celebrating the birth and sublime moral character of the Prophet Muhammad (SAW), detailing honesty in business, mercy to children, and fostering inter-communal peace in Jimma City.',
     summaryPoints: [
       'Extracts from authentic Shamail al-Muhammadiyyah (Prophetic attributes).',
       'The economic ethics of the Prophet: truthfulness in market trades and avoiding deceptive weights.',
@@ -400,7 +400,7 @@ Yaa hawaasa Muslimaa! Ji’a barakeeffamaa Rabi’al-Awwal keessa gallee jirra. 
     fileSize: '720 KB',
     downloadUrl: '#',
     uploadedBy: 'Ustadh Fuad Jamal',
-    author: 'Jimma Zone Islamic Education Directorate',
+    author: 'Jimma City Islamic Education Directorate',
     department: 'Education Directorate',
     uploadDate: '2026-08-01',
     hijriDate: '18 Muharram 1448 AH',
@@ -450,7 +450,7 @@ Column 33: Guardian Verification Signature & Teacher Comments`,
       'Solar battery longevity: Weekly electrolyte checks, dusting panel surfaces, and avoiding deep discharge below 48V.',
       'Acoustic management: Eliminating feedback echo, optimal microphone placement for Mihrab and Minbar.',
       'Electrical safety: Fire extinguisher placement, surge protectors, and inverter cooling ventilation.',
-      'Council subsidized spare parts procurement contact directory for Jimma Zone.'
+      'Council subsidized spare parts procurement contact directory for Jimma City.'
     ],
     tags: ['Solar Power', 'Acoustics', 'Maintenance', 'Technical Manual', 'Mosque Infrastructure'],
     previewContent: {
@@ -495,7 +495,7 @@ Column 33: Guardian Verification Signature & Teacher Comments`,
     tags: ['Family Welfare', 'Family Mediation', 'Shariah Counseling', 'Conflict Resolution'],
     previewContent: {
       translationEnglish: `Essential Family Welfare Protocol:
-Every licensed Imam and counselor in Jimma Zone providing family mediation services must maintain confidential session logs and follow Shari’ah guidelines for family reconciliation.`,
+Every licensed Imam and counselor in Jimma City providing family mediation services must maintain confidential session logs and follow Shari’ah guidelines for family reconciliation.`,
       keyThemes: ['Family Stability', 'Rights of Spouses', 'Conflict Resolution', 'Counseling']
     }
   },

@@ -24,8 +24,8 @@ export const mockPublicServices: ServiceItem[] = [
     category: 'Welfare & Zakat',
     icon: 'HandHeart',
     shortDesc: 'Financial and humanitarian aid for impoverished households, medical emergencies, and vulnerable widows.',
-    fullDesc: 'Direct, transparent assessment and disbursal of Zakat ul-Mal and agricultural Ushr collected from commercial merchants and farmers in Jimma Zone.',
-    eligibility: 'Families or individuals meeting Quranic criteria of Asnaf al-Zakat (the poor, destitute, debtors in hardship, stranded travelers) residing in Jimma Zone.',
+    fullDesc: 'Direct, transparent assessment and disbursal of Zakat ul-Mal and agricultural Ushr collected from commercial merchants and farmers in Jimma City.',
+    eligibility: 'Families or individuals meeting Quranic criteria of Asnaf al-Zakat (the poor, destitute, debtors in hardship, stranded travelers) residing in Jimma City.',
     howItWorks: [
       'Submit social welfare assistance application with verification details.',
       'Kebele social welfare committee conducts confidential field assessment.',
@@ -85,7 +85,7 @@ export const mockPublicServices: ServiceItem[] = [
     icon: 'BookOpen',
     shortDesc: 'Curriculum standardization, teacher certifications, textbook distribution, and institutional recognition.',
     fullDesc: 'The Council Education Directorate guides new and established madrasas to achieve full educational accreditation, syllabus harmonization, and access to the unified student Hifz tracking portal.',
-    eligibility: 'Any community Quran school, Tahfeez center, or Islamic institute operating within the 18 kebeles of Jimma Zone.',
+    eligibility: 'Any community Quran school, Tahfeez center, or Islamic institute operating within the 18 kebeles of Jimma City.',
     howItWorks: [
       'Submit Madrasa Institutional Profile and teacher roster.',
       'Education Board inspectors conduct physical and pedagogical site assessment.',
@@ -109,7 +109,7 @@ export const mockPublicServices: ServiceItem[] = [
     howItWorks: [
       'Submit Waqf deed declaration and property survey documentation.',
       'Shariah board reviews conditions (Shurut al-Waqif).',
-      'Council legal team assists with municipal title registry in Jimma Zone.',
+      'Council legal team assists with municipal title registry in Jimma City.',
       'Asset entered into the public Council Waqf Registry for transparent stewardship.',
     ],
     requiredDocs: ['Property ownership deed or allotment letter', 'Donor identification', 'Shari’ah purpose declaration'],
@@ -125,7 +125,7 @@ export const mockPublicServices: ServiceItem[] = [
     icon: 'CheckCircle2',
     shortDesc: 'Technical Shari’ah standards training, facility inspections, and Halal guidance for meat processors and food businesses.',
     fullDesc: 'Assisting local slaughterhouses, butchers, restaurants, and food manufacturers to ensure strict adherence to Islamic dietary laws (Dhabihah Halal).',
-    eligibility: 'Food processing facilities, commercial meat distributors, abattoirs, and hospitality providers in Jimma Zone.',
+    eligibility: 'Food processing facilities, commercial meat distributors, abattoirs, and hospitality providers in Jimma City.',
     howItWorks: [
       'Application submitted by business operator.',
       'Halal inspection team audits slaughter methods and hygiene protocols.',
@@ -145,7 +145,7 @@ export const mockPublicServices: ServiceItem[] = [
     icon: 'Heart',
     shortDesc: 'Connecting compassionate donors with verified vulnerable orphans for monthly educational and nutritional support.',
     fullDesc: 'A comprehensive social safety net providing ETB 1,500 monthly educational and living stipends per child, paired with regular academic monitoring at local madrasas.',
-    eligibility: 'Children under 16 who have lost their father/breadwinner and reside in Jimma Zone.',
+    eligibility: 'Children under 16 who have lost their father/breadwinner and reside in Jimma City.',
     howItWorks: [
       'Guardian submits orphan profile at kebele council office.',
       'Social worker verifies living conditions and enrolls child in school.',
@@ -268,7 +268,7 @@ export const mockServiceRequests: ServiceRequest[] = [
     submissionDate: '2026-08-14',
     status: 'Under Review',
     assignedOfficer: 'Waqf Legal Bureau',
-    notes: 'Community plot title demarcation application under review with Jimma Zone Land Administration Bureau.',
+    notes: 'Community plot title demarcation application under review with Jimma City Land Administration Bureau.',
     documentsCount: 4,
     priority: 'Normal',
   },

@@ -100,7 +100,7 @@ export const AdminStudentsPage: React.FC = () => {
             Tahfeez Students & Hifz Progress Portal
           </h1>
           <p className="text-stone-500 dark:text-stone-400 text-xs sm:text-sm">
-            Live monitoring of daily Sabaq, Sabaqi, Manzil, and 30-Juz completion status across Jimma Zone.
+            Live monitoring of daily Sabaq, Sabaqi, Manzil, and 30-Juz completion status across Jimma City.
           </p>
         </div>
 

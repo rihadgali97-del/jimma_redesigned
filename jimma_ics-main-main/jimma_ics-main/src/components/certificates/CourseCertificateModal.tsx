@@ -188,7 +188,7 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
     instructorTitle,
     principalName,
     boardPresident,
-    accreditationBody: 'SUPREME ISLAMIC AFFAIRS BOARD OF JIMMA ZONE',
+    accreditationBody: 'SUPREME ISLAMIC AFFAIRS BOARD OF JIMMA CITY',
     verificationUrl: `https://jimma-islamic-affairs.et/verify/${certificateNumber}`,
     honorsNote,
   };

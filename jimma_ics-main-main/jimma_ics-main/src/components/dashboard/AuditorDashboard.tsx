@@ -1868,7 +1868,7 @@ export const AuditorDashboard: React.FC = () => {
                 <Landmark className="w-8 h-8" />
               </div>
               <div className="text-xs font-serif tracking-widest text-amber-700 dark:text-amber-400 uppercase font-bold">
-                Jimma Zone Islamic Affairs Supreme Council
+                Jimma City Islamic Affairs Supreme Council
               </div>
               <h2 className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 tracking-tight">
                 CERTIFICATE OF SHARI'AH & FINANCIAL AUDIT COMPLIANCE
@@ -1881,7 +1881,7 @@ export const AuditorDashboard: React.FC = () => {
             {/* Formal Certificate Body */}
             <div className="space-y-4 text-xs sm:text-sm leading-relaxed text-stone-700 dark:text-stone-300 font-serif">
               <p>
-                <strong>To the Supreme Shura Assembly and Community of Jimma Zone:</strong>
+                <strong>To the Supreme Shura Assembly and Community of Jimma City:</strong>
               </p>
               <p>
                 The Independent Internal Audit and Shari'ah Compliance Board has conducted a comprehensive forensic audit of all financial ledgers, Zakat disbursements, Waqf property title deeds, and expense vouchers for the Jimma Islamic Council for the period ending August 31, 2026.
@@ -1914,7 +1914,7 @@ export const AuditorDashboard: React.FC = () => {
                 <div className="font-serif italic text-amber-700 dark:text-amber-400 font-bold">
                   Sheikh Dr. Khalid Ahmed
                 </div>
-                <div className="text-[11px] text-stone-500">Lead Shari'ah Auditor, Jimma Zone</div>
+                <div className="text-[11px] text-stone-500">Lead Shari'ah Auditor, Jimma City</div>
                 <div className="text-[10px] text-stone-400 font-mono">ID: SH-AUD-KHALID-2026</div>
               </div>
 

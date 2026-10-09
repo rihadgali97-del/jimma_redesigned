@@ -46,7 +46,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   const [speaker, setSpeaker] = useState(initialEvent?.speaker || 'Sheikh Abdullah Ahmed Al-Jimmawi');
   const [description, setDescription] = useState(
     initialEvent?.description ||
-      'Grand community gathering dedicated to advancing Quranic sciences, community ethics, and scholastic excellence across Jimma Zone.'
+      'Grand community gathering dedicated to advancing Quranic sciences, community ethics, and scholastic excellence across Jimma City.'
   );
   const [maxCapacity, setMaxCapacity] = useState(initialEvent?.maxCapacity || 500);
   const [format, setFormat] = useState<CouncilEvent['format']>(initialEvent?.format || 'In-Person');
@@ -191,7 +191,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Jimma Zone Grand Quran Memorization Competition"
+                  placeholder="e.g. Jimma City Grand Quran Memorization Competition"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs sm:text-sm outline-hidden focus:ring-2 focus:ring-amber-500"

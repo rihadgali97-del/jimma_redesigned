@@ -1,7 +1,7 @@
 {
   "name": "jimma-ics-backend",
   "version": "0.1.0",
-  "description": "Backend API for Jimma Zone Islamic Affairs Supreme Council digital platform",
+  "description": "Backend API for Jimma City Islamic Affairs Supreme Council digital platform",
   "type": "module",
   "engines": {
     "node": ">=18.0.0"

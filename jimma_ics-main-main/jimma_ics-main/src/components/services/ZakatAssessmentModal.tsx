@@ -66,7 +66,7 @@ export const ZakatAssessmentModal: React.FC<ZakatAssessmentModalProps> = ({
 
   const handleCopySummary = () => {
     const text = `
-JIMMA ZONE ISLAMIC AFFAIRS SUPREME COUNCIL
+JIMMA CITY ISLAMIC AFFAIRS SUPREME COUNCIL
 OFFICIAL ZAKAT ASSESSMENT REPORT
 Ref: ${assessmentData.referenceNo}
 Date: ${assessmentData.date} (${assessmentData.hijriDate})
@@ -125,7 +125,7 @@ Certified under the Fatwa Committee of Jimma Supreme Islamic Council
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-700 dark:text-emerald-400 block">
-                  Majlis Supreme Council • Jimma Zone
+                  Majlis Supreme Council • Jimma City
                 </span>
                 <h3 className="text-lg sm:text-xl font-serif font-bold text-stone-900 dark:text-stone-100">
                   Official Zakat Obligation Assessment
@@ -263,7 +263,7 @@ Certified under the Fatwa Committee of Jimma Supreme Islamic Council
                 </span>
               </div>
               <p className="text-[11px] text-emerald-200/80 mt-1">
-                Disbursable directly to the Jimma Zone Asnaf Social Welfare Fund or certified regional poor.
+                Disbursable directly to the Jimma City Asnaf Social Welfare Fund or certified regional poor.
               </p>
             </div>
 
@@ -278,7 +278,7 @@ Certified under the Fatwa Committee of Jimma Supreme Islamic Council
           {/* Shariah Footnote */}
           <div className="text-[11px] text-stone-500 dark:text-stone-400 border-t border-stone-200 dark:border-stone-800 pt-3 flex items-center justify-between">
             <span>
-              Calculated in accordance with Islamic jurisprudence and resolutions of the Jimma Zone Islamic Supreme Council.
+              Calculated in accordance with Islamic jurisprudence and resolutions of the Jimma City Islamic Supreme Council.
             </span>
             <span className="font-mono text-[10px]">jimma-islamic-council.org</span>
           </div>

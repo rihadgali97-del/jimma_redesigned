@@ -248,7 +248,7 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
         {/* Left Status & Zone Badge */}
         <div className="pointer-events-auto flex items-center gap-2 bg-stone-950/85 backdrop-blur-md px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl border border-stone-700/60 shadow-lg text-[11px] sm:text-xs text-stone-200">
           <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-          <span className="font-semibold text-emerald-400 truncate">Jimma Zone Spatial GIS</span>
+          <span className="font-semibold text-emerald-400 truncate">Jimma City Spatial GIS</span>
           <span className="hidden sm:inline text-stone-500">|</span>
           <span className="hidden sm:inline text-stone-300">{woredas.length} Kebeles</span>
           {heatmapMode !== 'none' && (

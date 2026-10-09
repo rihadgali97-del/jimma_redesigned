@@ -3,7 +3,7 @@ import { Language } from '../types';
 type Copy = Record<Exclude<Language, 'en'>, string>;
 
 export const publicCopy: Record<string, Copy> = {
-  'Jimma Zone · Public community portal': {
+  'Jimma City · Public community portal': {
     om: 'Godina Jimmaa · Marsariitii hawaasaa',
     am: 'የጅማ ዞን · የማህበረሰብ ፖርታል',
     ar: 'منطقة جيما · بوابة المجتمع',
@@ -25,7 +25,7 @@ export const publicCopy: Record<string, Copy> = {
   },
   'Explore public services': { om: 'Tajaajiloota uummataa sakatta’aa', am: 'የህዝብ አገልግሎቶችን ያስሱ', ar: 'استكشف الخدمات العامة' },
   'Find an institution': { om: 'Dhaabbata barbaadi', am: 'ተቋም ይፈልጉ', ar: 'ابحث عن مؤسسة' },
-  'Serving Jimma Zone communities': { om: 'Hawaasa Godina Jimmaa tajaajiluu', am: 'የጅማ ዞን ማህበረሰቦችን ማገልገል', ar: 'خدمة مجتمعات منطقة جيما' },
+  'Serving Jimma City communities': { om: 'Hawaasa Godina Jimmaa tajaajiluu', am: 'የጅማ ዞን ማህበረሰቦችን ማገልገል', ar: 'خدمة مجتمعات منطقة جيما' },
   '18 administrative kebeles': { om: 'Gandoota bulchiinsaa 18', am: '18 የአስተዳደር ቀበሌዎች', ar: '18 كيبيليات إدارية' },
   'Jimma City prayer schedule': { om: 'Sagantaa salaataa Magaalaa Jimmaa', am: 'የጅማ ከተማ የሶላት ሰዓት', ar: 'مواقيت الصلاة في مدينة جيما' },
   'Standard Shafi’i / Hanafi calculation · Hijri 1447 AH': { om: 'Shafi’ii / Hanafi · Hijrii 1447', am: 'የሻፊዒ / ሃነፊ ስሌት · ሂጅሪ 1447', ar: 'حساب الشافعي / الحنفي · 1447 هـ' },
@@ -56,7 +56,7 @@ export const publicCopy: Record<string, Copy> = {
   'Public services': { om: 'Tajaajiloota uummataa', am: 'የህዝብ አገልግሎቶች', ar: 'الخدمات العامة' },
   'Apply or track a request': { om: 'Iyyadhu yookaan gaaffii hordofi', am: 'ያመልክቱ ወይም ጥያቄን ይከታተሉ', ar: 'قدّم طلبًا أو تابعه' },
   'Kebele map': { om: 'Kaartaa gandootaa', am: 'የቀበሌዎች ካርታ', ar: 'خريطة الكيبيلي' },
-  'Explore Jimma Zone': { om: 'Godina Jimmaa sakatta’i', am: 'የጅማ ዞንን ያስሱ', ar: 'استكشف منطقة جيما' },
+  'Explore Jimma City': { om: 'Godina Jimmaa sakatta’i', am: 'የጅማ ዞንን ያስሱ', ar: 'استكشف منطقة جيما' },
   Events: { om: 'Qophiiwwan', am: 'ዝግጅቶች', ar: 'الفعاليات' },
   'See what is happening': { om: 'Waan raawwatamaa jiru ilaali', am: 'ምን እየተካሄደ እንዳለ ይመልከቱ', ar: 'اطّلع على الفعاليات' },
   Announcements: { om: 'Beeksisoota', am: 'ማስታወቂያዎች', ar: 'الإعلانات' },
@@ -82,7 +82,7 @@ export const publicCopy: Record<string, Copy> = {
   'Community events will appear here when scheduled.': { om: 'Qophiiwwan hawaasaa yeroo saganteeffaman asitti mul’atu.', am: 'የማህበረሰብ ዝግጅቶች ሲዘጋጁ እዚህ ይታያሉ።', ar: 'ستظهر فعاليات المجتمع هنا عند جدولتها.' },
   'Community alerts': { om: 'Akeekkachiisa hawaasaa', am: 'የማህበረሰብ ማንቂያዎች', ar: 'تنبيهات المجتمع' },
   'Stay connected to local updates.': { om: 'Odeeffannoo naannoo waliin walitti hidhami.', am: 'ከአካባቢ ዝመናዎች ጋር ይገናኙ።', ar: 'ابقَ على اطلاع بالتحديثات المحلية.' },
-  'Find official announcements, community gatherings and urgent notices for Jimma Zone.': { om: 'Beeksisoota mootummaa, walga’ii hawaasaa fi beeksisoota ariifachiisoo Godina Jimmaa argadhaa.', am: 'የጅማ ዞን ይፋዊ ማስታወቂያዎችን፣ የማህበረሰብ ስብሰባዎችንና አስቸኳይ ማስታወቂያዎችን ያግኙ።', ar: 'تابع الإعلانات الرسمية والتجمعات والتنبيهات العاجلة في منطقة جيما.' },
+  'Find official announcements, community gatherings and urgent notices for Jimma City.': { om: 'Beeksisoota mootummaa, walga’ii hawaasaa fi beeksisoota ariifachiisoo Godina Jimmaa argadhaa.', am: 'የጅማ ዞን ይፋዊ ማስታወቂያዎችን፣ የማህበረሰብ ስብሰባዎችንና አስቸኳይ ማስታወቂያዎችን ያግኙ።', ar: 'تابع الإعلانات الرسمية والتجمعات والتنبيهات العاجلة في منطقة جيما.' },
   'View public updates': { om: 'Odeeffannoo uummataa ilaali', am: 'የህዝብ ዝመናዎችን ይመልከቱ', ar: 'اعرض التحديثات العامة' },
   'Communications gateway': { om: 'Karaa qunnamtii', am: 'የግንኙነት መግቢያ', ar: 'بوابة الاتصالات' },
   'Giving, with care': { om: 'Of-eeggannoodhaan gumaachuu', am: 'በጥንቃቄ መለገስ', ar: 'العطاء بعناية' },
@@ -129,7 +129,7 @@ export const publicCopy: Record<string, Copy> = {
   'Make a Contribution': { om: 'Gumaata kenni', am: 'አስተዋጽኦ ያድርጉ', ar: 'قدّم مساهمة' },
   'Digital Management & Community Platform': { om: 'Bulchiinsa Dijitaalaa fi Tajaajila Hawaasaa', am: 'ዲጂታል አስተዳደርና የማህበረሰብ መድረክ', ar: 'منصة الإدارة الرقمية والخدمات المجتمعية' },
   'Digital Management Platform': { om: 'Sirna Bulchiinsa Dijitaalaa', am: 'ዲጂታል አስተዳደር መድረክ', ar: 'منصة الإدارة الرقمية' },
-  '© Jimma Zone Islamic Affairs Supreme Council. All rights reserved.': { om: '© Majiilisa Dhimmoota Islaamummaa Godina Jimmaa. Mirgi seeraan eegama.', am: '© የጅማ ዞን እስላማዊ ጉዳዮች ጠቅላይ ምክር ቤት። መብቱ በህግ የተጠበቀ ነው።', ar: '© المجلس الأعلى للشؤون الإسلامية بمنطقة جيما. جميع الحقوق محفوظة.' },
+  '© Jimma City Islamic Affairs Supreme Council. All rights reserved.': { om: '© Majiilisa Dhimmoota Islaamummaa Godina Jimmaa. Mirgi seeraan eegama.', am: '© የጅማ ዞን እስላማዊ ጉዳዮች ጠቅላይ ምክር ቤት። መብቱ በህግ የተጠበቀ ነው።', ar: '© المجلس الأعلى للشؤون الإسلامية بمنطقة جيما. جميع الحقوق محفوظة.' },
   'Mosques Directory (128+)': { om: 'Galmee Masaajidootaa (128+)', am: 'የመስጊዶች ማውጫ (128+)', ar: 'دليل المساجد (128+)' },
   'Madrasas & Hifz Centers': { om: 'Madaarisoota & Giddu-gala Hifzii', am: 'መድረሳዎች እና የሂፍዝ ማዕከላት', ar: 'المدارس ومراكز التحفيظ' },
   'Ulema Scholars Directory': { om: 'Galmee Ulamaa’otaa', am: 'የዑለማዎች ማውጫ', ar: 'دليل العلماء والفقهاء' },
@@ -174,7 +174,7 @@ export const publicCopy: Record<string, Copy> = {
   'Restoring secure session…': { om: 'Seensa seera-qabeessa bakkatti deebisaa…', am: 'ደህንነቱ የተጠበቀ ክፍለ ጊዜን በመመለስ ላይ…', ar: 'جاري استعادة الجلسة الآمنة…' },
   'Supreme Executive Secretariat': { om: 'Barreessaa Ol-aanaa Hojii-raawwachiistuu', am: 'ከፍተኛ የሥራ አስፈፃሚ ሴክሬታሪያት', ar: 'الأمانة التنفيذية العليا' },
   'Tier-1 Authority': { om: 'Aangoo Sadarkaa 1ffa', am: 'ደረጃ 1 ባለስልጣን', ar: 'سلطة المستوى الأول' },
-  'Jimma Zone Islamic Affairs Council Command Matrix': { om: 'Giddu-gala Qajeelcha Majiliisa Dhimmoota Islaamummaa Godina Jimmaa', am: 'የጅማ ዞን እስላማዊ ጉዳዮች ምክር ቤት ማዕከላዊ የቁጥጥር ፖርታል', ar: 'مصفوفة قيادة مجلس الشؤون الإسلامية لمنطقة جيما' },
+  'Jimma City Islamic Affairs Council Command Matrix': { om: 'Giddu-gala Qajeelcha Majiliisa Dhimmoota Islaamummaa Godina Jimmaa', am: 'የጅማ ዞን እስላማዊ ጉዳዮች ምክር ቤት ማዕከላዊ የቁጥጥር ፖርታል', ar: 'مصفوفة قيادة مجلس الشؤون الإسلامية لمنطقة جيما' },
   'Treasury Reserves': { om: 'Qabeenya Mana Maallaqaa', am: 'የግምጃ ቤት ተቀማጭ', ar: 'احتياطيات الخزينة' },
   '18 Kebeles active': { om: 'Gandoonni 18 hojirratti argamu', am: '18 ቀበሌዎች ንቁ ናቸው', ar: '18 كيبيلي نشطة' },
   'Students': { om: 'Barattoota', am: 'ተማሪዎች', ar: 'الطلاب' },

@@ -281,7 +281,7 @@ export const EventNotificationModal: React.FC<EventNotificationModalProps> = ({
           </div>
 
           <p className="text-stone-300 text-xs sm:text-sm mt-2 max-w-xl leading-relaxed">
-            Receive automated notifications for upcoming scholar symposia, annual Quran Tahfeez championships, youth workshops, and Ramadan community gatherings across Jimma Zone.
+            Receive automated notifications for upcoming scholar symposia, annual Quran Tahfeez championships, youth workshops, and Ramadan community gatherings across Jimma City.
           </p>
 
           {targetEvent && (
@@ -584,7 +584,7 @@ export const EventNotificationModal: React.FC<EventNotificationModalProps> = ({
           <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/30 text-[11px] text-stone-500 dark:text-stone-400 border border-stone-200 dark:border-stone-800">
             <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
             <span>
-              <strong>Zero-Spam Civic Commitment:</strong> Your email and device endpoints are strictly used for verified Jimma Zone Islamic Affairs Supreme Council programs and community announcements. You may change or withdraw preferences anytime.
+              <strong>Zero-Spam Civic Commitment:</strong> Your email and device endpoints are strictly used for verified Jimma City Islamic Affairs Supreme Council programs and community announcements. You may change or withdraw preferences anytime.
             </span>
           </div>
 

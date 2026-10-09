@@ -67,7 +67,7 @@ export const RouteCalculatorModal: React.FC<RouteCalculatorModalProps> = ({
             </div>
             <div>
               <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100">
-                Jimma Zone Inter-Kebele Route Matrix
+                Jimma City Inter-Kebele Route Matrix
               </h3>
               <p className="text-xs text-stone-500 dark:text-stone-400">
                 Council logistics, scholar visits, and relief convoy travel planning

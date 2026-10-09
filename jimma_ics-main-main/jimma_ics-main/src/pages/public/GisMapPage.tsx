@@ -185,10 +185,10 @@ export const GisMapPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2 text-xs font-semibold text-amber-400 uppercase tracking-widest mb-2">
                 <Compass className="w-4 h-4 text-amber-400" />
-                <span>Jimma Zone Spatial GIS Platform • Oromia Region</span>
+                <span>Jimma City Spatial GIS Platform • Oromia Region</span>
               </div>
               <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-white">
-                Interactive Jimma Zone GIS Map
+                Interactive Jimma City GIS Map
               </h1>
               <p className="text-sm sm:text-base text-emerald-100/80 max-w-2xl mt-2 leading-relaxed font-sans">
                 Kebele facts come from the official registry. Institution and Zakat metrics are calculated from linked records; geographic boundaries appear as administrators enter verified data.

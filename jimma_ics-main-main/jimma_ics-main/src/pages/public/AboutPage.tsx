@@ -42,7 +42,7 @@ export const AboutPage: React.FC = () => {
           </h1>
           <p className="text-stone-300 text-sm sm:text-base mt-4 leading-relaxed">
             The supreme civic and religious authority coordinating the spiritual, educational,
-            and charitable affairs of the Muslim community across 18 kebeles in Jimma Zone, Oromia, Ethiopia.
+            and charitable affairs of the Muslim community across 18 kebeles in Jimma City, Oromia, Ethiopia.
           </p>
         </div>
       </section>

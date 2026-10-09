@@ -33,7 +33,7 @@ export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
         <div className="flex items-center justify-between pb-4 border-b border-stone-200 mb-6 print:hidden">
           <div>
             <h3 className="font-serif font-bold text-lg text-stone-900">
-              Jimma Zone GIS Kebele Profile Report
+              Jimma City GIS Kebele Profile Report
             </h3>
             <p className="text-xs text-stone-500">
               Generated from the current kebele registry and linked records
@@ -66,7 +66,7 @@ export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
               </div>
               <div className="text-left">
                 <h1 className="font-serif font-bold text-xl text-stone-900 leading-tight">
-                  JIMMA ZONE ISLAMIC AFFAIRS SUPREME COUNCIL
+                  JIMMA CITY ISLAMIC AFFAIRS SUPREME COUNCIL
                 </h1>
                 <div className="text-xs text-stone-600 font-serif">
                   المجلس الأعلى للشؤون الإسلامية لمنطقة جيما • Majiilisa Islaamummaa Godina Jimmaa

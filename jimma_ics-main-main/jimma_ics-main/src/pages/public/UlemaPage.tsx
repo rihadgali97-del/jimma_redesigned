@@ -43,7 +43,7 @@ export const UlemaPage: React.FC = () => {
         <div className="relative flex flex-col items-start justify-between gap-7 md:flex-row md:items-end">
           <div className="max-w-3xl">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-100">
-              <BookOpen className="h-4 w-4" /> Jimma Zone · Scholarly Authority
+              <BookOpen className="h-4 w-4" /> Jimma City · Scholarly Authority
             </div>
             <h1 className="font-serif text-3xl font-bold leading-tight sm:text-5xl">Ulema & Fatwa Board</h1>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-emerald-100/80 sm:text-base">

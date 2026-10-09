@@ -318,7 +318,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
             const distBeneficiary =
               dist.beneficiaryName ||
               `${dist.beneficiaryCount ? `${dist.beneficiaryCount} Registered Families` : 'Beneficiary Household'} (${dist.asnafCategory || 'Asnaf'})`;
-            const distDistrict = dist.district || dist.woredaDistrict || 'Jimma Zone';
+            const distDistrict = dist.district || dist.woredaDistrict || 'Jimma City';
             const distCategory = dist.category || dist.asnafCategory || 'Masarif';
             const distDate = dist.disbursementDate || dist.lastDisbursalDate || '2026-08-20';
             const distStatus = dist.verificationStatus || 'Disbursed';

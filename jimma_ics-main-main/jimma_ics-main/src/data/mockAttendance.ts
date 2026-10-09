@@ -541,7 +541,7 @@ export const initialStaffAttendance: StaffAttendanceEntry[] = [
     status: 'Present',
     clockInTime: '08:05 AM',
     location: 'Jimma Council Headquarters (Executive Wing)',
-    workSummary: 'Presiding over Jimma Zone Ulema Monthly Consultation & Annual Madrasa Accreditation Review.',
+    workSummary: 'Presiding over Jimma City Ulema Monthly Consultation & Annual Madrasa Accreditation Review.',
     recordedBy: 'Council Biometric & Desk Officer',
   },
   {

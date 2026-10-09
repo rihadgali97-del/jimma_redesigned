@@ -165,7 +165,7 @@ export const AdminTeachersPage: React.FC = () => {
             Madrasa Faculty & Mu'allims Registry
           </h1>
           <p className="text-stone-500 dark:text-stone-400 text-xs sm:text-sm">
-            Managing certified Quranic teachers, Sanad qualifications, student classroom allocations, and monthly council honoraria across Jimma Zone.
+            Managing certified Quranic teachers, Sanad qualifications, student classroom allocations, and monthly council honoraria across Jimma City.
           </p>
         </div>
 
@@ -456,7 +456,7 @@ export const AdminTeachersPage: React.FC = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         title="Register Faculty Mu'allim"
-        subtitle="Add accredited Quranic teacher with Sanad verification into the Jimma Zone central council."
+        subtitle="Add accredited Quranic teacher with Sanad verification into the Jimma City central council."
       >
         <form onSubmit={handleAddSubmit} className="space-y-4">
           <div>
@@ -606,7 +606,7 @@ export const AdminTeachersPage: React.FC = () => {
           isOpen={Boolean(selectedTeacherForDetail)}
           onClose={() => setSelectedTeacherForDetail(null)}
           title="Mu'allim Profile & Sanad Credential"
-          subtitle="Accreditation dossier recorded in the Jimma Zone Islamic Council Education Directorate."
+          subtitle="Accreditation dossier recorded in the Jimma City Islamic Council Education Directorate."
         >
           <div className="space-y-4">
             <div className="flex items-center gap-4 p-4 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700">
@@ -671,7 +671,7 @@ export const AdminTeachersPage: React.FC = () => {
                 <span>Verified Council Mu'allim</span>
               </div>
               <p className="text-[11px] leading-relaxed">
-                Accredited under Jimma Zone Islamic Affairs High Council guidelines. Authorized to teach Quran memorization, Noorani Qaidah, and evaluate Ijazah candidates.
+                Accredited under Jimma City Islamic Affairs High Council guidelines. Authorized to teach Quran memorization, Noorani Qaidah, and evaluate Ijazah candidates.
               </p>
             </div>
 

@@ -422,7 +422,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
       d.amountETB,
       d.categoryType || 'General Donation',
       d.fundName,
-      d.district || 'Jimma Zone',
+      d.district || 'Jimma City',
       d.paymentMethod,
       d.transactionRef || '',
       d.taxExemptCode || '',
@@ -474,7 +474,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
             Donations & Zakat Ledger
           </h1>
           <p className="text-stone-600 dark:text-stone-400 text-xs sm:text-sm max-w-3xl mt-1">
-            Jimma Zone Shari'ah Audited Contributions, Nisab Calculator, Official Certificate Generator & Asnaf Welfare Distributions across 18 Kebeles.
+            Jimma City Shari'ah Audited Contributions, Nisab Calculator, Official Certificate Generator & Asnaf Welfare Distributions across 18 Kebeles.
           </p>
         </div>
 
@@ -904,7 +904,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
 
                           {/* Kebele */}
                           <td className="p-3.5 text-stone-600 dark:text-stone-300">
-                            {d.district || 'Jimma Zone'}
+                            {d.district || 'Jimma City'}
                           </td>
 
                           {/* Payment Method */}
@@ -1019,7 +1019,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                       </div>
                       <div>
                         <span className="block text-[10px] uppercase font-bold text-stone-400">Kebele</span>
-                        <span>{d.district || 'Jimma Zone'}</span>
+                        <span>{d.district || 'Jimma City'}</span>
                       </div>
                     </div>
                     {d.paymentStatus && (
@@ -1162,7 +1162,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 Official Jimma Fatwa Board Nisab Thresholds
               </h2>
               <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
-                Under the guidance of the Jimma Zone Ulema & Fatwa Board, the following Nisab thresholds are pegged to prevailing market rates of precious metals and coffee cherry harvests in southwestern Ethiopia:
+                Under the guidance of the Jimma City Ulema & Fatwa Board, the following Nisab thresholds are pegged to prevailing market rates of precious metals and coffee cherry harvests in southwestern Ethiopia:
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
@@ -1299,7 +1299,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
               </div>
               <div className="p-4 rounded-xl border border-stone-200 dark:border-stone-800 space-y-1 bg-stone-50 dark:bg-stone-800/40">
                 <span className="font-serif font-bold text-emerald-700 dark:text-emerald-400">8. Ibnus-Sabeel (ابْنِ السَّبِيلِ)</span>
-                <p className="text-xs text-stone-600 dark:text-stone-300">Stranded travellers and refugees traversing Jimma Zone without access to their funds.</p>
+                <p className="text-xs text-stone-600 dark:text-stone-300">Stranded travellers and refugees traversing Jimma City without access to their funds.</p>
               </div>
             </div>
           </Card>
@@ -1607,7 +1607,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
         isOpen={isCalculatorModalOpen}
         onClose={() => setIsCalculatorModalOpen(false)}
         title="Shari'ah Zakat & Nisab Calculator"
-        subtitle="Jimma Zone Islamic Affairs Supreme Council Official Assessment Engine"
+        subtitle="Jimma City Islamic Affairs Supreme Council Official Assessment Engine"
       >
         <div className="space-y-5">
           {/* Calc type tabs */}
@@ -1815,7 +1815,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
         isOpen={isCertificateModalOpen}
         onClose={() => setIsCertificateModalOpen(false)}
         title="Official Shari'ah Contribution Receipt & Certificate"
-        subtitle="Jimma Zone Islamic Affairs Supreme Council Treasury Certificate"
+        subtitle="Jimma City Islamic Affairs Supreme Council Treasury Certificate"
       >
         {selectedDonationForCert && (
           <div className="space-y-6">
@@ -1834,7 +1834,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 </div>
 
                 <h3 className="font-serif font-bold text-lg sm:text-xl text-stone-900 dark:text-stone-100 tracking-wide">
-                  JIMMA ZONE ISLAMIC AFFAIRS SUPREME COUNCIL
+                  JIMMA CITY ISLAMIC AFFAIRS SUPREME COUNCIL
                 </h3>
                 <p className="text-[11px] uppercase tracking-widest text-emerald-800 dark:text-emerald-400 font-bold">
                   Majlis Al-Islami Al-A'la Li-Mantaqat Jimma • Treasury & Zakat Board

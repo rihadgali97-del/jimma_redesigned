@@ -71,7 +71,7 @@ export const StaffBadgeModal: React.FC<StaffBadgeModalProps> = ({
                 </div>
                 <div className="text-left">
                   <h4 className="font-serif font-bold text-xs tracking-tight leading-none text-white">
-                    JIMMA ZONE ISLAMIC AFFAIRS
+                    JIMMA CITY ISLAMIC AFFAIRS
                   </h4>
                   <p className="text-[8px] text-amber-300 uppercase tracking-widest font-mono mt-0.5">
                     Supreme Council • Majlis

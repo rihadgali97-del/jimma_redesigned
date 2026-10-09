@@ -132,7 +132,7 @@ export const PublicSiteHeader: React.FC = () => {
       <div className="border-b border-emerald-950/10 bg-emerald-950 text-emerald-50 dark:border-white/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6">
           <p className="min-w-0 truncate text-[11px] font-medium tracking-wide text-emerald-100/90 sm:text-xs">
-            Jimma Zone Islamic Affairs Council <span className="hidden sm:inline">· Oromia, Ethiopia</span>
+            Jimma City Islamic Affairs Council <span className="hidden sm:inline">· Oromia, Ethiopia</span>
           </p>
           <div className="flex shrink-0 items-center gap-3 text-[11px] font-semibold sm:text-xs">
             <Link

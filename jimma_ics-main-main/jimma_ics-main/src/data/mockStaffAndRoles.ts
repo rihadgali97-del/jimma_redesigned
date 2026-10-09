@@ -37,7 +37,7 @@ export const permissionCategories: PermissionCategory[] = [
     description: 'Judicial arbitration, scholar licensing, fatwa advisories, and family mediation.',
     iconName: 'Users',
     permissions: [
-      { id: 'ulema.view', name: 'View Scholar Directory', description: 'Browse profiles and credentials of Jimma Zone scholars.', module: 'shariah_ulema', risk: 'Low' },
+      { id: 'ulema.view', name: 'View Scholar Directory', description: 'Browse profiles and credentials of Jimma City scholars.', module: 'shariah_ulema', risk: 'Low' },
       { id: 'ulema.license', name: 'License Ulema & Khateebs', description: 'Issue council credentials and khutbah certifications.', module: 'shariah_ulema', risk: 'High' },
       { id: 'fatwa.publish', name: 'Issue Official Fatwa Advisory', description: 'Publish authoritative legal opinions and community advisories.', module: 'shariah_ulema', risk: 'High' },
     ],
@@ -513,7 +513,7 @@ export const initialStaffMembers: User[] = [
       'gateway.view_logs', 'gateway.send_janazah',
       'users.view'
     ],
-    notes: 'Coordinates property boundaries, solar installations, and Friday khutbah themes across Jimma Zone.',
+    notes: 'Coordinates property boundaries, solar installations, and Friday khutbah themes across Jimma City.',
   },
   {
     id: 'user-ulema-coord',
@@ -684,7 +684,7 @@ export const initialSecurityLogs: SecurityAuditLog[] = [
     target: 'Role: Zakat & Welfare Inspector',
     category: 'Role_Change',
     status: 'Success',
-    ipAddress: '197.156.104.22 (Jimma Zone Fiber)',
+    ipAddress: '197.156.104.22 (Jimma City Fiber)',
     details: 'Added "finance.view" and "zakat.disburse" permissions to empower field poverty relief verifications.',
   },
   {
@@ -712,7 +712,7 @@ export const initialSecurityLogs: SecurityAuditLog[] = [
     target: 'Ustadh Mukhtar Dawud (Teacher)',
     category: 'Staff_Record',
     status: 'Success',
-    ipAddress: '197.156.104.22 (Jimma Zone Fiber)',
+    ipAddress: '197.156.104.22 (Jimma City Fiber)',
     details: 'Created personnel profile and dispatched temporary activation credential link to Agaro.',
   },
   {

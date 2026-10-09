@@ -414,7 +414,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
                 </div>
 
                 <h2 className="text-2xl sm:text-4xl font-serif font-bold text-white tracking-tight">
-                  Jimma Zone Digital Zakat & Ushr Calculator
+                  Jimma City Digital Zakat & Ushr Calculator
                 </h2>
 
                 <p className="text-xs sm:text-sm text-stone-300 max-w-2xl leading-relaxed">
@@ -806,7 +806,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
                 <div className="p-3 bg-amber-50/70 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800/60 text-xs text-amber-900 dark:text-amber-200 space-y-1">
                   <div className="font-bold flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5" />
-                    Gold Jewelry & Bullion Ruling in Jimma Zone:
+                    Gold Jewelry & Bullion Ruling in Jimma City:
                   </div>
                   <p className="text-[11px] leading-relaxed">
                     All pure gold bullion, coins, and investment gold are strictly subject to Zakat. For personal jewelry, the Jimma Fatwa Board recommends including gold held as wealth reserve or exceeding customary local standards.
@@ -1460,7 +1460,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
             </div>
 
             <p className="text-[10px] text-center text-stone-400">
-              Audited by the Jimma Zone Islamic Affairs Supreme Council Shari'ah Committee.
+              Audited by the Jimma City Islamic Affairs Supreme Council Shari'ah Committee.
             </p>
           </Card>
         </div>

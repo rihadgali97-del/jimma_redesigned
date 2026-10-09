@@ -32,7 +32,7 @@ export const TeachersPage: React.FC = () => {
         <Badge variant="emerald">Education & Tahfeez Directorate</Badge>
         <h1 className="mt-4 font-serif text-3xl font-bold sm:text-4xl">Quran Teachers & Mu’allims</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-300">
-          Meet the teachers and Quran instructors published by the Jimma Zone Islamic Affairs Supreme Council.
+          Meet the teachers and Quran instructors published by the Jimma City Islamic Affairs Supreme Council.
         </p>
       </header>
 

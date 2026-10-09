@@ -466,7 +466,7 @@ export const AdminResourcesPage: React.FC = () => {
                 Educational Materials, Handbooks & Khutbahs
               </h1>
               <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400">
-                Official repository for uploading, curating, and distributing syllabus frameworks, sermon templates, and governance manuals across Jimma Zone.
+                Official repository for uploading, curating, and distributing syllabus frameworks, sermon templates, and governance manuals across Jimma City.
               </p>
             </div>
           </div>
@@ -561,7 +561,7 @@ export const AdminResourcesPage: React.FC = () => {
                   Featured Friday Broadcast
                 </span>
                 <h2 className="text-lg sm:text-xl font-bold text-white mt-1">
-                  Official Jummah Khutbah Template for Jimma Zone Mosques
+                  Official Jummah Khutbah Template for Jimma City Mosques
                 </h2>
               </div>
             </div>
@@ -1403,7 +1403,7 @@ export const AdminResourcesPage: React.FC = () => {
                     {editingResource ? 'Edit Educational Resource' : 'Upload Educational Resource / Khutbah'}
                   </h3>
                   <p className="text-xs text-stone-500 dark:text-stone-400">
-                    Publish curriculum materials, PDF guides, or Friday sermon templates for Jimma Zone institutions.
+                    Publish curriculum materials, PDF guides, or Friday sermon templates for Jimma City institutions.
                   </p>
                 </div>
               </div>

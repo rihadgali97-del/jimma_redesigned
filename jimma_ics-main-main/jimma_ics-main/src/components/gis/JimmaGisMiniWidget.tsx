@@ -37,7 +37,7 @@ export const JimmaGisMiniWidget: React.FC = () => {
           </div>
           <div>
             <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100">
-              Jimma Zone Spatial GIS Overview
+              Jimma City Spatial GIS Overview
             </h3>
             <p className="text-xs text-stone-500">
               Live profiles for {woredas.length} registered kebeles

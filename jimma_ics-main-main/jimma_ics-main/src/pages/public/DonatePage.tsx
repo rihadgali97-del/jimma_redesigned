@@ -290,7 +290,7 @@ export const DonatePage: React.FC = () => {
                 Donation request recorded
               </h2>
               <p className="text-xs text-stone-500 mt-1">
-                Jimma Zone Islamic Affairs Supreme Council • Financial Registry
+                Jimma City Islamic Affairs Supreme Council • Financial Registry
               </p>
             </div>
 
@@ -722,7 +722,7 @@ export const DonatePage: React.FC = () => {
                     )}
                     {paymentMethod === 'CBE Birr' && (
                       <p className="leading-relaxed">
-                        Commercial Bank of Ethiopia: Transfer to Council Account <span className="font-mono font-bold bg-white dark:bg-stone-900 px-1.5 py-0.5 rounded-sm border">1000-2345-89012</span> (Jimma Zone Islamic Affairs) or use CBE Birr USSD <span className="font-mono font-bold">*847#</span>.
+                        Commercial Bank of Ethiopia: Transfer to Council Account <span className="font-mono font-bold bg-white dark:bg-stone-900 px-1.5 py-0.5 rounded-sm border">1000-2345-89012</span> (Jimma City Islamic Affairs) or use CBE Birr USSD <span className="font-mono font-bold">*847#</span>.
                       </p>
                     )}
                     {paymentMethod === 'Awash Bank' && (

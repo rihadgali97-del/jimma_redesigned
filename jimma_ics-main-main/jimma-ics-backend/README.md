@@ -1,6 +1,6 @@
 # Jimma ICS Backend
 
-Backend API for the Jimma Zone Islamic Affairs Supreme Council digital platform.
+Backend API for the Jimma City Islamic Affairs Supreme Council digital platform.
 Node.js (ES Modules) + Express + MySQL/Prisma + JWT + Redis + BullMQ.
 
 Status: **Phase 1 — project scaffold**. Only infrastructure exists so far

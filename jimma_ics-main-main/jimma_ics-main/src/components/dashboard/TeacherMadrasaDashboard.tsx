@@ -159,7 +159,7 @@ export const TeacherMadrasaDashboard: React.FC = () => {
             Daily Tahfeez & Sabaq Workbench
           </h2>
           <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-            Record daily Sabaq recitations, update memorization milestones, and monitor student progress across Jimma Zone.
+            Record daily Sabaq recitations, update memorization milestones, and monitor student progress across Jimma City.
           </p>
         </div>
 

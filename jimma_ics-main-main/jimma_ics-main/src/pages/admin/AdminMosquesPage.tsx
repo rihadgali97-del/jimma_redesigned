@@ -267,7 +267,7 @@ export const AdminMosquesPage: React.FC = () => {
             Mosque Registry & Operations
           </h1>
           <p className="text-stone-500 dark:text-stone-400 text-xs sm:text-sm">
-            Manage all 128+ registered mosques, prayer halls, and administrative profiles in Jimma Zone.
+            Manage all 128+ registered mosques, prayer halls, and administrative profiles in Jimma City.
           </p>
         </div>
 
@@ -383,7 +383,7 @@ export const AdminMosquesPage: React.FC = () => {
       <Modal
         isOpen={isAddModalOpen}
         onClose={handleCloseModal}
-        title={editingMosque ? 'Edit Registered Mosque' : 'Register New Mosque in Jimma Zone'}
+        title={editingMosque ? 'Edit Registered Mosque' : 'Register New Mosque in Jimma City'}
         subtitle="Manage the mosque name, code, category, kebele, imam, capacity, linked madrasa, description, and photo."
       >
         <form onSubmit={handleAddSubmit} className="space-y-4">

@@ -54,7 +54,7 @@ export const ContactPage: React.FC = () => {
     {
       id: 'faq-2',
       category: 'Zakat & Waqf',
-      question: 'How is Agricultural Ushr on coffee harvest calculated and distributed in Jimma Zone?',
+      question: 'How is Agricultural Ushr on coffee harvest calculated and distributed in Jimma City?',
       answer:
         'For naturally rain-watered coffee farms in Limmu, Agaro, and Gomma kebeles, the rate is 10% of harvest output when exceeding the 5 Wasq threshold (~653 kg). The Jimma Council Zakat Department conducts transparent distribution to verified local Asnaf beneficiaries across the zone.',
     },

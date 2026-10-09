@@ -58,7 +58,7 @@ export const ZakatReceiptModal: React.FC<ZakatReceiptModalProps> = ({
               </div>
             </div>
             <span className="text-[11px] font-mono tracking-widest uppercase font-bold text-amber-600 dark:text-amber-400">
-              Majlis Al-Fatwa wa'l-Irshad • Jimma Zone Islamic Affairs Supreme Council
+              Majlis Al-Fatwa wa'l-Irshad • Jimma City Islamic Affairs Supreme Council
             </span>
             <h3 className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 mt-1">
               {isZakat
@@ -97,7 +97,7 @@ export const ZakatReceiptModal: React.FC<ZakatReceiptModalProps> = ({
             </div>
 
             <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 max-w-xl mx-auto leading-relaxed">
-              Has been duly received and recorded in the verified treasury of the Jimma Zone Islamic Affairs
+              Has been duly received and recorded in the verified treasury of the Jimma City Islamic Affairs
               Council. Designated strictly according to the noble Quranic Asnaf (Surah At-Tawbah 9:60) and
               audited under Council Fatwa & Shari'ah directives.
             </p>

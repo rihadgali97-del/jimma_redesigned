@@ -175,7 +175,7 @@ export const EventsPage: React.FC = () => {
               Council Events, Symposia & Quranic Competitions
             </h1>
             <p className="text-stone-300 text-xs sm:text-sm leading-relaxed">
-              Explore public gatherings, annual Tahfeez championships, youth workshops, and scholar conferences hosted across Jimma Zone. Events may be free or paid; approved registrations receive verified digital admission passes.
+              Explore public gatherings, annual Tahfeez championships, youth workshops, and scholar conferences hosted across Jimma City. Events may be free or paid; approved registrations receive verified digital admission passes.
             </p>
           </div>
 

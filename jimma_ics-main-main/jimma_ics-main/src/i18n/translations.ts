@@ -43,7 +43,7 @@ export const translations = {
     staffPortal: 'Staff Portal',
 
     // Hero & Public
-    heroTitle: 'Serving the Muslim Community of Jimma Zone',
+    heroTitle: 'Serving the Muslim Community of Jimma City',
     heroSubtitle: 'Connecting mosques, madrasas, ulema, community services, Zakat, and Islamic institutions through one modern digital platform.',
     heroExploreBtn: 'Explore Services',
     heroInstitutionsBtn: 'Our Institutions',
@@ -56,7 +56,7 @@ export const translations = {
 
     // Sections
     quickServicesTitle: 'Community Services & Religious Welfare',
-    quickServicesSub: 'Structured Islamic civil services, Shari’ah guidance, and social welfare for Jimma Zone.',
+    quickServicesSub: 'Structured Islamic civil services, Shari’ah guidance, and social welfare for Jimma City.',
     featuredMosquesTitle: 'Key Regional Mosques & Hubs',
     featuredMosquesSub: 'Centers of worship, Islamic brotherhood, and educational development.',
     madrasaSectionTitle: 'Madrasa & Quranic Education',
@@ -68,7 +68,7 @@ export const translations = {
     announcementsTitle: 'Official Council Communiques',
     announcementsSub: 'Official notices, crescent sightings, and Zakat Nisab announcements.',
     donateCtaTitle: 'Support Islamic Education & Community Welfare',
-    donateCtaSub: 'Contribute your Zakat, Sadaqah, or Waqf to verified community projects in Jimma Zone.',
+    donateCtaSub: 'Contribute your Zakat, Sadaqah, or Waqf to verified community projects in Jimma City.',
     donateNowBtn: 'Make a Contribution',
 
     // Admin Dashboard

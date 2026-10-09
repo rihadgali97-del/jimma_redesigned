@@ -55,7 +55,7 @@ export const SuperAdminDashboard: React.FC = () => {
               <span className="text-xs text-stone-400 font-mono">Tier-1 Authority</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white">
-              Jimma Zone Islamic Affairs Council Command Matrix
+              Jimma City Islamic Affairs Council Command Matrix
             </h2>
             <p className="text-xs sm:text-sm text-stone-300 max-w-2xl leading-relaxed">
               Unified governance console supervising 18 Kebeles, 180+ Mosques, 42 Quranic Madrasas, Shari'ah & Fatwa Assemblies, and Zakat Welfare Funds.
@@ -191,10 +191,10 @@ export const SuperAdminDashboard: React.FC = () => {
               <Badge variant="emerald">Live Map</Badge>
             </div>
             <h4 className="font-serif font-bold text-lg text-white">
-              Interactive Jimma Zone GIS Explorer
+              Interactive Jimma City GIS Explorer
             </h4>
             <p className="text-xs text-emerald-200/80 leading-relaxed">
-              Explore 180+ Geocoded Mosques, Tahfeez Madrasas, and Zakat distribution hubs across 18 Jimma Zone Kebeles.
+              Explore 180+ Geocoded Mosques, Tahfeez Madrasas, and Zakat distribution hubs across 18 Jimma City Kebeles.
             </p>
             <Link to="/map" className="block pt-1">
               <Button

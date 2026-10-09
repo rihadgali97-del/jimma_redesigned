@@ -39,7 +39,7 @@ export const Footer: React.FC = () => {
     {
       id: 'footer-social-facebook',
       name: 'Facebook',
-      handle: 'Jimma Zone Islamic Affairs Council',
+      handle: 'Jimma City Islamic Affairs Council',
       icon: <Facebook className="w-4 h-4 text-blue-400" />,
       hoverBorder: 'hover:border-blue-500/60 hover:bg-blue-950/40 hover:text-blue-300',
       tagColor: 'text-blue-400',
@@ -112,7 +112,7 @@ export const Footer: React.FC = () => {
                     ? 'مجلس الشؤون الإسلامية لمنطقة جيما'
                     : language === 'om'
                     ? 'Majiilisa Dhimmoota Islaamummaa Godina Jimmaa'
-                    : 'Jimma Zone Islamic Affairs Supreme Council'}
+                    : 'Jimma City Islamic Affairs Supreme Council'}
                 </h3>
                 <p className="text-xs text-amber-400 font-sans">
                   Serving 18 Kebeles • Islamic Education • Zakat & Community Development
@@ -121,7 +121,7 @@ export const Footer: React.FC = () => {
             </div>
 
             <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
-              Official digital institutional infrastructure for Jimma Zone, coordinating
+              Official digital institutional infrastructure for Jimma City, coordinating
               mosque administration, traditional and modern madrasa curricula, Fatwa guidance,
               Zakat disbursals, and public social welfare services.
             </p>
@@ -316,7 +316,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Row */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stone-500">
           <div>
-            © 2026 Jimma Zone Islamic Affairs Supreme Council. All rights reserved.
+            © 2026 Jimma City Islamic Affairs Supreme Council. All rights reserved.
           </div>
 
           {/* Quick social icon links in bottom bar */}

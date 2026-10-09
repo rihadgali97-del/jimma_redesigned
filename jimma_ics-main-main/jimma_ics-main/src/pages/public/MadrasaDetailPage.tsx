@@ -45,7 +45,7 @@ export const MadrasaDetailPage: React.FC = () => {
       status: 'active',
       shifts: ['Morning', 'Afternoon', 'Weekend'],
       contactPhone: '+251 47 111 8290',
-      description: 'The premier Islamic educational institution in Jimma Zone.',
+      description: 'The premier Islamic educational institution in Jimma City.',
       accreditationStatus: 'Fully Accredited',
     };
 

@@ -39,7 +39,7 @@ const shortcuts = [
   { label: 'Teachers', detail: 'Find teachers & Mu’allims', path: '/teachers', icon: Users },
   { label: 'Ulema', detail: 'Browse scholars', path: '/ulema', icon: Users },
   { label: 'Public services', detail: 'Apply or track a request', path: '/services', icon: CheckCircle2 },
-  { label: 'Kebele map', detail: 'Explore Jimma Zone', path: '/map', icon: Compass },
+  { label: 'Kebele map', detail: 'Explore Jimma City', path: '/map', icon: Compass },
   { label: 'Events', detail: 'See what is happening', path: '/events', icon: CalendarDays },
   { label: 'Announcements', detail: 'Read council notices', path: '/announcements', icon: FileText },
 ];
@@ -64,7 +64,7 @@ export const CommunityHomePage: React.FC = () => {
           <div className="relative z-10">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-900/15 bg-white/70 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.13em] text-emerald-900 dark:border-emerald-300/20 dark:bg-stone-800 dark:text-emerald-200">
               <span className="h-2 w-2 rounded-full bg-amber-500" />
-              Jimma Zone · Public community portal
+              Jimma City · Public community portal
             </div>
             <h1 className="max-w-3xl font-serif text-4xl font-extrabold leading-[1.08] tracking-tight text-stone-900 dark:text-stone-50 sm:text-5xl lg:text-6xl">
               {language === 'ar' ? (
@@ -87,7 +87,7 @@ export const CommunityHomePage: React.FC = () => {
               </Link>
             </div>
             <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-stone-600 dark:text-stone-300">
-              <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-800 dark:text-emerald-300" /> Serving Jimma Zone communities</span>
+              <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-800 dark:text-emerald-300" /> Serving Jimma City communities</span>
               <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-amber-700 dark:text-amber-400" /> 18 kebeles</span>
             </div>
           </div>
@@ -238,7 +238,7 @@ export const CommunityHomePage: React.FC = () => {
         <div className={sectionClass}>
           <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[.17em] text-emerald-800 dark:text-emerald-300">Explore Jimma Zone</p>
+              <p className="text-[11px] font-bold uppercase tracking-[.17em] text-emerald-800 dark:text-emerald-300">Explore Jimma City</p>
               <h2 className="mt-1 font-serif text-2xl font-extrabold text-stone-900 dark:text-stone-50 sm:text-3xl">Local places, on the map.</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600 dark:text-stone-300">Find institutions and explore the kebeles and communities they serve.</p>
             </div>
@@ -300,7 +300,7 @@ export const CommunityHomePage: React.FC = () => {
               <Radio className="h-3.5 w-3.5" /> Community alerts
             </span>
             <h2 className="mt-4 font-serif text-2xl font-extrabold sm:text-3xl">Stay connected to local updates.</h2>
-            <p className="mt-3 text-sm leading-6 text-emerald-100/80">Find official announcements, community gatherings and urgent notices for Jimma Zone.</p>
+            <p className="mt-3 text-sm leading-6 text-emerald-100/80">Find official announcements, community gatherings and urgent notices for Jimma City.</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link to="/announcements" className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-4 py-2.5 text-sm font-bold text-emerald-950 hover:bg-amber-400"><Send className="h-4 w-4" /> View public updates</Link>

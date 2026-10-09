@@ -52,7 +52,7 @@ export const gatewayTemplates: MessageTemplate[] = [
     category: 'janazah_broadcast',
     defaultChannel: 'hybrid',
     languages: {
-      en: "🚨 JANAZAH PRAYER ANNOUNCEMENT - JIMMA ZONE\n\n'Inna lillahi wa inna ilayhi raji'un'\n\nJanazah prayer for the late {DeceasedName} ({Age} yrs, {Kebele}) will take place:\n⏰ Time: {JanazahTime}\n🕌 Location: {MosqueName}\n🪦 Burial: {Cemetery}\n📞 Family Contact: {FamilyContact}\n\nMay Allah grant them Jannatul Firdaws. All are requested to attend.",
+      en: "🚨 JANAZAH PRAYER ANNOUNCEMENT - JIMMA CITY\n\n'Inna lillahi wa inna ilayhi raji'un'\n\nJanazah prayer for the late {DeceasedName} ({Age} yrs, {Kebele}) will take place:\n⏰ Time: {JanazahTime}\n🕌 Location: {MosqueName}\n🪦 Burial: {Cemetery}\n📞 Family Contact: {FamilyContact}\n\nMay Allah grant them Jannatul Firdaws. All are requested to attend.",
       om: "🚨 BEEKSIISA JANAASAA ARIIFACHISA - ZOOONII JIMMAA\n\n'Innaa lillaahi wa innaa ilayhi raaji'uun'\n\nSalaanni Janaizaa Obbo/Aaddee {DeceasedName} ({Age}, {Kebele}) ni gaggeeffama:\n⏰ Sa'aatii: {JanazahTime}\n🕌 Masjiida: {MosqueName}\n🪦 Awwaalcha: {Cemetery}\n📞 Qunnamtii: {FamilyContact}\n\nRabbii Jannata haa kennuuf. Hundi keessan akka hirmaattan kabajaan affeeramtaniittu.",
       ar: "🚨 إعلان جنازة عاجل - منطقة جيما\n\n'إنا لله وإنا إليه راجعون'\n\nستقام صلاة الجنازة على المرحوم/ة {DeceasedName} ({Age} عاماً، {Kebele}):\n⏰ الموعد: {JanazahTime}\n🕌 المسجد: {MosqueName}\n🪦 الدفن: {Cemetery}\n📞 التواصل مع ذوي الفقيد: {FamilyContact}\n\nنسأل الله له/ا الفردوس الأعلى.",
     },
@@ -72,7 +72,7 @@ export const gatewayTemplates: MessageTemplate[] = [
     category: 'moon_sighting',
     defaultChannel: 'telegram',
     languages: {
-      en: "🌙 OFFICIAL COMMUNIQUE: CRESCENT SIGHTING & PRAYER SCHEDULE\n\nJimma Zone Fatwa & Hilal Board declares that the new crescent moon for {Occasion} ({HijriDate}) has been verified.\n\n📍 Central Eid Gathering: {Location}\n⏰ Takbeerat Start: 06:45 AM | Prayer: 07:30 AM\n🎙️ Imam & Khateeb: {ImamKhateeb}\n\nEid Mubarak to all Muslims of Jimma Zone & Ethiopia!",
+      en: "🌙 OFFICIAL COMMUNIQUE: CRESCENT SIGHTING & PRAYER SCHEDULE\n\nJimma City Fatwa & Hilal Board declares that the new crescent moon for {Occasion} ({HijriDate}) has been verified.\n\n📍 Central Eid Gathering: {Location}\n⏰ Takbeerat Start: 06:45 AM | Prayer: 07:30 AM\n🎙️ Imam & Khateeb: {ImamKhateeb}\n\nEid Mubarak to all Muslims of Jimma City & Ethiopia!",
       om: "🌙 IBSA BEEGSIISAA: BAATII ARGUU FI SALAATA IIDA\n\nMajiilisa Dhimmoota Islaamummaa Zoonii Jimmaatti Koreen Faatwaa fi Baatii {Occasion} ({HijriDate}) mirkaneessee jira.\n\n📍 Iddoo Salaataa: {Location}\n⏰ Jalqaba Takbiiraa: 12:45 | Salaata: 1:30 Dirree\n🎙️ Imaama & Khaxiybaa: {ImamKhateeb}\n\nBaga Iidaan Isin Gahe!",
       ar: "🌙 بيان رسمي: ثبوت رؤية الهلال ومواعيد صلاة العيد\n\nيعلن المجلس الأعلى بجيما ولجنة الفتوى ثبوت رؤية هلال {Occasion} لعام {HijriDate}هـ.\n\n📍 مصلى العيد المركزي: {Location}\n⏰ بدء التكبيرات: ٠٦:٤٥ ص | إقامة الصلاة: ٠٧:٣٠ ص\n🎙️ إمام وخطيب الصلاة: {ImamKhateeb}\n\nتقبل الله منا ومنكم صالح الأعمال.",
     },
@@ -89,7 +89,7 @@ export const gatewayTemplates: MessageTemplate[] = [
     category: 'khutbah_advisory',
     defaultChannel: 'telegram',
     languages: {
-      en: "🕌 OFFICIAL JUMU'AH KHUTBAH ADVISORY FOR ALL 18 KEBELES\n\nCouncil Guidance for Friday, {Date}:\n📌 Unified Topic: '{KhutbahTheme}'\n📖 Key Focus: {KeyFocus}\n⚠️ Community Directives: {Directives}\n\nAll registered Imams and Khateebs in Jimma Zone are advised to harmonize their address.",
+      en: "🕌 OFFICIAL JUMU'AH KHUTBAH ADVISORY FOR ALL 18 KEBELES\n\nCouncil Guidance for Friday, {Date}:\n📌 Unified Topic: '{KhutbahTheme}'\n📖 Key Focus: {KeyFocus}\n⚠️ Community Directives: {Directives}\n\nAll registered Imams and Khateebs in Jimma City are advised to harmonize their address.",
       om: "🕌 GORSA KHUXBAA JUM'AA ZOOONII JIMMAA KAN GANDOOTA 18\n\nQajeelfama Majiilisaa Guyyaa Jimaataa, {Date}:\n📌 Mata-duree Tokkooffaa: '{KhutbahTheme}'\n📖 Xiyyeeffannaa: {KeyFocus}\n⚠️ Qajeelfama Hawaasaa: {Directives}\n\nImaamonni hundinuu ergaa kana akka dabarsan hubachiifna.",
       ar: "🕌 تعميم خطبة الجمعة الموحدة لكافة مديريات منطقة جيما الـ ١٨\n\nتوجيه المجلس ليوم الجمعة، {Date}:\n📌 الموضوع الموحد: '{KhutbahTheme}'\n📖 المحاور الرئيسية: {KeyFocus}\n⚠️ تنبيهات مجتمعية: {Directives}\n\nنرجو من أصحاب الفضيلة الخطباء والأئمة مراعاة التوجيهات.",
     },
@@ -193,9 +193,9 @@ export const mockDispatchHistory: DispatchLogItem[] = [
     category: 'khutbah_advisory',
     channel: 'telegram',
     senderId: '@JimmaIslamicCouncilBot',
-    recipientTarget: 'Jimma Zone Imams & Ulema League (142 Imams)',
+    recipientTarget: 'Jimma City Imams & Ulema League (142 Imams)',
     recipientCount: 142,
-    content: "🕌 OFFICIAL JUMU'AH KHUTBAH ADVISORY: Unified Council topic for Friday: 'Preserving Waqf Endowments & Supporting Rural Madrasas in Jimma Zone'. Please stress parental support for daily Hifz circles.",
+    content: "🕌 OFFICIAL JUMU'AH KHUTBAH ADVISORY: Unified Council topic for Friday: 'Preserving Waqf Endowments & Supporting Rural Madrasas in Jimma City'. Please stress parental support for daily Hifz circles.",
     status: 'delivered',
     gatewayResponseCode: 'TELEGRAM_BOT_MSG_OK_200',
     costETB: 0.0,

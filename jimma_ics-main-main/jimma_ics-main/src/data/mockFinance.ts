@@ -49,7 +49,7 @@ export const mockFunds: Fund[] = [
   {
     id: 'fund-6',
     name: 'Orphan & Vulnerable Family Sponsorship',
-    description: 'Monthly educational and living stipends for orphans and widows across Jimma Zone.',
+    description: 'Monthly educational and living stipends for orphans and widows across Jimma City.',
     allocatedETB: 2900000,
     disbursedETB: 2480000,
     targetETB: 3500000,
@@ -636,7 +636,7 @@ export const mockZakatDistributions: ZakatBeneficiaryDistribution[] = [
     id: 'zdis-3',
     asnafCategory: 'Amilina Alayha (Zakat Collectors)',
     arabicName: 'الْعَامِلِينَ عَلَيْهَا',
-    woredaDistrict: '18 Kebeles of Jimma Zone',
+    woredaDistrict: '18 Kebeles of Jimma City',
     beneficiaryCount: 36,
     totalDisbursedETB: 288000,
     lastDisbursalDate: '2026-08-15',
@@ -690,7 +690,7 @@ export const mockZakatDistributions: ZakatBeneficiaryDistribution[] = [
     lastDisbursalDate: '2026-08-22',
     distributionChannel: 'Immediate Cash Aid & Transit Voucher',
     leadOfficer: 'Terminal Relief Desk',
-    notes: 'Emergency transport fare and meal rations for travellers stranded without resources across Jimma Zone transit corridor.',
+    notes: 'Emergency transport fare and meal rations for travellers stranded without resources across Jimma City transit corridor.',
   },
 ];
 
@@ -753,7 +753,7 @@ export const mockExpenseApprovals: ExpenseApproval[] = [
     role: 'Ulema Coordinator',
     date: '2026-08-20',
     status: 'Council Director Approved',
-    description: 'Cash scholarships, engraved commemorative wooden plaques, and Quran editions for top 15 Hifz laureates in Jimma Zone.',
+    description: 'Cash scholarships, engraved commemorative wooden plaques, and Quran editions for top 15 Hifz laureates in Jimma City.',
     justification: 'Encouraging youth memorization and honoring outstanding students from all 18 kebeles.',
     fundId: 'fund-8',
     fundName: 'Youth & Da’wah Outreach Fund',

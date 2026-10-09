@@ -1,7 +1,7 @@
-# Jimma Zone Islamic Affairs Supreme Council Digital Platform
+# Jimma City Islamic Affairs Supreme Council Digital Platform
 ## Majlis Islaamaa Godina Jimmaa • የጅማ ዞን እስልምና ጉዳዮች ከፍተኛ ምክር ቤት
 
-An integrated digital governance portal and civic services platform engineered for the **Jimma Zone Islamic Affairs Supreme Council** in Oromia, Ethiopia. The platform unifies zonal institutional management, public Shari'ah civic services, GIS mosque infrastructure mapping, community crisis broadcasts, financial transparency, and educational administration across all 18 Kebeles.
+An integrated digital governance portal and civic services platform engineered for the **Jimma City Islamic Affairs Supreme Council** in Oromia, Ethiopia. The platform unifies zonal institutional management, public Shari'ah civic services, GIS mosque infrastructure mapping, community crisis broadcasts, financial transparency, and educational administration across all 18 Kebeles.
 
 ---
 

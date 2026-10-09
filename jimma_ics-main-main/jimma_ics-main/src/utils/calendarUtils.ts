@@ -23,7 +23,7 @@ export function downloadEventIcs(event: CouncilEvent) {
   const icsContent = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Jimma Zone Islamic Affairs Supreme Council//Events//EN',
+    'PRODID:-//Jimma City Islamic Affairs Supreme Council//Events//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',

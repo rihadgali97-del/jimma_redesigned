@@ -39,11 +39,11 @@ export const MosquesPage: React.FC = () => {
           <span>Council Registry</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-serif font-bold text-stone-900 dark:text-stone-100">
-          Mosques Directory of Jimma Zone
+          Mosques Directory of Jimma City
         </h1>
         <p className="text-stone-500 dark:text-stone-400 text-sm sm:text-base mt-1 max-w-3xl">
           Comprehensive directory of 128+ registered Jumu'ah mosques, prayer centers, and linked madrasas
-          across the 18 administrative kebeles of Jimma Zone.
+          across the 18 administrative kebeles of Jimma City.
         </p>
       </div>
 

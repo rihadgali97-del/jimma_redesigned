@@ -38,7 +38,7 @@ export const QuickJanazahModal: React.FC<QuickJanazahModalProps> = ({
     e.preventDefault();
     setIsSending(true);
 
-    const messageContent = `🚨 JANAZAH PRAYER ANNOUNCEMENT - JIMMA ZONE\n\n'Inna lillahi wa inna ilayhi raji'un'\n\nJanazah prayer for the late ${deceasedName} (${deceasedAge} yrs, ${defaultDistrict}) will take place:\n⏰ Time: ${janazahTime}\n🕌 Location: ${mosqueName}\n🪦 Burial: ${cemeteryName}\n📞 Family Contact: ${familyContact}\n\nMay Allah grant them Jannatul Firdaws. All are requested to attend.`;
+    const messageContent = `🚨 JANAZAH PRAYER ANNOUNCEMENT - JIMMA CITY\n\n'Inna lillahi wa inna ilayhi raji'un'\n\nJanazah prayer for the late ${deceasedName} (${deceasedAge} yrs, ${defaultDistrict}) will take place:\n⏰ Time: ${janazahTime}\n🕌 Location: ${mosqueName}\n🪦 Burial: ${cemeteryName}\n📞 Family Contact: ${familyContact}\n\nMay Allah grant them Jannatul Firdaws. All are requested to attend.`;
 
     setTimeout(async () => {
       await dispatchMessage({
@@ -68,7 +68,7 @@ export const QuickJanazahModal: React.FC<QuickJanazahModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="🚨 Broadcast Emergency Janazah Notification"
-      subtitle="Dispatches urgent SMS and Telegram channel broadcast to thousands of community members across Jimma Zone."
+      subtitle="Dispatches urgent SMS and Telegram channel broadcast to thousands of community members across Jimma City."
     >
       <form onSubmit={handleBroadcast} className="space-y-4 text-xs">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

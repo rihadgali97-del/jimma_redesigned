@@ -47,7 +47,7 @@ export const MadrasasPage: React.FC = () => {
             Madrasas & Quranic Centers
           </h1>
           <p className="text-stone-500 dark:text-stone-400 text-sm sm:text-base mt-1 max-w-2xl">
-            Accredited Islamic education institutions, Tahfeez halaqat, and Arabic language academies across Jimma Zone.
+            Accredited Islamic education institutions, Tahfeez halaqat, and Arabic language academies across Jimma City.
           </p>
         </div>
 

@@ -46,7 +46,7 @@ export function drawEventPassOnCanvas(
   ctx.fillStyle = '#fde047'; // Gold
   ctx.font = 'bold 24px "Times New Roman", serif';
   ctx.textAlign = 'left';
-  ctx.fillText('JIMMA ZONE ISLAMIC AFFAIRS SUPREME COUNCIL', 70, 85);
+  ctx.fillText('JIMMA CITY ISLAMIC AFFAIRS SUPREME COUNCIL', 70, 85);
 
   ctx.fillStyle = '#6ee7b7'; // Mint
   ctx.font = '16px sans-serif';

@@ -3,7 +3,7 @@ import { CouncilEvent, Announcement, User, EventRegistration } from '../types';
 export const mockEvents: CouncilEvent[] = [
   {
     id: 'event-1',
-    title: '14th Annual Jimma Zone Grand Quran Memorization Competition',
+    title: '14th Annual Jimma City Grand Quran Memorization Competition',
     arabicTitle: 'المسابقة السنوية الرابعة عشرة لحفظ القرآن الكريم وتجويده',
     category: 'Quran Competition',
     date: '2026-09-12',
@@ -79,7 +79,7 @@ export const mockEvents: CouncilEvent[] = [
       { time: '11:30 AM - 12:30 PM', activity: 'Session 2: FinTech, Digital Lending & Shari’ah Compliance in Ethiopia', speaker: 'Dr. Zakir Mohammed', hall: 'Executive Hall' },
       { time: '12:30 PM - 02:00 PM', activity: 'Dhuhr Prayer & Academic Networking Lunch', hall: 'Conference Dining Suite' },
       { time: '02:00 PM - 04:00 PM', activity: 'Roundtable: Harmonizing Local Family Dispute Resolutions', speaker: 'Council Judicial Panel', hall: 'Executive Hall' },
-      { time: '04:00 PM - 04:30 PM', activity: 'Issuance of Communique & Resolutions', speaker: 'Chief Mufti of Jimma Zone', hall: 'Executive Hall' },
+      { time: '04:00 PM - 04:30 PM', activity: 'Issuance of Communique & Resolutions', speaker: 'Chief Mufti of Jimma City', hall: 'Executive Hall' },
     ],
     speakersList: [
       { name: 'Dr. Faisal Abdurahman', title: 'Professor of Comparative Fiqh', role: 'Keynote Speaker', organization: 'Al-Azhar University / Academic Visitor' },
@@ -228,7 +228,7 @@ export const mockEventRegistrations: EventRegistration[] = [
   {
     id: 'reg-1',
     eventId: 'event-1',
-    eventTitle: '14th Annual Jimma Zone Grand Quran Memorization Competition',
+    eventTitle: '14th Annual Jimma City Grand Quran Memorization Competition',
     eventDate: '2026-09-12',
     fullName: 'Bilal Dawud Mohammed',
     phone: '+251 91 123 4567',
@@ -244,7 +244,7 @@ export const mockEventRegistrations: EventRegistration[] = [
   {
     id: 'reg-2',
     eventId: 'event-1',
-    eventTitle: '14th Annual Jimma Zone Grand Quran Memorization Competition',
+    eventTitle: '14th Annual Jimma City Grand Quran Memorization Competition',
     eventDate: '2026-09-12',
     fullName: 'Fatima Kedir Ahmed',
     phone: '+251 92 345 6789',
@@ -311,9 +311,9 @@ export const mockAnnouncements: Announcement[] = [
     hijriDate: '6 Safar 1448 AH',
     author: 'Education Directorate',
     summary: 'Centralized enrollment opens for over 4,500 student spots across 74 accredited Islamic schools and Quran academies.',
-    content: 'Parents and guardians across Jimma Zone are invited to register children for Level 1 (Tahfeez Foundations), Level 2 (Tajweed & Hadith), and intensive Full-Time Hifz boarding tracks. Registrations can be initiated at local mosque administration desks or via the digital student portal.',
+    content: 'Parents and guardians across Jimma City are invited to register children for Level 1 (Tahfeez Foundations), Level 2 (Tajweed & Hadith), and intensive Full-Time Hifz boarding tracks. Registrations can be initiated at local mosque administration desks or via the digital student portal.',
     isPinned: true,
-    district: 'Jimma Zone',
+    district: 'Jimma City',
     readTime: '2 min read',
   },
   {
@@ -326,7 +326,7 @@ export const mockAnnouncements: Announcement[] = [
     summary: 'Coordination protocols established with regional observatories and kebele Imams for the upcoming lunar calendar milestones.',
     content: 'The Jimma Islamic Council Hilal Observation Network will deploy observation delegates across high vantage points in Dedo, Limmu, and Jiren on the 29th of Safar to confirm the commencement of the blessed month of Rabi’ al-Awwal.',
     isPinned: false,
-    district: 'Jimma Zone',
+    district: 'Jimma City',
     readTime: '2 min read',
   },
   {
@@ -350,7 +350,7 @@ export const mockAnnouncements: Announcement[] = [
     hijriDate: '22 Muharram 1448 AH',
     author: 'Halal Standards Bureau',
     summary: 'Guidelines issued for butchers and hospitality operators on maintaining strict Shari’ah slaughterhouse protocols.',
-    content: 'All commercial food establishments and municipal slaughterhouse units in Jimma Zone are requested to ensure compliance with the 2026 Council Halal Operational Standards. Certified training workshops will be hosted weekly at the Council headquarters.',
+    content: 'All commercial food establishments and municipal slaughterhouse units in Jimma City are requested to ensure compliance with the 2026 Council Halal Operational Standards. Certified training workshops will be hosted weekly at the Council headquarters.',
     isPinned: false,
     district: 'Jimma Central & Towns',
     readTime: '3 min read',

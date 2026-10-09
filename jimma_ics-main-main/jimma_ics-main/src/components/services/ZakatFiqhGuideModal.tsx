@@ -23,7 +23,7 @@ export const ZakatFiqhGuideModal: React.FC<ZakatFiqhGuideModalProps> = ({ isOpen
       isOpen={isOpen}
       onClose={onClose}
       title="Islamic Guidelines & Shari'ah Standards for Zakat"
-      subtitle="Approved by the Jimma Zone Islamic Affairs Supreme Council Board of Senior Ulema"
+      subtitle="Approved by the Jimma City Islamic Affairs Supreme Council Board of Senior Ulema"
       size="xl"
     >
       <div className="space-y-6 text-xs sm:text-sm text-stone-700 dark:text-stone-300">
@@ -164,7 +164,7 @@ export const ZakatFiqhGuideModal: React.FC<ZakatFiqhGuideModalProps> = ({ isOpen
             </div>
             <div className="p-2.5 rounded-lg bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700">
               <span className="font-bold text-emerald-800 dark:text-emerald-300">8. Ibnus-Sabil (Stranded Travelers)</span>
-              <p className="text-stone-500 mt-0.5">Travelers cut off from financial means needing safe return passage through Jimma Zone.</p>
+              <p className="text-stone-500 mt-0.5">Travelers cut off from financial means needing safe return passage through Jimma City.</p>
             </div>
           </div>
         </div>
