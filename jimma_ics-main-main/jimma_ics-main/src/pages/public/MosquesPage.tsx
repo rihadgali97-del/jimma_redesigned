@@ -6,6 +6,8 @@ import { Building, MapPin, Search, Filter, Users, ArrowRight, CheckCircle2 } fro
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 export const MosquesPage: React.FC = () => {
   const { mosques = [] } = useApp();
@@ -26,6 +28,7 @@ export const MosquesPage: React.FC = () => {
     const matchStatus = selectedStatus === 'All' || m.status === selectedStatus;
     return matchSearch && matchDistrict && matchStatus;
   });
+  const pagination = usePagination(filteredMosques, 12, `${searchTerm}|${selectedDistrict}|${selectedStatus}`);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -91,7 +94,7 @@ export const MosquesPage: React.FC = () => {
 
       {/* Mosques Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredMosques.map((mosque) => {
+        {pagination.paginatedItems.map((mosque) => {
           const facilitiesList = mosque.facilities || [];
           const imageSrc =
             mosque.image ||
@@ -183,6 +186,8 @@ export const MosquesPage: React.FC = () => {
           );
         })}
       </div>
+
+      <PaginationControls {...pagination} itemLabel="mosques" onPageChange={pagination.setPage} />
 
       {filteredMosques.length === 0 && (
         <div className="p-12 text-center bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 space-y-3">

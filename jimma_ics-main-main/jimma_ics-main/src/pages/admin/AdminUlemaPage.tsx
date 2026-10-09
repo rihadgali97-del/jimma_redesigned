@@ -7,6 +7,8 @@ import { UlemaAvatar } from '../../components/ulema/UlemaAvatar';
 import { UlemaFormModal } from '../../components/ulema/UlemaFormModal';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 export const AdminUlemaPage: React.FC = () => {
   const {
@@ -32,6 +34,7 @@ export const AdminUlemaPage: React.FC = () => {
       return matchesSearch && matchesVisibility;
     });
   }, [ulema, searchTerm, visibility]);
+  const pagination = usePagination(filtered, 10, `${searchTerm}|${visibility}`);
 
   const saveProfile = (profile: UlemaInput, photo?: File) => {
     return editing
@@ -113,7 +116,7 @@ export const AdminUlemaPage: React.FC = () => {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        {filtered.map((profile) => (
+        {pagination.paginatedItems.map((profile) => (
           <article key={profile.id} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-emerald-200 hover:shadow-md dark:border-stone-800 dark:bg-stone-900 dark:hover:border-emerald-900">
             <div className="flex items-start gap-4">
               <UlemaAvatar name={profile.name} src={profile.avatar} className="h-16 w-16 shrink-0 rounded-2xl text-lg" />
@@ -145,6 +148,7 @@ export const AdminUlemaPage: React.FC = () => {
           </article>
         ))}
       </section>
+      <PaginationControls {...pagination} itemLabel="scholars" onPageChange={pagination.setPage} />
 
       {!ulemaLoading && !ulemaError && filtered.length === 0 && (
         <div className="rounded-2xl border border-dashed border-stone-300 py-14 text-center dark:border-stone-700">

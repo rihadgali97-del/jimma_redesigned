@@ -23,6 +23,8 @@ import {
   Share2,
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 import { Badge } from '../../components/ui/Badge';
 import { Card } from '../../components/ui/Card';
 import { CreateEventModal } from '../../components/events/CreateEventModal';
@@ -91,6 +93,7 @@ export const AdminEventsPage: React.FC = () => {
 
     return matchesSearch && matchesCat && matchesStatus && matchesDate;
   });
+  const pagination = usePagination(filteredEvents, 10, `${searchTerm}|${selectedCategory}|${selectedStatus}`);
 
   // Global KPIs
   const totalCapacity = events.reduce((sum, e) => sum + (e.maxCapacity || 0), 0);
@@ -297,7 +300,7 @@ export const AdminEventsPage: React.FC = () => {
 
       {/* Compact cards on narrow screens */}
       <div className="space-y-3 md:hidden">
-        {filteredEvents.map((event) => {
+        {pagination.paginatedItems.map((event) => {
           const count = eventRegistrations.filter((registration) => registration.eventId === event.id).length;
           return <article key={event.id} className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900">
             {event.image && <img src={event.image} alt="" className="h-36 w-full object-cover" />}
@@ -339,7 +342,7 @@ export const AdminEventsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-              {filteredEvents.map((event) => {
+              {pagination.paginatedItems.map((event) => {
                 const eventRegs = eventRegistrations.filter((r) => r.eventId === event.id);
                 const capacityPercent = Math.min(
                   100,
@@ -481,6 +484,8 @@ export const AdminEventsPage: React.FC = () => {
           </table>
         </div>
       </div>
+
+      <PaginationControls {...pagination} itemLabel="events" onPageChange={pagination.setPage} />
 
       {/* Modals */}
       <CreateEventModal

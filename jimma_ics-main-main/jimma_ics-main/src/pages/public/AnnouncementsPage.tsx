@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 export const AnnouncementsPage: React.FC = () => {
   const { announcements, addToast } = useApp();
@@ -29,6 +31,7 @@ export const AnnouncementsPage: React.FC = () => {
     const matchPriority = selectedPriority === 'All' || priority === selectedPriority;
     return matchSearch && matchPriority;
   });
+  const pagination = usePagination(filtered, 10, `${searchTerm}|${selectedPriority}`);
 
   const handleShare = (title: string) => {
     navigator.clipboard.writeText(window.location.href);
@@ -79,7 +82,7 @@ export const AnnouncementsPage: React.FC = () => {
 
       {/* Announcements List */}
       <div className="grid gap-5 md:grid-cols-2 [perspective:1400px]">
-        {filtered.map((item, index) => (
+        {pagination.paginatedItems.map((item, index) => (
           <motion.article
             key={item.id}
             initial={reduceMotion ? false : { opacity: 0, y: 18, rotateX: -4 }}
@@ -132,6 +135,7 @@ export const AnnouncementsPage: React.FC = () => {
           </motion.article>
         ))}
       </div>
+      <PaginationControls {...pagination} itemLabel="announcements" onPageChange={pagination.setPage} />
       {filtered.length === 0 && (
         <div className="rounded-2xl border border-dashed border-stone-300 p-12 text-center text-sm text-stone-500 dark:border-stone-700">
           No announcements match this search. Try another term or priority.

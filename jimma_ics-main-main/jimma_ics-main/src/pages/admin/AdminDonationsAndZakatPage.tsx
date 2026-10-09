@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 import { KEBELE_NAMES } from '../../constants/kebeles';
 import {
   HeartHandshake,
@@ -335,6 +337,11 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
       return matchSearch && matchCat && matchDist && matchMethod && matchFund;
     });
   }, [donationLogs, activeTab, searchTerm, selectedCategory, selectedDistrict, selectedMethod, selectedFund]);
+  const pagination = usePagination(
+    filteredDonations,
+    10,
+    `${activeTab}|${searchTerm}|${selectedCategory}|${selectedDistrict}|${selectedMethod}|${selectedFund}`,
+  );
 
   // Handle Add Submit
   const handleAddDonationSubmit = (e: React.FormEvent) => {
@@ -834,7 +841,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                         </td>
                       </tr>
                     ) : (
-                      filteredDonations.map((d) => (
+                      pagination.paginatedItems.map((d) => (
                         <tr key={d.id} className="hover:bg-stone-50/60 dark:hover:bg-stone-800/50 transition-colors">
                           {/* Receipt # */}
                           <td className="p-3.5 font-mono">
@@ -975,7 +982,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredDonations.map((d) => (
+                {pagination.paginatedItems.map((d) => (
                   <Card key={d.id} className="p-5 space-y-4 hover:border-emerald-500 transition-colors flex flex-col justify-between">
                   <div className="space-y-2">
                     <div className="flex items-start justify-between">
@@ -1045,6 +1052,9 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 ))}
               </div>
             )
+          )}
+          {filteredDonations.length > 0 && (
+            <PaginationControls {...pagination} itemLabel="donation records" onPageChange={pagination.setPage} />
           )}
         </div>
       )}

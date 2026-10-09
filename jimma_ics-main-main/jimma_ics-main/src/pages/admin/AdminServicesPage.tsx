@@ -11,6 +11,8 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { ServiceRequest } from '../../types';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 import { mockPublicServices, ServiceItem } from '../../data/mockServices';
 import {
   fetchAdminJanazahAvailability,
@@ -100,6 +102,7 @@ export const AdminServicesPage: React.FC = () => {
     const matchStatus = selectedStatus === 'All' || r.status === selectedStatus;
     return matchSearch && matchStatus;
   });
+  const pagination = usePagination(filtered, 10, `${searchTerm}|${selectedStatus}`);
 
   const handleOpenReview = (req: ServiceRequest) => {
     setSelectedRequest(req);
@@ -349,7 +352,7 @@ export const AdminServicesPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-              {filtered.map((req) => (
+              {pagination.paginatedItems.map((req) => (
                 <tr key={req.id} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/50">
                   <td className="p-3.5 font-mono font-bold text-stone-900 dark:text-stone-100">
                     {req.trackingNo}
@@ -402,6 +405,7 @@ export const AdminServicesPage: React.FC = () => {
           </table>
         </div>
       </Card>
+      <PaginationControls {...pagination} itemLabel="service requests" onPageChange={pagination.setPage} />
 
       {/* Review Modal */}
       {selectedRequest && (

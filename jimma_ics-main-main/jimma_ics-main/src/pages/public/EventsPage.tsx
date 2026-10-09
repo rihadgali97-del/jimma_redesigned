@@ -35,6 +35,8 @@ import { EventPassModal } from '../../components/events/EventPassModal';
 import { EventNotificationModal } from '../../components/events/EventNotificationModal';
 import { EventNotificationBanner } from '../../components/events/EventNotificationBanner';
 import { getGoogleCalendarUrl, downloadEventIcs } from '../../utils/calendarUtils';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 export const EventsPage: React.FC = () => {
   const {
@@ -101,6 +103,7 @@ export const EventsPage: React.FC = () => {
 
     return matchesSearch && matchesCat && matchesDist && matchesTab;
   });
+  const pagination = usePagination(filteredEvents, 12, `${searchTerm}|${selectedCategory}|${selectedDistrict}|${statusTab}`);
 
   // Calculate Metrics
   const totalOpenGatherings = events.filter((e) => e.registrationOpen).length;
@@ -472,7 +475,7 @@ export const EventsPage: React.FC = () => {
       {/* VIEW 1: CARD GRID VIEW */}
       {viewMode === 'grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event) => {
+          {pagination.paginatedItems.map((event) => {
             const userReg = eventRegistrations.find((r) => r.eventId === event.id && r.status !== 'Cancelled');
             const capacityPercent = Math.min(
               100,
@@ -628,7 +631,7 @@ export const EventsPage: React.FC = () => {
       {/* VIEW 2: TIMELINE / AGENDA VIEW */}
       {viewMode === 'timeline' && (
         <div className="space-y-6">
-          {filteredEvents.map((event) => {
+          {pagination.paginatedItems.map((event) => {
             const userReg = eventRegistrations.find((r) => r.eventId === event.id && r.status !== 'Cancelled');
 
             return (
@@ -760,6 +763,8 @@ export const EventsPage: React.FC = () => {
           })}
         </div>
       )}
+
+      {viewMode !== 'calendar' && <PaginationControls {...pagination} itemLabel="events" onPageChange={pagination.setPage} />}
 
       {/* Modals */}
       {selectedEventForDetail && (

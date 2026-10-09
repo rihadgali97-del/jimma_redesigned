@@ -4,6 +4,8 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { WaqfAsset, WaqfAssetType } from '../../types';
 import { fetchPublicWaqfAssets } from '../../services/waqfApi';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 const typeLabels: Record<WaqfAssetType, string> = {
   LAND: 'Endowed land',
@@ -35,6 +37,7 @@ export const WaqfTransparencyPage: React.FC<{ embedded?: boolean }> = ({ embedde
       .some((value) => value.toLowerCase().includes(term));
     return matchesSearch && (selectedType === 'All' || asset.type === selectedType);
   }), [assets, search, selectedType]);
+  const pagination = usePagination(filtered, 12, `${search}|${selectedType}`);
 
   return (
     <div className={embedded ? 'space-y-8' : 'mx-auto max-w-7xl space-y-8 px-4 py-10 sm:px-6 lg:px-8'}>
@@ -82,7 +85,7 @@ export const WaqfTransparencyPage: React.FC<{ embedded?: boolean }> = ({ embedde
         </div>
       ) : (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((asset) => (
+          {pagination.paginatedItems.map((asset) => (
             <Card key={asset.id} hoverEffect className="flex min-h-64 flex-col justify-between">
               <div>
                 <div className="mb-4 flex items-start justify-between gap-3">
@@ -101,6 +104,7 @@ export const WaqfTransparencyPage: React.FC<{ embedded?: boolean }> = ({ embedde
           ))}
         </div>
       )}
+      {!isLoading && !loadError && <PaginationControls {...pagination} itemLabel="assets" onPageChange={pagination.setPage} />}
     </div>
   );
 };

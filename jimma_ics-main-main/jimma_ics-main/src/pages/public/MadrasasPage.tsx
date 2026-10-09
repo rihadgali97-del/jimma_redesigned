@@ -6,6 +6,8 @@ import { BookOpen, Search, Filter, Users, MapPin, Award, CheckCircle2, ArrowRigh
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 export const MadrasasPage: React.FC = () => {
   const { madrasas = [] } = useApp();
@@ -27,6 +29,7 @@ export const MadrasasPage: React.FC = () => {
     const matchLevel = selectedLevel === 'All' || mLevels.some((l) => l.toLowerCase().includes(selectedLevel.toLowerCase()));
     return matchSearch && matchDistrict && matchLevel;
   });
+  const pagination = usePagination(filtered, 12, `${searchTerm}|${selectedDistrict}|${selectedLevel}`);
 
   const totalEnrolled = (madrasas || []).reduce((acc, m) => acc + (m.totalStudents || 0), 0);
   const totalTeachers = (madrasas || []).reduce((acc, m) => acc + (m.totalTeachers || 0), 0);
@@ -108,7 +111,7 @@ export const MadrasasPage: React.FC = () => {
 
       {/* Madrasa Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered.map((madrasa) => {
+        {pagination.paginatedItems.map((madrasa) => {
           const progs = madrasa.programs || [];
           const levs = madrasa.levels || [];
           const shiftsList = madrasa.shifts || [];
@@ -193,6 +196,8 @@ export const MadrasasPage: React.FC = () => {
           );
         })}
       </div>
+
+      <PaginationControls {...pagination} itemLabel="madrasas" onPageChange={pagination.setPage} />
 
       {filtered.length === 0 && (
         <div className="p-12 text-center bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 space-y-3">

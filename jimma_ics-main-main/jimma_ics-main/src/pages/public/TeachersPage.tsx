@@ -4,6 +4,8 @@ import { useApp } from '../../context/AppContext';
 import { Badge } from '../../components/ui/Badge';
 import { Card } from '../../components/ui/Card';
 import { Link } from 'react-router-dom';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 export const TeachersPage: React.FC = () => {
   const { teachers, refreshTeachers, teachersLoading, teachersError } = useApp();
@@ -22,6 +24,7 @@ export const TeachersPage: React.FC = () => {
       ].some((value) => value.toLowerCase().includes(query)))
       .sort((a, b) => Number(Boolean(b.isFeatured)) - Number(Boolean(a.isFeatured)) || a.name.localeCompare(b.name));
   }, [teachers, search]);
+  const pagination = usePagination(visibleTeachers, 12, search);
 
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-4 py-10 sm:px-6 lg:px-8">
@@ -57,7 +60,7 @@ export const TeachersPage: React.FC = () => {
       )}
 
       <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {visibleTeachers.map((teacher) => (
+        {pagination.paginatedItems.map((teacher) => (
           <Card key={teacher.id} className="relative space-y-4 p-5">
             {teacher.isFeatured && <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase text-amber-800"><Award className="h-3 w-3" /> Featured</span>}
             <div className="flex items-center gap-4 pr-16">
@@ -81,6 +84,7 @@ export const TeachersPage: React.FC = () => {
           </Card>
         ))}
       </section>
+      {!teachersLoading && !teachersError && <PaginationControls {...pagination} itemLabel="teachers" onPageChange={pagination.setPage} />}
     </main>
   );
 };

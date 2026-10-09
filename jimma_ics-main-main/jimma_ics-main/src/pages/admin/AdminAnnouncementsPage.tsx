@@ -5,6 +5,8 @@ import { Announcement } from '../../types';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { uploadAnnouncementBanner } from '../../services/announcementsApi';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 const categories: Announcement['category'][] = [
   'Official Communique', 'Moon Sighting', 'Zakat Nisab', 'Academic Calendar', 'Council Advisory',
@@ -34,6 +36,7 @@ export const AdminAnnouncementsPage: React.FC = () => {
       .toLowerCase().includes(searchQuery.trim().toLowerCase())) &&
     (!dateFilter || (item.publishDate || item.date || '').slice(0, 10) === dateFilter)
   );
+  const pagination = usePagination(filteredAnnouncements, 10, `${searchQuery}|${dateFilter}`);
 
   useEffect(() => { void refreshAnnouncements(true); }, []);
 
@@ -121,7 +124,7 @@ export const AdminAnnouncementsPage: React.FC = () => {
 
       <section className="space-y-3">
         <div className="flex items-center gap-2 text-sm font-semibold text-stone-600 dark:text-stone-300"><BellRing className="h-4 w-4" /> {searchQuery ? `${filteredAnnouncements.length} of ${announcements.length} announcements` : `${announcements.length} announcements`}</div>
-        {filteredAnnouncements.map((item) => (
+        {pagination.paginatedItems.map((item) => (
           <article key={item.id} className="flex flex-col gap-4 rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <div className="mb-1 flex flex-wrap items-center gap-2"><Badge variant={item.isUrgent ? 'rose' : 'slate'}>{item.isUrgent ? 'Urgent' : item.category}</Badge>{item.isPinned && <span className="inline-flex items-center gap-1 text-xs text-amber-600"><Pin className="h-3 w-3" /> Pinned</span>}<span className="text-xs text-stone-400">{item.publishDate}</span><span className="text-xs text-stone-400">{item.isPublished ? 'Published' : 'Draft'}</span></div>
@@ -135,6 +138,7 @@ export const AdminAnnouncementsPage: React.FC = () => {
             </div>
           </article>
         ))}
+        <PaginationControls {...pagination} itemLabel="announcements" onPageChange={pagination.setPage} />
       </section>
     </div>
   );

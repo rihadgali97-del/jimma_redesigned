@@ -28,6 +28,8 @@ import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { RegistryExportButton } from '../../components/admin/RegistryExportButton';
 import { RegistryExportColumn } from '../../utils/registryExport';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 const madrasaExportColumns: RegistryExportColumn<Madrasa>[] = [
   { header: 'Maqaa Madrasa', value: (madrasa) => madrasa.name },
@@ -134,6 +136,7 @@ export const AdminMadrasasPage: React.FC = () => {
     const matchDistrict = selectedDistrict === 'All' || m.district === selectedDistrict;
     return matchSearch && matchDistrict;
   });
+  const pagination = usePagination(filtered, 10, `${searchTerm}|${selectedDistrict}`);
 
   const openAddModal = () => {
     setEditingMadrasa(null);
@@ -316,7 +319,7 @@ export const AdminMadrasasPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-              {filtered.map((m) => (
+              {pagination.paginatedItems.map((m) => (
                 <tr key={m.id} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/50">
                   <td className="p-3.5">
                     {m.image ? (
@@ -366,6 +369,7 @@ export const AdminMadrasasPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+        <div className="p-4"><PaginationControls {...pagination} itemLabel="madrasas" onPageChange={pagination.setPage} /></div>
       </Card>
 
       {/* Add/Edit Madrasa Modal */}

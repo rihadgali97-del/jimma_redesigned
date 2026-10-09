@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 import { CouncilResource, ResourceCategory, ResourceTargetInstitution, ResourceLanguage, ResourceFormat } from '../../types';
 import {
   BookOpen,
@@ -189,6 +191,11 @@ export const AdminResourcesPage: React.FC = () => {
         return 0;
       });
   }, [resources, searchQuery, selectedCategory, selectedInstitution, selectedLanguage, selectedFormat, showPinnedOnly, sortBy]);
+  const pagination = usePagination(
+    filteredResources,
+    12,
+    `${searchQuery}|${selectedCategory}|${selectedInstitution}|${selectedLanguage}|${selectedFormat}|${showPinnedOnly}|${sortBy}`,
+  );
 
   // Open Upload / Create Modal
   const handleOpenCreateModal = () => {
@@ -866,7 +873,7 @@ export const AdminResourcesPage: React.FC = () => {
       {/* Grid View */}
       {viewMode === 'grid' && filteredResources.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredResources.map((res) => (
+          {pagination.paginatedItems.map((res) => (
             <div
               key={res.id}
               className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 shadow-xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group"
@@ -1026,7 +1033,7 @@ export const AdminResourcesPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 dark:divide-stone-800 text-stone-700 dark:text-stone-300">
-                {filteredResources.map((res) => (
+                {pagination.paginatedItems.map((res) => (
                   <tr key={res.id} className="hover:bg-stone-50/70 dark:hover:bg-stone-800/40 transition-colors">
                     <td className="py-3 px-4 max-w-xs sm:max-w-sm">
                       <div className="flex items-center gap-2">
@@ -1105,6 +1112,7 @@ export const AdminResourcesPage: React.FC = () => {
           </div>
         </div>
       )}
+      {filteredResources.length > 0 && <PaginationControls {...pagination} itemLabel="resources" onPageChange={pagination.setPage} />}
 
       {/* Reader & Content Preview Modal (For Imams & Khateebs) */}
       {previewingResource && (

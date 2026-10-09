@@ -23,6 +23,8 @@ import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { RegistryExportButton } from '../../components/admin/RegistryExportButton';
 import { RegistryExportColumn } from '../../utils/registryExport';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 const mosqueExportColumns: RegistryExportColumn<Mosque>[] = [
   { header: 'Maqaa Masjida', value: (mosque) => mosque.name },
@@ -138,6 +140,7 @@ export const AdminMosquesPage: React.FC = () => {
     const matchDistrict = selectedDistrict === 'All' || m.district === selectedDistrict;
     return matchSearch && matchDistrict;
   });
+  const pagination = usePagination(filtered, 10, `${searchTerm}|${selectedDistrict}`);
 
   const openAddModal = () => {
     setEditingMosque(null);
@@ -330,7 +333,7 @@ export const AdminMosquesPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-              {filtered.map((m) => (
+              {pagination.paginatedItems.map((m) => (
                 <tr key={m.id} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/50">
                   <td className="p-3.5">
                     <div className="font-serif font-bold text-sm text-stone-900 dark:text-stone-100">
@@ -373,6 +376,7 @@ export const AdminMosquesPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+        <div className="p-4"><PaginationControls {...pagination} itemLabel="mosques" onPageChange={pagination.setPage} /></div>
       </Card>
 
       {/* Add/Edit Mosque Modal */}

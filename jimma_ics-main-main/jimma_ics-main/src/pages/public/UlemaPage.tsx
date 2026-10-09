@@ -4,6 +4,8 @@ import { BookOpen, HelpCircle, Loader2, Search, Users } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { UlemaProfileCard } from '../../components/ulema/UlemaProfileCard';
 import { Button } from '../../components/ui/Button';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 export const UlemaPage: React.FC = () => {
   const { ulema, refreshUlema, ulemaLoading, ulemaError } = useApp();
@@ -31,6 +33,7 @@ export const UlemaPage: React.FC = () => {
       return matchesSearch && matchesSpec && matchesDistrict;
     });
   }, [publishedUlema, searchTerm, selectedSpec, selectedDistrict]);
+  const pagination = usePagination(filtered, 12, `${searchTerm}|${selectedSpec}|${selectedDistrict}`);
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 sm:px-6 lg:px-8">
@@ -72,7 +75,8 @@ export const UlemaPage: React.FC = () => {
       {ulemaError && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">Could not load scholar profiles: {ulemaError}<button type="button" className="ml-3 font-semibold underline" onClick={() => void refreshUlema().catch(() => undefined)}>Retry</button></div>}
       {ulemaLoading && <div role="status" className="flex items-center justify-center gap-2 py-10 text-sm text-stone-500"><Loader2 className="h-5 w-5 animate-spin" />Loading published scholars…</div>}
 
-      {!ulemaLoading && !ulemaError && filtered.length > 0 && <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{filtered.map((profile) => <UlemaProfileCard key={profile.id} profile={profile} />)}</section>}
+      {!ulemaLoading && !ulemaError && filtered.length > 0 && <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{pagination.paginatedItems.map((profile) => <UlemaProfileCard key={profile.id} profile={profile} />)}</section>}
+      {!ulemaLoading && !ulemaError && <PaginationControls {...pagination} itemLabel="scholars" onPageChange={pagination.setPage} />}
       {!ulemaLoading && !ulemaError && filtered.length === 0 && (
         <div className="rounded-3xl border border-dashed border-stone-300 bg-white py-16 text-center dark:border-stone-700 dark:bg-stone-900">
           <Users className="mx-auto h-10 w-10 text-stone-300" />

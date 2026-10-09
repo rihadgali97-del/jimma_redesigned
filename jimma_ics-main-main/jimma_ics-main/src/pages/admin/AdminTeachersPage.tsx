@@ -22,6 +22,8 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { Teacher } from '../../types';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 export const AdminTeachersPage: React.FC = () => {
   const {
@@ -73,6 +75,7 @@ export const AdminTeachersPage: React.FC = () => {
 
     return matchesSearch && matchesMadrasa && matchesStatus;
   });
+  const pagination = usePagination(filteredTeachers, 10, `${searchTerm}|${selectedMadrasaFilter}|${selectedStatusFilter}`);
 
   const totalAssignedStudents = teachers.reduce(
     (acc, t) => acc + (t.assignedStudentsCount ?? t.studentsCount ?? 0),
@@ -328,7 +331,7 @@ export const AdminTeachersPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredTeachers.map((t) => {
+                pagination.paginatedItems.map((t) => {
                   const safeSalary = t.salaryETB ?? 8500;
                   const safeStudents = t.assignedStudentsCount ?? t.studentsCount ?? 25;
                   const safeSanad = t.sanad || t.qualification || 'Authentic Sanad';
@@ -445,6 +448,7 @@ export const AdminTeachersPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+        <div className="p-4"><PaginationControls {...pagination} itemLabel="teachers" onPageChange={pagination.setPage} /></div>
       </Card>
 
       {/* Add Teacher Modal */}

@@ -4,6 +4,8 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { useApp } from '../../context/AppContext';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 import {
   fetchCurrentNisabRate,
   fetchZakatApplications,
@@ -37,7 +39,21 @@ export const AdminZakatApplicationsPage: React.FC = () => {
     setLoading(true);
     setLoadError('');
     try {
-      const records = await fetchZakatApplications({ page: 1, pageSize: 100, search: search.trim() || undefined, status: statusFilter || undefined });
+      const records: ZakatApplication[] = [];
+      const pageSize = 100;
+      let page = 1;
+      // The API returns page arrays without a total count; fetch through the final partial page.
+      while (true) {
+        const batch = await fetchZakatApplications({
+          page,
+          pageSize,
+          search: search.trim() || undefined,
+          status: statusFilter || undefined,
+        });
+        records.push(...batch);
+        if (batch.length < pageSize) break;
+        page += 1;
+      }
       setApplications(records);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Could not load Zakat applications.');
@@ -45,6 +61,7 @@ export const AdminZakatApplicationsPage: React.FC = () => {
       setLoading(false);
     }
   }, [search, statusFilter]);
+  const pagination = usePagination(applications, 10, `${search}|${statusFilter}`);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void loadApplications(); }, 200);
@@ -162,7 +179,7 @@ export const AdminZakatApplicationsPage: React.FC = () => {
             <table className="w-full min-w-[1000px] text-left text-sm">
               <thead className="border-b border-stone-200 text-xs uppercase text-stone-500 dark:border-stone-700"><tr><th className="p-3">Reference</th><th className="p-3">Applicant</th><th className="p-3">Phone</th><th className="p-3">Kebele</th><th className="p-3">Received</th><th className="p-3">Assigned officer</th><th className="p-3">Status</th><th className="p-3">Update</th></tr></thead>
               <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-                {applications.map((application) => (
+                {pagination.paginatedItems.map((application) => (
                   <tr key={application.id}>
                     <td className="p-3 font-mono text-xs">{application.referenceNumber}</td>
                     <td className="p-3 font-medium">{application.applicantFullName}<span className="block text-xs text-stone-500">Household: {application.householdSize ?? 'Not provided'}</span></td>
@@ -177,6 +194,9 @@ export const AdminZakatApplicationsPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+        )}
+        {!loading && !loadError && applications.length > 0 && (
+          <PaginationControls {...pagination} itemLabel="applications" onPageChange={pagination.setPage} />
         )}
       </Card>
     </div>

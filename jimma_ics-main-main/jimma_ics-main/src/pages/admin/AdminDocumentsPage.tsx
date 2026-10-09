@@ -25,6 +25,8 @@ import {
   fetchCouncilArchiveDocuments,
   uploadCouncilArchiveDocument,
 } from '../../services/councilDocumentsApi';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 function formatFileSize(sizeBytes: number) {
   if (sizeBytes < 1024) return `${sizeBytes} B`;
@@ -85,6 +87,7 @@ export const AdminDocumentsPage: React.FC = () => {
         .some((value) => value?.toLowerCase().includes(search))
     );
   }, [documents, searchTerm]);
+  const pagination = usePagination(filtered, 12, searchTerm);
 
   const resetForm = () => {
     setTitle('');
@@ -221,7 +224,7 @@ export const AdminDocumentsPage: React.FC = () => {
         </div>
       ) : filtered.length ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((document) => (
+          {pagination.paginatedItems.map((document) => (
             <Card key={document.id} className="flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
@@ -340,6 +343,7 @@ export const AdminDocumentsPage: React.FC = () => {
           </p>
         </div>
       )}
+      {filtered.length > 0 && <PaginationControls {...pagination} itemLabel="documents" onPageChange={pagination.setPage} />}
 
       <Modal
         isOpen={isUploadModalOpen}

@@ -13,6 +13,8 @@ import {
   WaqfAssetInput,
 } from '../../services/waqfApi';
 import { WaqfAsset, WaqfAssetStatus, WaqfAssetType } from '../../types';
+import { usePagination } from '../../hooks/usePagination';
+import { PaginationControls } from '../../components/ui/PaginationControls';
 
 const types: WaqfAssetType[] = ['LAND', 'COMMERCIAL_RENTAL', 'AGRICULTURAL', 'CEMETERY'];
 const statuses: WaqfAssetStatus[] = ['ACTIVE', 'UNDER_MAINTENANCE', 'DISPUTED', 'INACTIVE'];
@@ -59,6 +61,7 @@ export const AdminWaqfPage: React.FC = () => {
     (!categoryFilter || asset.type === categoryFilter) &&
     (!statusFilter || asset.status === statusFilter)
   );
+  const pagination = usePagination(filteredAssets, 10, `${searchQuery}|${categoryFilter}|${statusFilter}`);
 
   const load = async () => {
     setIsLoading(true);
@@ -193,7 +196,7 @@ export const AdminWaqfPage: React.FC = () => {
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-stone-600 dark:text-stone-300">{searchQuery ? `${filteredAssets.length} of ${assets.length} registered assets` : `${assets.length} registered assets`}</h2>
-        {isLoading ? <p className="rounded-2xl bg-white p-8 text-center text-sm text-stone-500 dark:bg-stone-900">Loading registry…</p> : assets.length === 0 ? <p className="rounded-2xl border border-dashed border-stone-300 p-8 text-center text-sm text-stone-500 dark:border-stone-700">No waqf assets are registered yet.</p> : filteredAssets.length === 0 ? <p className="rounded-2xl border border-dashed border-stone-300 p-8 text-center text-sm text-stone-500 dark:border-stone-700">No assets match “{searchQuery}”.</p> : filteredAssets.map((asset) => (
+        {isLoading ? <p className="rounded-2xl bg-white p-8 text-center text-sm text-stone-500 dark:bg-stone-900">Loading registry…</p> : assets.length === 0 ? <p className="rounded-2xl border border-dashed border-stone-300 p-8 text-center text-sm text-stone-500 dark:border-stone-700">No waqf assets are registered yet.</p> : filteredAssets.length === 0 ? <p className="rounded-2xl border border-dashed border-stone-300 p-8 text-center text-sm text-stone-500 dark:border-stone-700">No assets match “{searchQuery}”.</p> : pagination.paginatedItems.map((asset) => (
           <article key={asset.id} className="flex flex-col gap-4 rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <div className="mb-1 flex flex-wrap items-center gap-2"><Badge variant="emerald">{asset.type.replaceAll('_', ' ')}</Badge><Badge variant={asset.status === 'ACTIVE' ? 'emerald' : asset.status === 'DISPUTED' ? 'rose' : 'gold'}>{asset.status.replaceAll('_', ' ')}</Badge><span className="text-xs text-stone-400">{asset.isPublished ? 'Public summary published' : 'Private record'}</span></div>
@@ -204,6 +207,7 @@ export const AdminWaqfPage: React.FC = () => {
             <div className="flex shrink-0 gap-2"><Button variant="outline" size="sm" icon={<Edit3 className="h-3.5 w-3.5" />} onClick={() => editAsset(asset)}>Edit</Button><Button variant="ghost" size="sm" icon={<Trash2 className="h-3.5 w-3.5" />} onClick={() => void removeAsset(asset)} aria-label={`Delete ${asset.name}`} /></div>
           </article>
         ))}
+        {!isLoading && filteredAssets.length > 0 && <PaginationControls {...pagination} itemLabel="assets" onPageChange={pagination.setPage} />}
       </section>
     </div>
   );
