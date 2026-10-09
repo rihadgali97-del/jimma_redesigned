@@ -10,7 +10,7 @@ import {
   DirectoryWoreda,
 } from '../../services/directoryApi';
 import { fetchAdminTeachers } from '../../services/teachersApi';
-import { Teacher } from '../../types';
+import { Madrasa, Teacher } from '../../types';
 import {
   BookOpen,
   Plus,
@@ -26,6 +26,32 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
+import { RegistryExportButton } from '../../components/admin/RegistryExportButton';
+import { RegistryExportColumn } from '../../utils/registryExport';
+
+const madrasaExportColumns: RegistryExportColumn<Madrasa>[] = [
+  { header: 'Maqaa Madrasa', value: (madrasa) => madrasa.name },
+  { header: 'ID', value: (madrasa) => madrasa.id },
+  { header: 'Kebele ID', value: (madrasa) => madrasa.woredaId },
+  { header: 'Arabic Name', value: (madrasa) => madrasa.arabicName },
+  { header: 'Mosque ID', value: (madrasa) => madrasa.mosqueId },
+  { header: 'Mosque Name', value: (madrasa) => madrasa.mosqueName },
+  { header: 'Ganda', value: (madrasa) => madrasa.district },
+  { header: 'Head Teacher', value: (madrasa) => madrasa.headTeacher },
+  { header: 'Head Teacher ID', value: (madrasa) => madrasa.headTeacherId },
+  { header: 'Established Year', value: (madrasa) => madrasa.establishedYear },
+  { header: 'Enrolled Students', value: (madrasa) => madrasa.totalStudents },
+  { header: 'Graduated Huffaz', value: (madrasa) => madrasa.hifzGraduatesCount },
+  { header: 'Faculty', value: (madrasa) => madrasa.totalTeachers },
+  { header: 'Levels', value: (madrasa) => madrasa.levels.join(', ') },
+  { header: 'Programs', value: (madrasa) => madrasa.programs },
+  { header: 'Status', value: (madrasa) => madrasa.status },
+  { header: 'Shifts', value: (madrasa) => madrasa.shifts },
+  { header: 'Contact Phone', value: (madrasa) => madrasa.contactPhone },
+  { header: 'Image URL', value: (madrasa) => madrasa.image },
+  { header: 'Description', value: (madrasa) => madrasa.description },
+  { header: 'Accreditation', value: (madrasa) => madrasa.accreditationStatus },
+];
 
 export const AdminMadrasasPage: React.FC = () => {
   const { madrasas, refreshDirectoryData, addToast } = useApp();
@@ -228,14 +254,22 @@ export const AdminMadrasasPage: React.FC = () => {
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          size="sm"
-          icon={<Plus className="w-4 h-4" />}
-          onClick={openAddModal}
-        >
-          Accredit New Madrasa
-        </Button>
+        <div className="flex items-center gap-2">
+          <RegistryExportButton
+            title="Madrasa Registry"
+            filename="madrasa-registry"
+            records={filtered}
+            columns={madrasaExportColumns}
+          />
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<Plus className="w-4 h-4" />}
+            onClick={openAddModal}
+          >
+            Accredit New Madrasa
+          </Button>
+        </div>
       </div>
 
       {/* Filter & Search */}

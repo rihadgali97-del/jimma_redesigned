@@ -10,7 +10,7 @@ import {
   updateMosqueRecord,
   DirectoryWoreda,
 } from '../../services/directoryApi';
-import { Madrasa, MosqueCategory } from '../../types';
+import { Madrasa, Mosque, MosqueCategory } from '../../types';
 import {
   Plus,
   Search,
@@ -21,6 +21,38 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
+import { RegistryExportButton } from '../../components/admin/RegistryExportButton';
+import { RegistryExportColumn } from '../../utils/registryExport';
+
+const mosqueExportColumns: RegistryExportColumn<Mosque>[] = [
+  { header: 'Maqaa Masjida', value: (mosque) => mosque.name },
+  { header: 'Koodii', value: (mosque) => mosque.code },
+  { header: 'Sa. Masjida', value: (mosque) => mosque.category },
+  { header: 'Ganda', value: (mosque) => mosque.district },
+  { header: 'ID', value: (mosque) => mosque.id },
+  { header: 'Kebele ID', value: (mosque) => mosque.woredaId },
+  { header: 'Arabic Name', value: (mosque) => mosque.arabicName },
+  { header: 'Sub-city / Woreda', value: (mosque) => mosque.subCityOrWoreda },
+  { header: 'Address', value: (mosque) => mosque.address },
+  { header: 'Imam', value: (mosque) => mosque.imam },
+  { header: 'Deputy Imam', value: (mosque) => mosque.deputyImam },
+  { header: 'Muazzin', value: (mosque) => mosque.muazzin },
+  { header: 'Committee Chairman', value: (mosque) => mosque.committeeChairman },
+  { header: 'Established Year', value: (mosque) => mosque.establishedYear },
+  { header: 'Capacity', value: (mosque) => mosque.capacity },
+  { header: 'Students', value: (mosque) => mosque.students },
+  { header: 'Status', value: (mosque) => mosque.status },
+  { header: 'Facilities', value: (mosque) => mosque.facilities },
+  { header: 'Has Madrasa', value: (mosque) => mosque.hasMadrasa },
+  { header: 'Madrasa ID', value: (mosque) => mosque.madrasaId },
+  { header: 'Linked Madrasa', value: (mosque) => mosque.madrasaName },
+  { header: 'Contact Phone', value: (mosque) => mosque.contactPhone },
+  { header: 'Image URL', value: (mosque) => mosque.image },
+  { header: "Jumu'ah Attendance", value: (mosque) => mosque.jummahAttendance },
+  { header: 'Monthly Expenses (ETB)', value: (mosque) => mosque.monthlyExpensesETB },
+  { header: 'Coordinates', value: (mosque) => mosque.coordinates },
+  { header: 'Description', value: (mosque) => mosque.description },
+];
 
 export const AdminMosquesPage: React.FC = () => {
   const { mosques, refreshDirectoryData, addToast } = useApp();
@@ -236,14 +268,22 @@ export const AdminMosquesPage: React.FC = () => {
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          size="sm"
-          icon={<Plus className="w-4 h-4" />}
-          onClick={openAddModal}
-        >
-          Register New Mosque
-        </Button>
+        <div className="flex items-center gap-2">
+          <RegistryExportButton
+            title="Mosque Registry"
+            filename="mosque-registry"
+            records={filtered}
+            columns={mosqueExportColumns}
+          />
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<Plus className="w-4 h-4" />}
+            onClick={openAddModal}
+          >
+            Register New Mosque
+          </Button>
+        </div>
       </div>
 
       {/* Filter & Search */}
