@@ -20,37 +20,6 @@ import { Badge } from '../../components/ui/Badge';
 export const AboutPage: React.FC = () => {
   const { language } = useLanguage();
 
-  const leadership = [
-    {
-      name: 'Sheikh Dr. Nuraddin Jibril',
-      role: 'President & Grand Mufti of Jimma Zone',
-      bio: 'PhD in Comparative Islamic Jurisprudence (Al-Azhar), with over 28 years serving the Jimma Ummah.',
-      education: 'Al-Azhar University, Cairo',
-      district: 'Jimma Central',
-    },
-    {
-      name: 'Ustadh Kamil Abba Jifar',
-      role: 'Vice President & Head of Madrasa Education',
-      bio: 'Renowned educationist overseeing curriculum standardization across all 45 regional Quranic centers.',
-      education: 'Omdurman Islamic University',
-      district: 'Mana / Yebu',
-    },
-    {
-      name: 'Sheikh Abdulaziz Jamal',
-      role: 'Head of Zakat & Waqf Affairs',
-      bio: 'Expert in Islamic finance, charitable trusts, and community socio-economic empowerment models.',
-      education: 'International Islamic University of Medina',
-      district: 'Agaro Town',
-    },
-    {
-      name: 'Ustadh Mustafa Oumer',
-      role: 'Secretary General & Executive Registrar',
-      bio: 'Oversees inter-kebele liaison, civil registrations, and institutional technology transformation.',
-      education: 'Jimma University & Addis Ababa',
-      district: 'Jimma Central',
-    },
-  ];
-
   const roadmapMilestones = [
     { year: '2024 - 2025', title: 'Phase 1: Institutional Digital Registry', status: 'Completed', desc: 'Digitized all 128+ mosques, 45 madrasas, and established central ulema database.' },
     { year: '2025 - 2026', title: 'Phase 2: Unified Financial & Zakat Ledger', status: 'Active', desc: 'Multi-fund accounting, online donor certificates, real-time public transparency audits.' },
@@ -148,47 +117,6 @@ export const AboutPage: React.FC = () => {
               </p>
             </Card>
           </div>
-        </div>
-      </section>
-
-      {/* Executive Leadership Council */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
-          <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-            Governance & Scholarly Board
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100">
-            Supreme Council Executive Leadership
-          </h2>
-          <p className="text-stone-500 dark:text-stone-400 text-xs sm:text-sm">
-            Eminent scholars, jurists, and administrators steering the council's vision.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {leadership.map((leader) => (
-            <Card key={leader.name} className="flex flex-col justify-between">
-              <div>
-                <div className="w-16 h-16 rounded-2xl bg-emerald-900 text-amber-300 flex items-center justify-center font-serif text-xl font-bold mb-4 shadow-sm border border-emerald-700">
-                  {leader.name.split(' ')[1]?.charAt(0) || 'S'}
-                </div>
-                <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100">
-                  {leader.name}
-                </h3>
-                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 block mt-0.5">
-                  {leader.role}
-                </span>
-                <p className="text-xs text-stone-500 dark:text-stone-400 mt-2 leading-relaxed">
-                  {leader.bio}
-                </p>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800 text-[11px] text-stone-400 space-y-1">
-                <div>Alumnus: {leader.education}</div>
-                <div>Jurisdiction: {leader.district}</div>
-              </div>
-            </Card>
-          ))}
         </div>
       </section>
 
