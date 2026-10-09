@@ -33,10 +33,10 @@ export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
         <div className="flex items-center justify-between pb-4 border-b border-stone-200 mb-6 print:hidden">
           <div>
             <h3 className="font-serif font-bold text-lg text-stone-900">
-              Jimma Zone GIS District Profile Report
+              Jimma Zone GIS Kebele Profile Report
             </h3>
             <p className="text-xs text-stone-500">
-              Generated from the current Woreda registry and linked records
+              Generated from the current kebele registry and linked records
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -84,7 +84,7 @@ export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
           {/* Executive Summary Metrics */}
           <div className="grid grid-cols-5 gap-3 text-center p-3 bg-stone-50 rounded-xl border border-stone-200">
             <div>
-              <div className="text-[10px] text-stone-500 uppercase font-bold">Woredas</div>
+              <div className="text-[10px] text-stone-500 uppercase font-bold">Kebeles</div>
               <div className="text-lg font-bold text-stone-900">{woredas.length}</div>
             </div>
             <div>
@@ -105,13 +105,13 @@ export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
             </div>
           </div>
 
-          {/* Current Woreda registry */}
+          {/* Current kebele registry */}
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse border border-stone-200">
               <thead>
                 <tr className="bg-stone-100 text-stone-700 font-bold uppercase tracking-wider text-[10px]">
                   <th className="p-2 border border-stone-200">#</th>
-                  <th className="p-2 border border-stone-200">District (Aanaa)</th>
+                  <th className="p-2 border border-stone-200">Kebele</th>
                   <th className="p-2 border border-stone-200">Zone Position</th>
                   <th className="p-2 border border-stone-200">Altitude</th>
                   <th className="p-2 border border-stone-200">Mosques (Jumu'ah)</th>
@@ -148,7 +148,7 @@ export const PrintableGisDossier: React.FC<PrintableGisDossierProps> = ({
             <div>
               <div className="font-bold text-stone-900">Reviewed by:</div>
               <div className="text-stone-600 mt-1 font-serif">Name / title</div>
-              <div className="text-stone-500 text-[11px]">District information reviewer</div>
+              <div className="text-stone-500 text-[11px]">Kebele information reviewer</div>
               <div className="mt-4 border-b border-stone-400 w-48" />
               <div className="text-[10px] text-stone-400 mt-0.5">Signature</div>
             </div>

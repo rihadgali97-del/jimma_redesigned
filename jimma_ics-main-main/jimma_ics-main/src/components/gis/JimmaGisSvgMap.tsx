@@ -250,7 +250,7 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
           <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
           <span className="font-semibold text-emerald-400 truncate">Jimma Zone Spatial GIS</span>
           <span className="hidden sm:inline text-stone-500">|</span>
-          <span className="hidden sm:inline text-stone-300">{woredas.length} Woredas</span>
+          <span className="hidden sm:inline text-stone-300">{woredas.length} Kebeles</span>
           {heatmapMode !== 'none' && (
             <span className="px-1.5 sm:px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] sm:text-[10px] uppercase font-bold truncate">
               {heatmapMode.replace('_', ' ')}
@@ -335,11 +335,11 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
               fontSize="18"
               fontWeight="600"
             >
-              Verified district boundaries have not been added yet
+              Verified kebele boundaries have not been added yet
             </text>
           )}
 
-          {/* Woredas / District Boundaries (Polygons) */}
+          {/* Kebele Boundaries (Polygons) */}
           <g id="woredas-layer">
             {woredas.filter((woreda) => Boolean(woreda.svgPath)).map((woreda) => {
               const isSelected = selectedWoredaId === woreda.id;
@@ -372,7 +372,7 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
                     }}
                   />
 
-                  {/* District Label */}
+                  {/* Kebele Label */}
                   {showLabels && (
                     <g pointerEvents="none">
                       <text
@@ -521,7 +521,7 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
 
       {/* Bottom Floating Legend / Tooltip */}
       <div className="absolute bottom-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-3 pointer-events-none">
-        {/* Hovered Woreda or POI Quick Summary Card */}
+        {/* Hovered Kebele or POI Quick Summary Card */}
         {hoveredWoreda ? (
           <div className="pointer-events-auto bg-stone-950/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-stone-700/80 shadow-xl max-w-sm text-xs animate-in fade-in">
             <div className="flex items-center justify-between gap-3">
@@ -563,7 +563,7 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
         ) : (
           <div className="pointer-events-auto bg-stone-950/75 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-stone-800 shadow-md text-stone-400 text-xs flex items-center gap-2">
             <Info className="w-3.5 h-3.5 text-stone-400" />
-            <span>Click any woreda boundary or institution pin to inspect detailed Islamic infrastructure dossier.</span>
+            <span>Click any kebele boundary or institution pin to inspect detailed Islamic infrastructure dossier.</span>
           </div>
         )}
 

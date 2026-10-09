@@ -40,7 +40,7 @@ export const JimmaGisMiniWidget: React.FC = () => {
               Jimma Zone Spatial GIS Overview
             </h3>
             <p className="text-xs text-stone-500">
-              Live profiles for {woredas.length} registered Woredas
+              Live profiles for {woredas.length} registered kebeles
             </p>
           </div>
         </div>
@@ -70,7 +70,7 @@ export const JimmaGisMiniWidget: React.FC = () => {
           ))}
           {!loadError && !isLoading && woredas.every((w) => !w.svgPath) && (
             <text x="500" y="330" textAnchor="middle" fill="#cbd5e1" fontSize="22">
-              Verified district boundaries not added
+              Verified kebele boundaries not added
             </text>
           )}
         </svg>
@@ -78,14 +78,14 @@ export const JimmaGisMiniWidget: React.FC = () => {
         {/* Floating badge overlay */}
         <div className="absolute bottom-3 left-3 bg-stone-950/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-stone-700 text-xs text-stone-200 flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${loadError ? 'bg-rose-400' : 'bg-emerald-400'}`} />
-          <span>{loadError || `${woredas.length} Districts • ${totalMosques} Registered Mosques`}</span>
+          <span>{loadError || `${woredas.length} Kebeles • ${totalMosques} Registered Mosques`}</span>
         </div>
 
         <Link
           to="/map"
           className="absolute inset-0 flex items-center justify-center bg-stone-950/40 opacity-0 group-hover:opacity-100 backdrop-blur-2xs transition-opacity text-white text-xs font-bold gap-2"
         >
-          <span>Open live GIS district profiles</span>
+          <span>Open live GIS kebele profiles</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -93,7 +93,7 @@ export const JimmaGisMiniWidget: React.FC = () => {
       {/* Mini Key Metrics */}
       <div className="grid grid-cols-3 gap-3 mt-4 text-center">
         <div className="p-2.5 bg-stone-50 dark:bg-stone-800/50 rounded-xl border border-stone-200 dark:border-stone-700/50">
-          <div className="text-[10px] text-stone-500 font-bold uppercase">Woredas</div>
+          <div className="text-[10px] text-stone-500 font-bold uppercase">Kebeles</div>
           <div className="text-base font-bold text-stone-900 dark:text-stone-100">{woredas.length}</div>
         </div>
         <div className="p-2.5 bg-stone-50 dark:bg-stone-800/50 rounded-xl border border-stone-200 dark:border-stone-700/50">

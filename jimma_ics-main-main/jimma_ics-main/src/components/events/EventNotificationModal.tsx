@@ -536,14 +536,14 @@ export const EventNotificationModal: React.FC<EventNotificationModalProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                4. Preferred Districts / Woredas
+                4. Preferred Kebeles
               </label>
               <button
                 type="button"
                 onClick={() => setSelectedDistricts(['All'])}
                 className="text-[11px] text-amber-600 dark:text-amber-400 hover:underline"
               >
-                All 18 Woredas
+                All 18 Kebeles
               </button>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -560,7 +560,7 @@ export const EventNotificationModal: React.FC<EventNotificationModalProps> = ({
                         : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700 hover:border-stone-400'
                     }`}
                   >
-                    {dist === 'All' ? 'All Districts' : dist}
+                    {dist === 'All' ? 'All Kebeles' : dist}
                   </button>
                 );
               })}

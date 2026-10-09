@@ -118,7 +118,7 @@ export const AdminEventsPage: React.FC = () => {
   };
 
   const handleExportAllRegistrations = () => {
-    const headers = ['Event ID', 'Event Title', 'Pass Number', 'Attendee Full Name', 'Phone', 'District', 'Madrasa / Org', 'Seats', 'Status', 'Registered Date'];
+    const headers = ['Event ID', 'Event Title', 'Pass Number', 'Attendee Full Name', 'Phone', 'Kebele', 'Madrasa / Org', 'Seats', 'Status', 'Registered Date'];
     const rows = eventRegistrations.map((r) => [
       r.eventId,
       `"${r.eventTitle}"`,

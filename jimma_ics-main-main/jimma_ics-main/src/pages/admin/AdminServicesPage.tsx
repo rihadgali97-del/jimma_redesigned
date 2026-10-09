@@ -342,7 +342,7 @@ export const AdminServicesPage: React.FC = () => {
                 <th className="p-3.5">Tracking No</th>
                 <th className="p-3.5">Service Requested</th>
                 <th className="p-3.5">Applicant Details</th>
-                <th className="p-3.5">District</th>
+                <th className="p-3.5">Kebele</th>
                 <th className="p-3.5">Assigned Officer</th>
                 <th className="p-3.5">Status</th>
                 <th className="p-3.5 text-right">Actions</th>
@@ -420,7 +420,7 @@ export const AdminServicesPage: React.FC = () => {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-500">District:</span>
+                <span className="text-stone-500">Kebele:</span>
                 <span className="font-semibold">{selectedRequest.applicantDistrict}</span>
               </div>
               <div className="flex justify-between">

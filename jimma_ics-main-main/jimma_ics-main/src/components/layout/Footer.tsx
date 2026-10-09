@@ -115,7 +115,7 @@ export const Footer: React.FC = () => {
                     : 'Jimma Zone Islamic Affairs Supreme Council'}
                 </h3>
                 <p className="text-xs text-amber-400 font-sans">
-                  Serving 18 Districts • Islamic Education • Zakat & Community Development
+                  Serving 18 Kebeles • Islamic Education • Zakat & Community Development
                 </p>
               </div>
             </div>
@@ -222,7 +222,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link to="/map" className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>Interactive GIS Map (18 Woredas)</span>
+                  <span>Interactive GIS Map (18 Kebeles)</span>
                 </Link>
               </li>
               <li>

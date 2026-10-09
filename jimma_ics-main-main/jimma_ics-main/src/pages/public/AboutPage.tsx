@@ -45,7 +45,7 @@ export const AboutPage: React.FC = () => {
     {
       name: 'Ustadh Mustafa Oumer',
       role: 'Secretary General & Executive Registrar',
-      bio: 'Oversees inter-district liaison, civil registrations, and institutional technology transformation.',
+      bio: 'Oversees inter-kebele liaison, civil registrations, and institutional technology transformation.',
       education: 'Jimma University & Addis Ababa',
       district: 'Jimma Central',
     },
@@ -73,7 +73,7 @@ export const AboutPage: React.FC = () => {
           </h1>
           <p className="text-stone-300 text-sm sm:text-base mt-4 leading-relaxed">
             The supreme civic and religious authority coordinating the spiritual, educational,
-            and charitable affairs of the Muslim community across 18 districts in Jimma Zone, Oromia, Ethiopia.
+            and charitable affairs of the Muslim community across 18 kebeles in Jimma Zone, Oromia, Ethiopia.
           </p>
         </div>
       </section>
@@ -141,7 +141,7 @@ export const AboutPage: React.FC = () => {
                 <Building className="w-5 h-5" />
               </div>
               <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100">
-                18 District Desks
+                18 Kebele Desks
               </h3>
               <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
                 Empowering localized administrative desks in Kersa, Agaro, Mana, Gomma, Limmu, Seka, and all zonal subdivisions.

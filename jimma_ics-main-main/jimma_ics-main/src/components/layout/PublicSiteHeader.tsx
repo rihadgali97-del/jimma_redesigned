@@ -29,7 +29,7 @@ const institutionLinks = [
   { label: 'Madrasas & Hifz', path: '/madrasas', icon: BookOpen },
   { label: 'Teachers & Mu’allims', path: '/teachers', icon: Users },
   { label: 'Ulema scholars', path: '/ulema', icon: Users },
-  { label: 'Explore the district map', path: '/map', icon: Compass },
+  { label: 'Explore the kebele map', path: '/map', icon: Compass },
 ];
 
 const serviceLinks = [

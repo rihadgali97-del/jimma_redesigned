@@ -59,7 +59,7 @@ export const WaqfTransparencyPage: React.FC<{ embedded?: boolean }> = ({ embedde
       <div className="flex flex-col gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:flex-row sm:items-center sm:justify-between">
         <label className="relative w-full sm:max-w-md">
           <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search asset, location, or district" className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 dark:border-stone-700 dark:bg-stone-800" />
+          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search asset, location, or kebele" className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 dark:border-stone-700 dark:bg-stone-800" />
         </label>
         <label className="flex items-center gap-2 text-xs text-stone-500">
           <Filter className="h-4 w-4" />

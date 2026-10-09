@@ -262,7 +262,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     <span>Venue Location</span>
                   </div>
                   <p className="font-bold text-xs sm:text-sm text-stone-800 dark:text-stone-200 truncate">{event.location}</p>
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">{event.venueDetails || `District: ${event.district}`}</p>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">{event.venueDetails || `Kebele: ${event.district}`}</p>
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-stone-100 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700/60 space-y-1">
@@ -646,7 +646,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-stone-700 dark:text-stone-300">
-                        Your District / Woreda
+                        Your Kebele
                       </label>
                       <select
                         value={district}

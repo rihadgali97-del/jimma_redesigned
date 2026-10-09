@@ -171,7 +171,7 @@ export const DistrictInspectionDrawer: React.FC<DistrictInspectionDrawerProps> =
         <X className="w-5 h-5" />
       </button>
 
-      {/* District Header */}
+      {/* Kebele Header */}
       <div className="mb-5 pr-8">
         <div className="flex items-center gap-2 mb-1">
           <Badge variant="emerald" className="text-[10px]">
@@ -251,7 +251,7 @@ export const DistrictInspectionDrawer: React.FC<DistrictInspectionDrawerProps> =
       {/* Council Branch Representation */}
       <div className="p-3.5 bg-stone-50 dark:bg-stone-800/60 rounded-2xl border border-stone-200 dark:border-stone-700/60 mb-5">
         <div className="text-[11px] font-bold text-stone-400 uppercase tracking-wider">
-          District Council Secretariat
+          Kebele Council Secretariat
         </div>
         <div className="font-semibold text-stone-900 dark:text-stone-100 text-sm mt-1">
           {woreda!.councilBranchHead || 'Council representative not recorded'}
@@ -285,7 +285,7 @@ export const DistrictInspectionDrawer: React.FC<DistrictInspectionDrawerProps> =
         </div>
       </div>
 
-      {/* Registered Key Institutions in this Woreda */}
+      {/* Registered Key Institutions in this Kebele */}
       {(woredaPois || []).length > 0 && (
         <div className="mb-5">
           <div className="text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2">

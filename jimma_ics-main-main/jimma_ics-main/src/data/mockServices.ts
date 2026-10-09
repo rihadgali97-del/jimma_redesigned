@@ -28,7 +28,7 @@ export const mockPublicServices: ServiceItem[] = [
     eligibility: 'Families or individuals meeting Quranic criteria of Asnaf al-Zakat (the poor, destitute, debtors in hardship, stranded travelers) residing in Jimma Zone.',
     howItWorks: [
       'Submit social welfare assistance application with verification details.',
-      'District social welfare committee conducts confidential field assessment.',
+      'Kebele social welfare committee conducts confidential field assessment.',
       'Shariah audit review confirms eligibility and calculates aid package.',
       'Disbursal executed directly via Telebirr, CBE Birr or in-kind supplies.',
     ],
@@ -45,7 +45,7 @@ export const mockPublicServices: ServiceItem[] = [
     icon: 'ShieldAlert',
     shortDesc: 'Immediate 24/7 ghusl (washing), shrouding (kafan), hearse transport, and Islamic burial facilitation.',
     fullDesc: 'Dedicated emergency civic coordination ensuring every deceased Muslim in Jimma receives dignified, prompt, and compliant Islamic burial rites.',
-    eligibility: 'Available to all Muslim families in Jimma Town and surrounding woredas without cost barriers.',
+    eligibility: 'Available to all Muslim families in Jimma Town and surrounding kebeles without cost barriers.',
     howItWorks: [
       'Call Council 24/7 Janazah Hotline: +251 47 111 8290 or submit emergency portal request.',
       'Council dispatch connects certified Ghusl team and cemetery plot coordinator.',
@@ -85,7 +85,7 @@ export const mockPublicServices: ServiceItem[] = [
     icon: 'BookOpen',
     shortDesc: 'Curriculum standardization, teacher certifications, textbook distribution, and institutional recognition.',
     fullDesc: 'The Council Education Directorate guides new and established madrasas to achieve full educational accreditation, syllabus harmonization, and access to the unified student Hifz tracking portal.',
-    eligibility: 'Any community Quran school, Tahfeez center, or Islamic institute operating within the 18 districts of Jimma Zone.',
+    eligibility: 'Any community Quran school, Tahfeez center, or Islamic institute operating within the 18 kebeles of Jimma Zone.',
     howItWorks: [
       'Submit Madrasa Institutional Profile and teacher roster.',
       'Education Board inspectors conduct physical and pedagogical site assessment.',
@@ -147,7 +147,7 @@ export const mockPublicServices: ServiceItem[] = [
     fullDesc: 'A comprehensive social safety net providing ETB 1,500 monthly educational and living stipends per child, paired with regular academic monitoring at local madrasas.',
     eligibility: 'Children under 16 who have lost their father/breadwinner and reside in Jimma Zone.',
     howItWorks: [
-      'Guardian submits orphan profile at district council office.',
+      'Guardian submits orphan profile at kebele council office.',
       'Social worker verifies living conditions and enrolls child in school.',
       'Donor paired with student; receive biannual academic progress reports.',
       'Monthly funds transferred directly to guardian verified account.',

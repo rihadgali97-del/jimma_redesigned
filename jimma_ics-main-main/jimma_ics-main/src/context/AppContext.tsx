@@ -444,7 +444,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         serviceType: 'Janazah Support',
         applicantName: request.contactName,
         applicantPhone: request.contactPhone,
-        applicantDistrict: request.woreda ? `Woreda ${request.woreda.code}` : 'Jimma Zone',
+        applicantDistrict: request.woreda ? `Kebele ${request.woreda.code}` : 'Jimma Zone',
         submissionDate: new Date(request.createdAt).toLocaleDateString(),
         status: request.status === 'SUBMITTED' ? 'Submitted'
           : request.status === 'UNDER_REVIEW' ? 'Under Review'

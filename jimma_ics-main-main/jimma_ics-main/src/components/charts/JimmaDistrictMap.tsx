@@ -36,7 +36,7 @@ export const JimmaDistrictMap: React.FC<{ className?: string }> = ({ className =
       })
       .catch((error: unknown) => {
         if (active) {
-          setLoadError(error instanceof Error ? error.message : 'Could not load registered districts.');
+          setLoadError(error instanceof Error ? error.message : 'Could not load registered kebeles.');
         }
       })
       .finally(() => {
@@ -65,7 +65,7 @@ export const JimmaDistrictMap: React.FC<{ className?: string }> = ({ className =
               <span>Jimma Zone coverage</span>
             </div>
             <h3 className="mt-1 font-serif text-lg font-bold text-white sm:text-xl">
-              {woredas.length} registered districts
+              {woredas.length} registered kebeles
             </h3>
           </div>
           <span className="rounded-full border border-emerald-800 bg-emerald-950 px-3 py-1 font-mono text-xs text-emerald-300">
@@ -74,13 +74,13 @@ export const JimmaDistrictMap: React.FC<{ className?: string }> = ({ className =
         </div>
 
         {isLoading ? (
-          <div className="relative z-10 grid min-h-64 place-items-center text-sm text-stone-400">Loading registered districts…</div>
+          <div className="relative z-10 grid min-h-64 place-items-center text-sm text-stone-400">Loading registered kebeles…</div>
         ) : loadError ? (
           <div role="alert" className="relative z-10 my-8 rounded-xl border border-rose-800 bg-rose-950/60 p-4 text-sm text-rose-200">
-            District information is unavailable: {loadError}
+            Kebele information is unavailable: {loadError}
           </div>
         ) : points.length === 0 ? (
-          <div className="relative z-10 grid min-h-64 place-items-center text-sm text-stone-400">No districts have been registered yet.</div>
+          <div className="relative z-10 grid min-h-64 place-items-center text-sm text-stone-400">No kebeles have been registered yet.</div>
         ) : (
           <div className="relative z-10 my-auto h-64 w-full sm:h-72">
             <svg className="pointer-events-none absolute inset-0 h-full w-full stroke-emerald-800/50">
@@ -132,7 +132,7 @@ export const JimmaDistrictMap: React.FC<{ className?: string }> = ({ className =
         )}
 
         <p className="relative z-10 border-t border-stone-800 pt-3 text-[11px] text-stone-400">
-          Schematic district view — nodes show registered locations and are not geographic boundaries or to scale.
+          Schematic kebele view — nodes show registered locations and are not geographic boundaries or to scale.
         </p>
       </section>
 
@@ -142,7 +142,7 @@ export const JimmaDistrictMap: React.FC<{ className?: string }> = ({ className =
             <div>
               <div className="mb-4 flex items-center justify-between border-b border-stone-100 pb-3 dark:border-stone-800">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Selected district</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Selected kebele</span>
                   <h4 className="mt-1 text-lg font-bold text-stone-900 dark:text-stone-100">{current.name}</h4>
                   <span className="font-mono text-xs text-stone-500">{current.code}</span>
                 </div>
@@ -164,7 +164,7 @@ export const JimmaDistrictMap: React.FC<{ className?: string }> = ({ className =
             </p>
           </>
         ) : (
-          <p className="text-sm text-stone-500">{loadError || 'Select a registered district to inspect its directory records.'}</p>
+          <p className="text-sm text-stone-500">{loadError || 'Select a registered kebele to inspect its directory records.'}</p>
         )}
       </aside>
     </div>

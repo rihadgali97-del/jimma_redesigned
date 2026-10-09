@@ -39,7 +39,7 @@ const shortcuts = [
   { label: 'Teachers', detail: 'Find teachers & Mu’allims', path: '/teachers', icon: Users },
   { label: 'Ulema', detail: 'Browse scholars', path: '/ulema', icon: Users },
   { label: 'Public services', detail: 'Apply or track a request', path: '/services', icon: CheckCircle2 },
-  { label: 'District map', detail: 'Explore Jimma Zone', path: '/map', icon: Compass },
+  { label: 'Kebele map', detail: 'Explore Jimma Zone', path: '/map', icon: Compass },
   { label: 'Events', detail: 'See what is happening', path: '/events', icon: CalendarDays },
   { label: 'Announcements', detail: 'Read council notices', path: '/announcements', icon: FileText },
 ];
@@ -88,7 +88,7 @@ export const CommunityHomePage: React.FC = () => {
             </div>
             <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-stone-600 dark:text-stone-300">
               <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-800 dark:text-emerald-300" /> Serving Jimma Zone communities</span>
-              <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-amber-700 dark:text-amber-400" /> 18 administrative districts</span>
+              <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-amber-700 dark:text-amber-400" /> 18 kebeles</span>
             </div>
           </div>
 
@@ -133,7 +133,7 @@ export const CommunityHomePage: React.FC = () => {
       <section aria-label="Community overview" className={`${sectionClass} -mt-10 relative z-10`}>
         <div className="grid grid-cols-2 divide-x divide-y divide-stone-200 overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm dark:divide-stone-700 dark:border-stone-700 dark:bg-stone-900 sm:grid-cols-4 sm:divide-y-0">
           {[
-            { label: 'Mosques', value: '128+', detail: 'Across 18 districts', icon: Building },
+            { label: 'Mosques', value: '128+', detail: 'Across 18 kebeles', icon: Building },
             { label: 'Students enrolled', value: `${Math.max(4_850, students.length).toLocaleString()}+`, detail: 'In Quranic education', icon: BookOpen },
             { label: 'Ulema & teachers', value: `${Math.max(142, ulema.length)}+`, detail: 'Community educators', icon: Users },
             { label: 'Community funds', value: `${(totalFundBalance / 1_000_000).toFixed(1)}M+`, detail: 'ETB allocated', icon: HeartHandshake },
@@ -206,7 +206,7 @@ export const CommunityHomePage: React.FC = () => {
           <div className="mt-5 flex flex-wrap gap-2 border-t border-stone-100 pt-4 dark:border-stone-800">
             <Link to="/teachers" className="rounded-full bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-emerald-50 hover:text-emerald-900 dark:bg-stone-800 dark:text-stone-200">Find a teacher</Link>
             <Link to="/ulema" className="rounded-full bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-emerald-50 hover:text-emerald-900 dark:bg-stone-800 dark:text-stone-200">Browse Ulema</Link>
-            <Link to="/map" className="rounded-full bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-emerald-50 hover:text-emerald-900 dark:bg-stone-800 dark:text-stone-200">Open district map</Link>
+            <Link to="/map" className="rounded-full bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-emerald-50 hover:text-emerald-900 dark:bg-stone-800 dark:text-stone-200">Open kebele map</Link>
           </div>
         </div>
 
@@ -240,7 +240,7 @@ export const CommunityHomePage: React.FC = () => {
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[.17em] text-emerald-800 dark:text-emerald-300">Explore Jimma Zone</p>
               <h2 className="mt-1 font-serif text-2xl font-extrabold text-stone-900 dark:text-stone-50 sm:text-3xl">Local places, on the map.</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600 dark:text-stone-300">Find institutions and explore the districts and communities they serve.</p>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600 dark:text-stone-300">Find institutions and explore the kebeles and communities they serve.</p>
             </div>
             <Link to="/map" className="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-4 py-2.5 text-sm font-bold text-stone-800 hover:border-emerald-700 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100">
               Open interactive map <ArrowRight className="h-4 w-4" />

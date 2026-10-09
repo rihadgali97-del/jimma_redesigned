@@ -56,7 +56,7 @@ export const ContactPage: React.FC = () => {
       category: 'Zakat & Waqf',
       question: 'How is Agricultural Ushr on coffee harvest calculated and distributed in Jimma Zone?',
       answer:
-        'For naturally rain-watered coffee farms in Limmu, Agaro, and Gomma woredas, the rate is 10% of harvest output when exceeding the 5 Wasq threshold (~653 kg). The Jimma Council Zakat Department conducts transparent distribution to verified local Asnaf beneficiaries across the zone.',
+        'For naturally rain-watered coffee farms in Limmu, Agaro, and Gomma kebeles, the rate is 10% of harvest output when exceeding the 5 Wasq threshold (~653 kg). The Jimma Council Zakat Department conducts transparent distribution to verified local Asnaf beneficiaries across the zone.',
     },
     {
       id: 'faq-3',
@@ -125,7 +125,7 @@ export const ContactPage: React.FC = () => {
             Contact & Council Desks
           </h1>
           <p className="text-stone-500 dark:text-stone-400 text-sm sm:text-base mt-1 max-w-2xl">
-            Get in touch with executive officers, district coordinators, religious desks, or submit public inquiries.
+            Get in touch with executive officers, kebele coordinators, religious desks, or submit public inquiries.
           </p>
         </div>
 
@@ -364,14 +364,14 @@ export const ContactPage: React.FC = () => {
             </div>
           </Card>
 
-          {/* Regional District Liaison Desks */}
+          {/* Regional Kebele Liaison Desks */}
           <Card className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="font-serif font-bold text-sm text-stone-900 dark:text-stone-100">
-                Sub-Zonal District Liaison Desks
+                Sub-Zonal Kebele Liaison Desks
               </h4>
               <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase">
-                18 Woredas
+                18 Kebeles
               </span>
             </div>
 

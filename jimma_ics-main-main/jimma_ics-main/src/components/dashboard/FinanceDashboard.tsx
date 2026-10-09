@@ -606,7 +606,7 @@ export const FinanceDashboard: React.FC = () => {
                 <textarea
                   rows={2}
                   required
-                  placeholder="e.g. Monthly stipend grant for 4 rural Tahfeez mu'allims in Gomma District"
+                  placeholder="e.g. Monthly stipend grant for 4 rural Tahfeez mu'allims in Gomma Kebele"
                   value={txDescription}
                   onChange={(e) => setTxDescription(e.target.value)}
                   className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
@@ -694,7 +694,7 @@ export const FinanceDashboard: React.FC = () => {
                 </div>
                 <div>
                   <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                    District / Woreda
+                    Kebele
                   </label>
                   <select
                     value={zakatDistrict}

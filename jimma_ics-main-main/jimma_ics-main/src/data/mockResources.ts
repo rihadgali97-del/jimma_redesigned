@@ -47,7 +47,7 @@ Yaa gabroota Rabbii! Dhugumatti Takaaful (waliin-dhaabbannaan) amantii keenya ke
 All praise belongs to Allah Who unified the believers as caring brethren and commanded mutual cooperation upon righteousness and piety. The Prophet (peace and blessings be upon him) said: "The believers in their mutual kindness, compassion, and sympathy are just like one body; when one limb suffers, the whole body responds with wakefulness and fever."
 
 Khateeb Practical Action Plan:
-Encourage worshippers to contribute to the local mosque waqf welfare box, check on elderly neighbors before Maghrib, and support regional tahfeez students who travel from rural districts.`,
+Encourage worshippers to contribute to the local mosque waqf welfare box, check on elderly neighbors before Maghrib, and support regional tahfeez students who travel from rural kebeles.`,
       keyThemes: ['Mutual Solidarity (Takaful)', 'Compassion & Charity', 'Preserving Community Ties', 'Support for Madrasa Students'],
       tableOfContents: [
         '1. Khutbah Khutbat-ul-Haajah (Arabic Opening)',
@@ -135,7 +135,7 @@ Encourage worshippers to contribute to the local mosque waqf welfare box, check 
       'Roles and mandates: Chairman, Vice-Chairman, Imam, Treasurer, Auditor, and Youth/Women Coordinators.',
       'Financial accountability: Double-signature check protocols, digital cash donation ledgers, and monthly public reporting.',
       'Facility maintenance: Solar panel maintenance schedules, wudu water filtration systems, sound amplification decibel limits.',
-      'Dispute resolution: Step-by-step arbitration through district Ulema councils.'
+      'Dispute resolution: Step-by-step arbitration through kebele Ulema councils.'
     ],
     tags: ['Handbook', 'Mosque Governance', 'Waqf Management', 'Finance Control', 'Administration'],
     previewContent: {
@@ -158,7 +158,7 @@ Section 3.2: Friday Collection Security. Collection boxes must be opened immedia
         'Section 4: Property, Waqf & Solar Maintenance',
         'Section 5: Emergency Preparedness & Security'
       ],
-      sampleExcerpt: 'Mandatory operational manual for all registered Friday and local mosques across Jimma City and surrounding woredas.'
+      sampleExcerpt: 'Mandatory operational manual for all registered Friday and local mosques across Jimma City and surrounding kebeles.'
     }
   },
   {
@@ -526,7 +526,7 @@ Every licensed Imam and counselor in Jimma Zone providing family mediation servi
       'Prophetic narrations on water charity: «أفضل الصدقة سقي الماء» (The best charity is providing water).',
       'The prohibition of wasting water even while making ablution at a flowing river.',
       'Protecting Jimma’s lush forests, coffee plantations, and natural springs from pollution.',
-      'Encouraging endowments (Waqf) for solar-powered water boreholes for drought-prone rural woredas.'
+      'Encouraging endowments (Waqf) for solar-powered water boreholes for drought-prone rural kebeles.'
     ],
     tags: ['Khutbah', 'Waqf', 'Water Charity', 'Environment', 'Sadaqah Jariyah', 'Conservation'],
     previewContent: {

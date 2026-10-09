@@ -20,7 +20,7 @@ const quickLinks = [
   { title: 'Mosque registry', description: 'Update mosque details and linked madrasas.', to: '/admin/mosques', icon: Building2 },
   { title: 'Madrasa registry', description: 'Manage schools, head teachers, and student records.', to: '/admin/madrasas', icon: BookOpen },
   { title: 'Staff and access', description: 'Manage staff accounts, roles, and permissions.', to: '/admin/users', icon: Users },
-  { title: 'Woredas and districts', description: 'Manage registered locations used across council records.', to: '/admin/woredas', icon: MapPin },
+  { title: 'Kebeles', description: 'Manage registered locations used across council records.', to: '/admin/woredas', icon: MapPin },
   { title: 'Events and announcements', description: 'Manage public notices and council programs.', to: '/admin/events', icon: FileText },
   { title: 'Audit and activity', description: 'Review administrative activity and compliance.', to: '/admin/audit', icon: ShieldCheck },
 ];

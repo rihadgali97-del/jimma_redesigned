@@ -72,7 +72,7 @@ export const MadrasasPage: React.FC = () => {
           <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search madrasa, head teacher, district..."
+            placeholder="Search madrasa, head teacher, kebele..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden text-stone-900 dark:text-stone-100"
@@ -87,7 +87,7 @@ export const MadrasasPage: React.FC = () => {
           >
             {districts.map((d) => (
               <option key={d} value={d}>
-                {d === 'All' ? 'All Districts' : d}
+                {d === 'All' ? 'All Kebeles' : d}
               </option>
             ))}
           </select>
@@ -201,7 +201,7 @@ export const MadrasasPage: React.FC = () => {
             No madrasas found
           </h3>
           <p className="text-xs text-stone-500">
-            Try adjusting your search criteria or changing the selected district filter.
+            Try adjusting your search criteria or changing the selected kebele filter.
           </p>
         </div>
       )}

@@ -796,10 +796,10 @@ export const DonatePage: React.FC = () => {
                   <span className="font-bold text-amber-700 dark:text-amber-400">2,500 ETB:</span> One month full sponsorship (meals + boarding) for an orphan Hifz student.
                 </div>
                 <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-100 dark:border-stone-700/60">
-                  <span className="font-bold text-blue-700 dark:text-blue-400">10,000 ETB:</span> Acoustic system maintenance and clean prayer carpet for rural district mosque.
+                  <span className="font-bold text-blue-700 dark:text-blue-400">10,000 ETB:</span> Acoustic system maintenance and clean prayer carpet for rural kebele mosque.
                 </div>
                 <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-100 dark:border-stone-700/60">
-                  <span className="font-bold text-purple-700 dark:text-purple-400">25,000+ ETB (Zakat):</span> Disbursed directly to certified destitute families under the 8 Qur'anic Asnaf across 18 woredas.
+                  <span className="font-bold text-purple-700 dark:text-purple-400">25,000+ ETB (Zakat):</span> Disbursed directly to certified destitute families under the 8 Qur'anic Asnaf across 18 kebeles.
                 </div>
               </div>
             </Card>

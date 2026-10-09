@@ -93,9 +93,9 @@ export const AdminWoredasPage: React.FC = () => {
     try {
       setWoredas(await fetchAdminDirectoryWoredas());
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Could not load the woreda registry.';
+      const message = error instanceof Error ? error.message : 'Could not load the kebele registry.';
       setLoadError(message);
-      addToastRef.current('Woreda Registry Could Not Load', message, 'error');
+      addToastRef.current('Kebele Registry Could Not Load', message, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -139,7 +139,7 @@ export const AdminWoredasPage: React.FC = () => {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!name.trim() || (!editingId && !code.trim())) {
-      addToast('Missing Required Fields', 'Enter both the woreda code and display name.', 'warning');
+      addToast('Missing Required Fields', 'Enter both the kebele code and display name.', 'warning');
       return;
     }
 
@@ -155,11 +155,11 @@ export const AdminWoredasPage: React.FC = () => {
           : [...previous, saved];
         return next.sort((a, b) => a.name.localeCompare(b.name));
       });
-      addToast(editingId ? 'Woreda Updated' : 'Woreda Registered', `${saved.name} was saved to the location registry.`, 'success');
+      addToast(editingId ? 'Kebele Updated' : 'Kebele Registered', `${saved.name} was saved to the location registry.`, 'success');
       resetForm();
     } catch (error) {
       addToast(
-        editingId ? 'Could Not Update Woreda' : 'Could Not Register Woreda',
+        editingId ? 'Could Not Update Kebele' : 'Could Not Register Kebele',
         error instanceof Error ? error.message : 'Please check the details and try again.',
         'error'
       );
@@ -174,14 +174,14 @@ export const AdminWoredasPage: React.FC = () => {
       const saved = await updateWoredaRecord(woreda.id, { isActive: !woreda.isActive });
       setWoredas((previous) => previous.map((item) => item.id === saved.id ? saved : item));
       addToast(
-        saved.isActive ? 'Woreda Activated' : 'Woreda Deactivated',
+        saved.isActive ? 'Kebele Activated' : 'Kebele Deactivated',
         saved.isActive
-          ? `${saved.name} is available for new records and public district selection.`
-          : `${saved.name} is hidden from public district selection. Existing linked records are retained.`,
+          ? `${saved.name} is available for new records and public kebele selection.`
+          : `${saved.name} is hidden from public kebele selection. Existing linked records are retained.`,
         'success'
       );
     } catch (error) {
-      addToast('Could Not Change Woreda Availability', error instanceof Error ? error.message : 'Please try again.', 'error');
+      addToast('Could Not Change Kebele Availability', error instanceof Error ? error.message : 'Please try again.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -200,9 +200,9 @@ export const AdminWoredasPage: React.FC = () => {
               <MapPin className="h-4 w-4" />
               Location registry
             </div>
-            <h1 className="mt-2 text-2xl font-bold text-stone-900 dark:text-stone-100 sm:text-3xl">Woredas & districts</h1>
+            <h1 className="mt-2 text-2xl font-bold text-stone-900 dark:text-stone-100 sm:text-3xl">Kebele Registry</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600 dark:text-stone-400">
-              Maintain the official locations used by mosque, madrasa, Waqf, and public-service records. Existing records keep their woreda links when a display name changes.
+              Maintain the official kebele names used by mosque, madrasa, Waqf, and public-service records. Existing records keep their links when a display name changes.
             </p>
           </div>
           <button
@@ -223,7 +223,7 @@ export const AdminWoredasPage: React.FC = () => {
             <div>
               <h2 className="font-bold text-stone-900 dark:text-stone-100">Registered locations</h2>
               <p className="mt-1 text-xs text-stone-500">
-                {woredas.filter((woreda) => woreda.isActive).length} active · {woredas.length} total woredas
+                {woredas.filter((woreda) => woreda.isActive).length} active · {woredas.length} total kebeles
               </p>
             </div>
             <label className="relative block sm:w-64">
@@ -247,7 +247,7 @@ export const AdminWoredasPage: React.FC = () => {
             <p className="py-10 text-center text-sm text-stone-500">Loading registered locations…</p>
           ) : filteredWoredas.length === 0 ? (
             <p className="py-10 text-center text-sm text-stone-500">
-              {woredas.length ? 'No locations match this search.' : 'No woredas are registered yet.'}
+              {woredas.length ? 'No locations match this search.' : 'No kebeles are registered yet.'}
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -303,9 +303,9 @@ export const AdminWoredasPage: React.FC = () => {
         <section className="h-fit rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
-              <h2 className="font-bold text-stone-900 dark:text-stone-100">{editingId ? 'Edit woreda profile' : 'Add a woreda'}</h2>
+              <h2 className="font-bold text-stone-900 dark:text-stone-100">{editingId ? 'Edit kebele profile' : 'Add a kebele'}</h2>
               <p className="mt-1 text-xs leading-5 text-stone-500">
-                Add verified district facts here. Institution and Zakat totals are calculated from their linked records.
+                Add verified kebele facts here. Institution and Zakat totals are calculated from their linked records.
               </p>
             </div>
             {editingId !== null && (
@@ -350,11 +350,11 @@ export const AdminWoredasPage: React.FC = () => {
             </label>
             <details className="rounded-xl border border-stone-200 p-3 dark:border-stone-700">
               <summary className="cursor-pointer text-sm font-semibold text-stone-800 dark:text-stone-200">
-                GIS and official district facts
+                GIS and official kebele facts
               </summary>
               <div className="mt-4 space-y-4">
                 <p className="text-xs leading-5 text-stone-500">
-                  These facts appear in the public GIS district card. Use official sources. Mosque, madrasa, student, Waqf, and Zakat figures are not editable here.
+                  These facts appear in the public GIS kebele card. Use official sources. Mosque, madrasa, student, Waqf, and Zakat figures are not editable here.
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <label className="space-y-1 text-xs font-medium text-stone-600 dark:text-stone-300">
@@ -445,7 +445,7 @@ export const AdminWoredasPage: React.FC = () => {
               className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60"
             >
               <Plus className="h-4 w-4" />
-              {isSaving ? 'Saving…' : editingId ? 'Save woreda profile' : 'Register woreda'}
+              {isSaving ? 'Saving…' : editingId ? 'Save kebele profile' : 'Register kebele'}
             </button>
           </form>
         </section>

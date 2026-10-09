@@ -56,7 +56,7 @@ export const AdminMadrasasPage: React.FC = () => {
       })
       .catch((error) => {
         if (isMounted) {
-          addToast('Could not load district options', error instanceof Error ? error.message : 'Check your connection and try again.', 'error');
+          addToast('Could not load kebele options', error instanceof Error ? error.message : 'Check your connection and try again.', 'error');
         }
       });
     return () => {
@@ -244,7 +244,7 @@ export const AdminMadrasasPage: React.FC = () => {
           <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search madrasa, head teacher, district..."
+            placeholder="Search madrasa, head teacher, kebele..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden"
@@ -258,7 +258,7 @@ export const AdminMadrasasPage: React.FC = () => {
         >
           {districts.map((d) => (
             <option key={d} value={d}>
-              {d === 'All' ? 'All Districts' : d}
+              {d === 'All' ? 'All Kebeles' : d}
             </option>
           ))}
         </select>
@@ -273,7 +273,7 @@ export const AdminMadrasasPage: React.FC = () => {
                 <th className="p-3.5">Photo</th>
                 <th className="p-3.5">Institution Name</th>
                 <th className="p-3.5">Level</th>
-                <th className="p-3.5">District</th>
+                <th className="p-3.5">Kebele</th>
                 <th className="p-3.5">Head Teacher</th>
                 <th className="p-3.5">Enrolled Students</th>
                 <th className="p-3.5">Graduated Huffaz</th>
@@ -339,7 +339,7 @@ export const AdminMadrasasPage: React.FC = () => {
         isOpen={isAddModalOpen}
         onClose={closeModal}
         title={editingMadrasa ? 'Edit Registered Madrasa' : 'Accredit New Madrasa / Quran Center'}
-        subtitle="Manage the madrasa name, district, enrolled capacity, description, and photo."
+        subtitle="Manage the madrasa name, kebele, enrolled capacity, description, and photo."
       >
         <form onSubmit={handleAddSubmit} className="space-y-4">
           <p className="rounded-lg bg-blue-50 p-3 text-xs text-blue-800 dark:bg-blue-950/30 dark:text-blue-200">
@@ -365,7 +365,7 @@ export const AdminMadrasasPage: React.FC = () => {
           <div className="grid grid-cols-1 gap-3">
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                District *
+                Kebele *
               </label>
               <select
                 required
@@ -378,7 +378,7 @@ export const AdminMadrasasPage: React.FC = () => {
                 disabled={districtOptions.length === 0}
                 className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700"
               >
-                {districtOptions.length === 0 && <option value="">No registered woredas available</option>}
+                {districtOptions.length === 0 && <option value="">No registered kebeles available</option>}
                 {districtOptions.map((option) => (
                   <option key={option.id} value={option.id} disabled={!option.isActive}>
                     {option.name}{option.isActive ? '' : ' (inactive; existing records only)'}

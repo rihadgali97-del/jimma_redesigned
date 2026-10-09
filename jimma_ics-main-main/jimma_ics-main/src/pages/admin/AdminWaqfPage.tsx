@@ -168,7 +168,7 @@ export const AdminWaqfPage: React.FC = () => {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <input required className={`${inputClass} sm:col-span-2`} placeholder="Asset name" value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} />
           <select required className={inputClass} value={draft.woredaId || ''} onChange={(event) => setDraft({ ...draft, woredaId: Number(event.target.value) })}>
-            <option value="" disabled>Select district / woreda</option>{woredas
+            <option value="" disabled>Select Kebele</option>{woredas
               .filter((woreda) => woreda.isActive || woreda.id === Number(draft.woredaId))
               .map((woreda) => (
                 <option key={woreda.id} value={woreda.id} disabled={!woreda.isActive}>

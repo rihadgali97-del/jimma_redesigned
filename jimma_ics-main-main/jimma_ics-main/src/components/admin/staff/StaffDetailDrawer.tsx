@@ -202,7 +202,7 @@ export const StaffDetailDrawer: React.FC<StaffDetailDrawerProps> = ({
               <div className="flex items-center gap-2 text-stone-700 dark:text-stone-300">
                 <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
                 <div className="min-w-0">
-                  <span className="text-[10px] text-stone-400 block">Woreda / District</span>
+                  <span className="text-[10px] text-stone-400 block">Kebele</span>
                   <span className="font-semibold">{staff.district || 'Jimma Central'}</span>
                 </div>
               </div>

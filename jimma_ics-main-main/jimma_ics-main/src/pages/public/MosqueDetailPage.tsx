@@ -152,7 +152,7 @@ export const MosqueDetailPage: React.FC = () => {
             </div>
             <div>
               <span className="text-[10px] uppercase font-bold text-stone-400 block">
-                District Office
+                Kebele Office
               </span>
               <span className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 truncate block mt-1">
                 {mosque.district}
@@ -334,7 +334,7 @@ export const MosqueDetailPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Contact & District Secretariat Desk */}
+          {/* Contact & Kebele Secretariat Desk */}
           <Card className="space-y-4">
             <h4 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100">
               Mosque Administration Desk

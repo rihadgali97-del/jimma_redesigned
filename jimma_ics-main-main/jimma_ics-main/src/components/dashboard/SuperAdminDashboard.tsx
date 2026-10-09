@@ -58,7 +58,7 @@ export const SuperAdminDashboard: React.FC = () => {
               Jimma Zone Islamic Affairs Council Command Matrix
             </h2>
             <p className="text-xs sm:text-sm text-stone-300 max-w-2xl leading-relaxed">
-              Unified governance console supervising 18 Woredas, 180+ Mosques, 42 Quranic Madrasas, Shari'ah & Fatwa Assemblies, and Zakat Welfare Funds.
+              Unified governance console supervising 18 Kebeles, 180+ Mosques, 42 Quranic Madrasas, Shari'ah & Fatwa Assemblies, and Zakat Welfare Funds.
             </p>
           </div>
 
@@ -78,7 +78,7 @@ export const SuperAdminDashboard: React.FC = () => {
           <div className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 font-mono">
             {mosques.length}
           </div>
-          <div className="text-[11px] text-stone-500">18 Woredas active</div>
+          <div className="text-[11px] text-stone-500">18 Kebeles active</div>
         </Card>
 
         <Card className="space-y-1.5 p-4">
@@ -194,7 +194,7 @@ export const SuperAdminDashboard: React.FC = () => {
               Interactive Jimma Zone GIS Explorer
             </h4>
             <p className="text-xs text-emerald-200/80 leading-relaxed">
-              Explore 180+ Geocoded Mosques, Tahfeez Madrasas, and Zakat distribution hubs across 18 Jimma Zone Woredas.
+              Explore 180+ Geocoded Mosques, Tahfeez Madrasas, and Zakat distribution hubs across 18 Jimma Zone Kebeles.
             </p>
             <Link to="/map" className="block pt-1">
               <Button

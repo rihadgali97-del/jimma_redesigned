@@ -128,7 +128,7 @@ export function drawEventPassOnCanvas(
   ctx.fillText(event.location, 70, gridY + 132);
   ctx.fillStyle = '#cbd5e1';
   ctx.font = '15px sans-serif';
-  ctx.fillText(event.venueDetails || `District: ${event.district}`, 70, gridY + 156);
+  ctx.fillText(event.venueDetails || `Kebele: ${event.district}`, 70, gridY + 156);
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = 'bold 14px sans-serif';
@@ -151,7 +151,7 @@ export function drawEventPassOnCanvas(
   ctx.fillText('AFFILIATION / MADRASA', col2X, gridY + 75);
   ctx.fillStyle = '#fde047';
   ctx.font = '18px sans-serif';
-  ctx.fillText(registration.organizationOrMadrasa || `District of ${registration.district}`, col2X, gridY + 100);
+  ctx.fillText(registration.organizationOrMadrasa || `Kebele of ${registration.district}`, col2X, gridY + 100);
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = 'bold 14px sans-serif';

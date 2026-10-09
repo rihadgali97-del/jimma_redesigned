@@ -134,7 +134,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
   const handleExportWelfare = () => {
     const csvContent =
       'data:text/csv;charset=utf-8,' +
-      'ID,Beneficiary,Category,AmountETB,District,Status,Date\n' +
+      'ID,Beneficiary,Category,AmountETB,Kebele,Status,Date\n' +
       zakatDistributions
         .map(
           (z) =>
@@ -428,7 +428,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
                 </div>
                 <div>
                   <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                    District / Kebele
+                    Kebele
                   </label>
                   <select
                     value={assessedDistrict}
@@ -439,7 +439,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
                     <option value="Mendera Kochore">Mendera Kochore</option>
                     <option value="Hermata">Hermata</option>
                     <option value="Bosa Addis">Bosa Addis</option>
-                    <option value="Gomma">Gomma Woreda</option>
+                    <option value="Gomma">Gomma Kebele</option>
                   </select>
                 </div>
               </div>

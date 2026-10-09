@@ -344,7 +344,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
-                  Jurisdiction District / Woreda
+                  Jurisdiction Kebele
                 </label>
                 <div className="relative">
                   <MapPin className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -586,7 +586,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
             </label>
             <textarea
               rows={2}
-              placeholder="e.g. Primary contact for Bosa Kito district madrasa annual evaluations."
+              placeholder="e.g. Primary contact for Bosa Kito kebele madrasa annual evaluations."
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="w-full px-3.5 py-2 rounded-xl text-xs sm:text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500"

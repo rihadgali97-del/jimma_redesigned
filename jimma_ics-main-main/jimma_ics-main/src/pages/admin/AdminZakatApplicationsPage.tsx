@@ -160,7 +160,7 @@ export const AdminZakatApplicationsPage: React.FC = () => {
         {loadError ? <p role="alert" className="text-sm text-rose-700 dark:text-rose-300">Could not load applications: {loadError}</p> : loading ? <p className="text-sm text-stone-500">Loading applications…</p> : applications.length === 0 ? <p className="text-sm text-stone-500">No matching Zakat applications.</p> : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1000px] text-left text-sm">
-              <thead className="border-b border-stone-200 text-xs uppercase text-stone-500 dark:border-stone-700"><tr><th className="p-3">Reference</th><th className="p-3">Applicant</th><th className="p-3">Phone</th><th className="p-3">Woreda</th><th className="p-3">Received</th><th className="p-3">Assigned officer</th><th className="p-3">Status</th><th className="p-3">Update</th></tr></thead>
+              <thead className="border-b border-stone-200 text-xs uppercase text-stone-500 dark:border-stone-700"><tr><th className="p-3">Reference</th><th className="p-3">Applicant</th><th className="p-3">Phone</th><th className="p-3">Kebele</th><th className="p-3">Received</th><th className="p-3">Assigned officer</th><th className="p-3">Status</th><th className="p-3">Update</th></tr></thead>
               <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
                 {applications.map((application) => (
                   <tr key={application.id}>

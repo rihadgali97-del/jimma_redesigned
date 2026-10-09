@@ -186,9 +186,9 @@ export const ServicesPage: React.FC = () => {
       })
       .catch((error: unknown) => {
         if (!active) return;
-        const message = error instanceof Error ? error.message : 'Could not load registered districts.';
+        const message = error instanceof Error ? error.message : 'Could not load registered kebeles.';
         setWoredasLoadError(message);
-        addToast('District Options Unavailable', message, 'error');
+        addToast('Kebele Options Unavailable', message, 'error');
       });
     return () => {
       active = false;
@@ -460,7 +460,7 @@ export const ServicesPage: React.FC = () => {
           serviceType: 'Zakat Assistance',
           applicantName: result.applicantFullName,
           applicantPhone: trackPhone.trim(),
-          applicantDistrict: 'Contact the Zakat desk for district information',
+          applicantDistrict: 'Contact the Zakat desk for kebele information',
           submissionDate: new Date(result.createdAt).toLocaleDateString(),
           status: applicationStatusLabels[result.status] || result.status,
           priority: 'Normal',
@@ -487,7 +487,7 @@ export const ServicesPage: React.FC = () => {
           serviceType: 'Janazah Support',
           applicantName: result.deceasedName,
           applicantPhone: trackPhone.trim(),
-          applicantDistrict: 'Contact the Janazah desk for district information',
+          applicantDistrict: 'Contact the Janazah desk for kebele information',
           submissionDate: new Date(result.createdAt).toLocaleDateString(),
           status: applicationStatusLabels[result.status] || result.status,
           priority: 'Urgent',
@@ -894,7 +894,7 @@ export const ServicesPage: React.FC = () => {
                   </span>
                 </div>
                 <div>
-                  <span className="text-stone-400 block text-[10px] uppercase">District Desk</span>
+                  <span className="text-stone-400 block text-[10px] uppercase">Kebele Desk</span>
                   <span className="font-medium text-stone-800 dark:text-stone-200">
                     {searchedRequest.applicantDistrict || searchedRequest.district}
                   </span>
@@ -1087,7 +1087,7 @@ export const ServicesPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                  District Desk *
+                  Kebele *
                 </label>
                 <select
                   required
@@ -1100,7 +1100,7 @@ export const ServicesPage: React.FC = () => {
                   disabled={woredas.length === 0}
                   className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100"
                 >
-                  {woredas.length === 0 && <option value="">No registered districts available</option>}
+                  {woredas.length === 0 && <option value="">No registered kebeles available</option>}
                   {woredas.map((woreda) => <option key={woreda.id} value={woreda.id}>{woreda.name}</option>)}
                 </select>
                 {woredasLoadError && <p role="alert" className="mt-1 text-xs text-rose-700 dark:text-rose-300">{woredasLoadError}</p>}

@@ -52,14 +52,14 @@ export const gatewayTemplates: MessageTemplate[] = [
     category: 'janazah_broadcast',
     defaultChannel: 'hybrid',
     languages: {
-      en: "🚨 JANAZAH PRAYER ANNOUNCEMENT - JIMMA ZONE\n\n'Inna lillahi wa inna ilayhi raji'un'\n\nJanazah prayer for the late {DeceasedName} ({Age} yrs, {Woreda}) will take place:\n⏰ Time: {JanazahTime}\n🕌 Location: {MosqueName}\n🪦 Burial: {Cemetery}\n📞 Family Contact: {FamilyContact}\n\nMay Allah grant them Jannatul Firdaws. All are requested to attend.",
-      om: "🚨 BEEKSIISA JANAASAA ARIIFACHISA - ZOOONII JIMMAA\n\n'Innaa lillaahi wa innaa ilayhi raaji'uun'\n\nSalaanni Janaizaa Obbo/Aaddee {DeceasedName} ({Age}, {Woreda}) ni gaggeeffama:\n⏰ Sa'aatii: {JanazahTime}\n🕌 Masjiida: {MosqueName}\n🪦 Awwaalcha: {Cemetery}\n📞 Qunnamtii: {FamilyContact}\n\nRabbii Jannata haa kennuuf. Hundi keessan akka hirmaattan kabajaan affeeramtaniittu.",
-      ar: "🚨 إعلان جنازة عاجل - منطقة جيما\n\n'إنا لله وإنا إليه راجعون'\n\nستقام صلاة الجنازة على المرحوم/ة {DeceasedName} ({Age} عاماً، {Woreda}):\n⏰ الموعد: {JanazahTime}\n🕌 المسجد: {MosqueName}\n🪦 الدفن: {Cemetery}\n📞 التواصل مع ذوي الفقيد: {FamilyContact}\n\nنسأل الله له/ا الفردوس الأعلى.",
+      en: "🚨 JANAZAH PRAYER ANNOUNCEMENT - JIMMA ZONE\n\n'Inna lillahi wa inna ilayhi raji'un'\n\nJanazah prayer for the late {DeceasedName} ({Age} yrs, {Kebele}) will take place:\n⏰ Time: {JanazahTime}\n🕌 Location: {MosqueName}\n🪦 Burial: {Cemetery}\n📞 Family Contact: {FamilyContact}\n\nMay Allah grant them Jannatul Firdaws. All are requested to attend.",
+      om: "🚨 BEEKSIISA JANAASAA ARIIFACHISA - ZOOONII JIMMAA\n\n'Innaa lillaahi wa innaa ilayhi raaji'uun'\n\nSalaanni Janaizaa Obbo/Aaddee {DeceasedName} ({Age}, {Kebele}) ni gaggeeffama:\n⏰ Sa'aatii: {JanazahTime}\n🕌 Masjiida: {MosqueName}\n🪦 Awwaalcha: {Cemetery}\n📞 Qunnamtii: {FamilyContact}\n\nRabbii Jannata haa kennuuf. Hundi keessan akka hirmaattan kabajaan affeeramtaniittu.",
+      ar: "🚨 إعلان جنازة عاجل - منطقة جيما\n\n'إنا لله وإنا إليه راجعون'\n\nستقام صلاة الجنازة على المرحوم/ة {DeceasedName} ({Age} عاماً، {Kebele}):\n⏰ الموعد: {JanazahTime}\n🕌 المسجد: {MosqueName}\n🪦 الدفن: {Cemetery}\n📞 التواصل مع ذوي الفقيد: {FamilyContact}\n\nنسأل الله له/ا الفردوس الأعلى.",
     },
     sampleData: {
       DeceasedName: 'Haji Oumer Kedir Ababor',
       Age: '84',
-      Woreda: 'Hermata, Jimma City',
+      Kebele: 'Hermata, Jimma City',
       JanazahTime: 'Today after Salatul Asr (4:15 PM)',
       MosqueName: 'Grand Anwar Mosque (Hermata)',
       Cemetery: 'Hermata Muslim Public Cemetery',
@@ -89,8 +89,8 @@ export const gatewayTemplates: MessageTemplate[] = [
     category: 'khutbah_advisory',
     defaultChannel: 'telegram',
     languages: {
-      en: "🕌 OFFICIAL JUMU'AH KHUTBAH ADVISORY FOR ALL 18 WOREDAS\n\nCouncil Guidance for Friday, {Date}:\n📌 Unified Topic: '{KhutbahTheme}'\n📖 Key Focus: {KeyFocus}\n⚠️ Community Directives: {Directives}\n\nAll registered Imams and Khateebs in Jimma Zone are advised to harmonize their address.",
-      om: "🕌 GORSA KHUXBAA JUM'AA ZOOONII JIMMAA KAN WOREDAALEE 18\n\nQajeelfama Majiilisaa Guyyaa Jimaataa, {Date}:\n📌 Mata-duree Tokkooffaa: '{KhutbahTheme}'\n📖 Xiyyeeffannaa: {KeyFocus}\n⚠️ Qajeelfama Hawaasaa: {Directives}\n\nImaamonni hundinuu ergaa kana akka dabarsan hubachiifna.",
+      en: "🕌 OFFICIAL JUMU'AH KHUTBAH ADVISORY FOR ALL 18 KEBELES\n\nCouncil Guidance for Friday, {Date}:\n📌 Unified Topic: '{KhutbahTheme}'\n📖 Key Focus: {KeyFocus}\n⚠️ Community Directives: {Directives}\n\nAll registered Imams and Khateebs in Jimma Zone are advised to harmonize their address.",
+      om: "🕌 GORSA KHUXBAA JUM'AA ZOOONII JIMMAA KAN GANDOOTA 18\n\nQajeelfama Majiilisaa Guyyaa Jimaataa, {Date}:\n📌 Mata-duree Tokkooffaa: '{KhutbahTheme}'\n📖 Xiyyeeffannaa: {KeyFocus}\n⚠️ Qajeelfama Hawaasaa: {Directives}\n\nImaamonni hundinuu ergaa kana akka dabarsan hubachiifna.",
       ar: "🕌 تعميم خطبة الجمعة الموحدة لكافة مديريات منطقة جيما الـ ١٨\n\nتوجيه المجلس ليوم الجمعة، {Date}:\n📌 الموضوع الموحد: '{KhutbahTheme}'\n📖 المحاور الرئيسية: {KeyFocus}\n⚠️ تنبيهات مجتمعية: {Directives}\n\nنرجو من أصحاب الفضيلة الخطباء والأئمة مراعاة التوجيهات.",
     },
     sampleData: {
@@ -189,7 +189,7 @@ export const mockDispatchHistory: DispatchLogItem[] = [
   {
     id: 'disp-104',
     timestamp: '2026-02-24 04:30 PM',
-    title: 'Unified Friday Khutbah Advisory: 18 Woredas',
+    title: 'Unified Friday Khutbah Advisory: 18 Kebeles',
     category: 'khutbah_advisory',
     channel: 'telegram',
     senderId: '@JimmaIslamicCouncilBot',
@@ -201,7 +201,7 @@ export const mockDispatchHistory: DispatchLogItem[] = [
     costETB: 0.0,
     deliveryRate: 100,
     metadata: {
-      woreda: 'All 18 Woredas',
+      woreda: 'All 18 Kebeles',
     },
   },
   {
@@ -237,13 +237,13 @@ export const mockDispatchHistory: DispatchLogItem[] = [
   {
     id: 'disp-107',
     timestamp: '2026-02-22 03:00 PM',
-    title: 'Emergency Flood Relief Appeal: Mana District',
+    title: 'Emergency Flood Relief Appeal: Mana Kebele',
     category: 'general_bulletin',
     channel: 'hybrid',
     senderId: 'JIMMA-ISLAM',
     recipientTarget: 'Registered Zakat Donors & Community Volunteers',
     recipientCount: 4200,
-    content: "⚠️ RELIEF ALERT: Jimma Supreme Council is mobilizing emergency shelter and food aid for 120 displaced families in Mana Woreda. Donate directly via Telebirr: 0917849200 (Account: Jimma Islamic Relief).",
+    content: "⚠️ RELIEF ALERT: Jimma Supreme Council is mobilizing emergency shelter and food aid for 120 displaced families in Mana Kebele. Donate directly via Telebirr: 0917849200 (Account: Jimma Islamic Relief).",
     status: 'delivered',
     gatewayResponseCode: 'ETHIO_SMS_OK_200 / TG_OK',
     costETB: 280.0,

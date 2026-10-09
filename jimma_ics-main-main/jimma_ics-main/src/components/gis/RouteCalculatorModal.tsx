@@ -34,7 +34,7 @@ export const RouteCalculatorModal: React.FC<RouteCalculatorModalProps> = ({
         <div className="max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-stone-900">
           <h3 className="font-bold text-stone-900 dark:text-stone-100">Route planning unavailable</h3>
           <p className="mt-2 text-sm text-stone-600 dark:text-stone-400">
-            At least two Woredas need verified map-center coordinates before distance estimates can be shown.
+            At least two kebeles need verified map-center coordinates before distance estimates can be shown.
           </p>
           <Button variant="outline" onClick={onClose} className="mt-4 text-xs">Close</Button>
         </div>
@@ -67,7 +67,7 @@ export const RouteCalculatorModal: React.FC<RouteCalculatorModalProps> = ({
             </div>
             <div>
               <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100">
-                Jimma Zone Inter-District Route Matrix
+                Jimma Zone Inter-Kebele Route Matrix
               </h3>
               <p className="text-xs text-stone-500 dark:text-stone-400">
                 Council logistics, scholar visits, and relief convoy travel planning

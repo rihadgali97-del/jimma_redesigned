@@ -404,7 +404,7 @@ export const EventsPage: React.FC = () => {
       {/* Filter & View Controls */}
       <div className="space-y-4">
         
-        {/* Search Bar & District & View Switcher */}
+        {/* Search Bar & Kebele & View Switcher */}
         <div className="bg-white dark:bg-stone-900 p-4 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="relative w-full md:w-80">
             <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -419,7 +419,7 @@ export const EventsPage: React.FC = () => {
 
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
             
-            {/* District Dropdown */}
+            {/* Kebele Dropdown */}
             <select
               value={selectedDistrict}
               onChange={(e) => setSelectedDistrict(e.target.value)}
@@ -427,7 +427,7 @@ export const EventsPage: React.FC = () => {
             >
               {districts.map((d) => (
                 <option key={d} value={d}>
-                  {d === 'All' ? 'All Districts / Woredas' : d}
+                  {d === 'All' ? 'All Kebeles' : d}
                 </option>
               ))}
             </select>

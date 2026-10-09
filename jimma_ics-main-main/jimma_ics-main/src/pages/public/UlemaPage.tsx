@@ -64,8 +64,8 @@ export const UlemaPage: React.FC = () => {
         <select aria-label="Filter by expertise" value={selectedSpec} onChange={(event) => setSelectedSpec(event.target.value)} className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200">
           {specializations.map((specialization) => <option key={specialization} value={specialization}>{specialization === 'All' ? 'All disciplines' : specialization}</option>)}
         </select>
-        <select aria-label="Filter by district" value={selectedDistrict} onChange={(event) => setSelectedDistrict(event.target.value)} className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200">
-          {districts.map((district) => <option key={district} value={district}>{district === 'All' ? 'All districts' : district}</option>)}
+        <select aria-label="Filter by kebele" value={selectedDistrict} onChange={(event) => setSelectedDistrict(event.target.value)} className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200">
+          {districts.map((district) => <option key={district} value={district}>{district === 'All' ? 'All kebeles' : district}</option>)}
         </select>
       </section>
 

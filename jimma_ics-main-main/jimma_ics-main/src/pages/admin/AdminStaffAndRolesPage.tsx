@@ -174,7 +174,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
   };
 
   const handleExportStaffCSV = () => {
-    const headers = ['ID', 'Name', 'Arabic Name', 'Role', 'Department', 'Email', 'Phone', 'District', 'Status', 'Access Level'];
+    const headers = ['ID', 'Name', 'Arabic Name', 'Role', 'Department', 'Email', 'Phone', 'Kebele', 'Status', 'Access Level'];
     const rows = filteredStaff.map((s) => [
       s.id,
       `"${s.name}"`,
@@ -421,7 +421,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
               <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search staff by name, Arabic name, email, phone, title, or woreda..."
+                placeholder="Search staff by name, Arabic name, email, phone, title, or kebele..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-3.5 py-2 rounded-xl text-xs sm:text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500"
@@ -537,7 +537,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                       <th className="py-3 px-4">Officer & Identity</th>
                       <th className="py-3 px-4">Role & Access Tier</th>
                       <th className="py-3 px-4">Directorate</th>
-                      <th className="py-3 px-4">District / Woreda</th>
+                      <th className="py-3 px-4">Kebele</th>
                       <th className="py-3 px-4">Security / 2FA</th>
                       <th className="py-3 px-4">Status</th>
                       <th className="py-3 px-4 text-right">Actions</th>
@@ -607,7 +607,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                             {staff.department || 'Executive Secretariat'}
                           </td>
 
-                          {/* District */}
+                          {/* Kebele */}
                           <td className="py-3.5 px-4 text-stone-600 dark:text-stone-400">
                             {staff.district || 'Jimma Central'}
                           </td>

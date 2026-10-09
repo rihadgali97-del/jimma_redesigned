@@ -40,7 +40,7 @@ export const MosquesPage: React.FC = () => {
         </h1>
         <p className="text-stone-500 dark:text-stone-400 text-sm sm:text-base mt-1 max-w-3xl">
           Comprehensive directory of 128+ registered Jumu'ah mosques, prayer centers, and linked madrasas
-          across the 18 administrative districts of Jimma Zone.
+          across the 18 administrative kebeles of Jimma Zone.
         </p>
       </div>
 
@@ -58,11 +58,11 @@ export const MosquesPage: React.FC = () => {
           />
         </div>
 
-        {/* District & Status Filters */}
+        {/* Kebele & Status Filters */}
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <div className="flex items-center gap-1.5 text-xs text-stone-500">
             <Filter className="w-3.5 h-3.5" />
-            <span>District:</span>
+            <span>Kebele:</span>
           </div>
           <select
             value={selectedDistrict}
@@ -71,7 +71,7 @@ export const MosquesPage: React.FC = () => {
           >
             {districts.map((d) => (
               <option key={d} value={d}>
-                {d}
+                {d === 'All' ? 'All Kebeles' : d}
               </option>
             ))}
           </select>
@@ -191,7 +191,7 @@ export const MosquesPage: React.FC = () => {
             No mosques found
           </h3>
           <p className="text-xs text-stone-500">
-            Try adjusting your search criteria or changing the selected district filter.
+            Try adjusting your search criteria or changing the selected kebele filter.
           </p>
         </div>
       )}

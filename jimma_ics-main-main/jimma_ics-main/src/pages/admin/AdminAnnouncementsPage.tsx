@@ -15,7 +15,7 @@ type Draft = Omit<Announcement, 'id'>;
 const emptyDraft = (): Draft => ({
   title: '', category: 'Official Communique', publishDate: new Date().toISOString().slice(0, 10),
   hijriDate: '', author: 'Jimma Islamic Council', summary: '', content: '', isPinned: false,
-  isUrgent: false, priority: 'Normal', district: 'All Districts', targetAudience: 'Community',
+  isUrgent: false, priority: 'Normal', district: 'All Kebeles', targetAudience: 'Community',
   readTime: '1 min read', isPublished: true,
 });
 
@@ -105,7 +105,7 @@ export const AdminAnnouncementsPage: React.FC = () => {
           <input required type="date" className={inputClass} value={draft.publishDate} onChange={(e) => setDraft({ ...draft, publishDate: e.target.value })} />
           <input className={inputClass} placeholder="Hijri date" value={draft.hijriDate} onChange={(e) => setDraft({ ...draft, hijriDate: e.target.value })} />
           <input required className={inputClass} placeholder="Author / Directorate" value={draft.author} onChange={(e) => setDraft({ ...draft, author: e.target.value })} />
-          <input className={inputClass} placeholder="District" value={draft.district} onChange={(e) => setDraft({ ...draft, district: e.target.value })} />
+          <input className={inputClass} placeholder="Kebele" value={draft.district} onChange={(e) => setDraft({ ...draft, district: e.target.value })} />
           <input className={inputClass} placeholder="Audience" value={draft.targetAudience} onChange={(e) => setDraft({ ...draft, targetAudience: e.target.value })} />
           <textarea required className={`${inputClass} sm:col-span-2 lg:col-span-3`} rows={2} placeholder="Short summary" value={draft.summary} onChange={(e) => setDraft({ ...draft, summary: e.target.value })} />
           <textarea required className={`${inputClass} sm:col-span-2 lg:col-span-3`} rows={5} placeholder="Announcement details" value={draft.content} onChange={(e) => setDraft({ ...draft, content: e.target.value })} />

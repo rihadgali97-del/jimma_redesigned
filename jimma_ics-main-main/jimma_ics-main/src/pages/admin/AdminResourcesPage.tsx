@@ -528,7 +528,7 @@ export const AdminResourcesPage: React.FC = () => {
             <TrendingUp className="w-4 h-4 text-purple-500" />
           </div>
           <p className="text-xl font-bold text-purple-600 dark:text-purple-400">{metrics.totalDownloads.toLocaleString()}</p>
-          <span className="text-[11px] text-stone-500 dark:text-stone-400">Across 18 Woredas</span>
+          <span className="text-[11px] text-stone-500 dark:text-stone-400">Across 18 Kebeles</span>
         </div>
 
         <div className="bg-white dark:bg-stone-900 p-4 rounded-xl border border-stone-200 dark:border-stone-800 shadow-xs">

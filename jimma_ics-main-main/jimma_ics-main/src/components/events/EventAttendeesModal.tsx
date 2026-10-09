@@ -225,7 +225,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
   };
 
   const handleExportCsv = () => {
-    const headers = ['Pass Number', 'Full Name', 'Phone', 'Email', 'District', 'Organization / Madrasa', 'Seats', 'Status', 'Date Registered', 'Notes'];
+    const headers = ['Pass Number', 'Full Name', 'Phone', 'Email', 'Kebele', 'Organization / Madrasa', 'Seats', 'Status', 'Date Registered', 'Notes'];
     const rows = eventAttendees.map((r) => [
       r.passNumber || '',
       `"${r.fullName}"`,
@@ -556,7 +556,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
                         {att.phone}
                       </td>
                       <td className="p-3 text-stone-600 dark:text-stone-400">
-                        {att.organizationOrMadrasa || `District of ${att.district}`}
+                        {att.organizationOrMadrasa || `Kebele of ${att.district}`}
                       </td>
                       <td className="p-3 text-center font-bold text-stone-800 dark:text-stone-200">
                         {att.attendeesCount}

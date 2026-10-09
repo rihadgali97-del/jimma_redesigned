@@ -540,7 +540,7 @@ export const mockStudents: Student[] = [
       gender: (isMale ? 'Male' : 'Female') as 'Male' | 'Female',
       age: 8 + (i % 8),
       madrasaId: `madrasa-${madrasaIdx}`,
-      madrasaName: `Madrasa Al-Noor District ${madrasaIdx}`,
+      madrasaName: `Madrasa Al-Noor Kebele ${madrasaIdx}`,
       className: `Level ${(i % 3) + 1} (${isMale ? 'Boys' : 'Girls'})`,
       teacherId: `teacher-${(i % 10) + 1}`,
       teacherName: mockTeachers[i % 10].name,

@@ -209,7 +209,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
   const [distFormData, setDistFormData] = useState<Omit<ZakatBeneficiaryDistribution, 'id'>>({
     asnafCategory: 'Al-Fuqara (The Destitute)',
     arabicName: 'الْفُقَرَاءُ',
-    woredaDistrict: 'Gomma District',
+    woredaDistrict: 'Gomma Kebele',
     beneficiaryCount: 150,
     totalDisbursedETB: 600000,
     lastDisbursalDate: new Date().toISOString().split('T')[0],
@@ -404,7 +404,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
 
   // Export CSV
   const handleExportCSV = () => {
-    const headers = ['Receipt No', 'Date', 'Hijri Date', 'Donor Name', 'Anonymous', 'Amount ETB', 'Category', 'Fund', 'District', 'Payment Channel', 'Transaction Ref', 'Tax Code', 'Notes'];
+    const headers = ['Receipt No', 'Date', 'Hijri Date', 'Donor Name', 'Anonymous', 'Amount ETB', 'Category', 'Fund', 'Kebele', 'Payment Channel', 'Transaction Ref', 'Tax Code', 'Notes'];
     const rows = filteredDonations.map((d) => [
       d.receiptNo,
       d.date,
@@ -466,7 +466,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
             Donations & Zakat Ledger
           </h1>
           <p className="text-stone-600 dark:text-stone-400 text-xs sm:text-sm max-w-3xl mt-1">
-            Jimma Zone Shari'ah Audited Contributions, Nisab Calculator, Official Certificate Generator & Asnaf Welfare Distributions across 18 Woredas.
+            Jimma Zone Shari'ah Audited Contributions, Nisab Calculator, Official Certificate Generator & Asnaf Welfare Distributions across 18 Kebeles.
           </p>
         </div>
 
@@ -595,7 +595,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
           </div>
           <div className="flex items-center justify-between text-xs text-stone-500">
             <span>Disbursed: ETB {(totalAsnafDisbursedETB / 1000000).toFixed(2)}M</span>
-            <Badge variant="blue">18 Woredas</Badge>
+            <Badge variant="blue">18 Kebeles</Badge>
           </div>
         </Card>
       </div>
@@ -673,7 +673,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
               <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search donor name, receipt #, phone, district..."
+                placeholder="Search donor name, receipt #, phone, kebele..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-3 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden"
@@ -736,7 +736,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
               >
                 {districtList.map((dist) => (
                   <option key={dist} value={dist}>
-                    {dist === 'All' ? 'All Districts' : dist}
+                    {dist === 'All' ? 'All Kebeles' : dist}
                   </option>
                 ))}
               </select>
@@ -815,7 +815,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                       <th className="p-3.5">Date & Hijri</th>
                       <th className="p-3.5">Donor / Benefactor</th>
                       <th className="p-3.5">Classification & Fund</th>
-                      <th className="p-3.5">District</th>
+                      <th className="p-3.5">Kebele</th>
                       <th className="p-3.5">Payment Channel</th>
                       <th className="p-3.5 text-right">Amount (ETB)</th>
                       <th className="p-3.5 text-center">Actions</th>
@@ -894,7 +894,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                             </div>
                           </td>
 
-                          {/* District */}
+                          {/* Kebele */}
                           <td className="p-3.5 text-stone-600 dark:text-stone-300">
                             {d.district || 'Jimma Zone'}
                           </td>
@@ -1010,7 +1010,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                         <span className="font-mono text-stone-700 dark:text-stone-300">{d.paymentMethod}</span>
                       </div>
                       <div>
-                        <span className="block text-[10px] uppercase font-bold text-stone-400">District</span>
+                        <span className="block text-[10px] uppercase font-bold text-stone-400">Kebele</span>
                         <span>{d.district || 'Jimma Zone'}</span>
                       </div>
                     </div>
@@ -1062,7 +1062,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 Quranic 8 Asnaf Zakat Distribution Ledger
               </h2>
               <p className="text-emerald-200 text-xs sm:text-sm leading-relaxed">
-                Audited allocation from Jimma Council central Zakat treasury directly to eligible verified beneficiaries across 18 districts.
+                Audited allocation from Jimma Council central Zakat treasury directly to eligible verified beneficiaries across 18 kebeles.
               </p>
             </div>
 
@@ -1106,7 +1106,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
 
                   <div className="space-y-1 text-xs text-stone-500 pt-2 border-t border-stone-100 dark:border-stone-800">
                     <div className="flex justify-between">
-                      <span>Woreda Coverage:</span>
+                      <span>Kebele Coverage:</span>
                       <span className="font-medium text-stone-700 dark:text-stone-300">{z.woredaDistrict}</span>
                     </div>
                     <div className="flex justify-between">
@@ -1410,7 +1410,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                District / Origin Woreda
+                Kebele
               </label>
               <select
                 value={formData.district}
@@ -1419,13 +1419,13 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
               >
                 <option value="Jimma City (Central)">Jimma City (Central)</option>
                 <option value="Jimma City (Hirmata)">Jimma City (Hirmata / Merkato)</option>
-                <option value="Gomma District">Gomma District</option>
-                <option value="Mana District">Mana District</option>
+                <option value="Gomma District">Gomma</option>
+                <option value="Mana District">Mana</option>
                 <option value="Limmu Kosa">Limmu Kosa</option>
-                <option value="Kersa District">Kersa District</option>
+                <option value="Kersa District">Kersa</option>
                 <option value="Seka Chekorsa">Seka Chekorsa</option>
                 <option value="Agaro Town">Agaro Town</option>
-                <option value="Dedo District">Dedo District</option>
+                <option value="Dedo District">Dedo</option>
                 <option value="Omo Nada">Omo Nada</option>
                 <option value="Diaspora (North America)">Diaspora (North America)</option>
                 <option value="Diaspora (Middle East)">Diaspora (Middle East / Europe)</option>
@@ -1551,12 +1551,12 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                Target Woredas / Districts *
+                Target Kebeles *
               </label>
               <input
                 type="text"
                 required
-                placeholder="e.g. Kersa & Dedo Districts"
+                placeholder="e.g. Kersa & Dedo Kebeles"
                 value={distFormData.woredaDistrict}
                 onChange={(e) => setDistFormData({ ...distFormData, woredaDistrict: e.target.value })}
                 className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700"

@@ -191,7 +191,7 @@ export const GisMapPage: React.FC = () => {
                 Interactive Jimma Zone GIS Map
               </h1>
               <p className="text-sm sm:text-base text-emerald-100/80 max-w-2xl mt-2 leading-relaxed font-sans">
-                District facts come from the official registry. Institution and Zakat metrics are calculated from linked records; geographic boundaries appear as administrators enter verified data.
+                Kebele facts come from the official registry. Institution and Zakat metrics are calculated from linked records; geographic boundaries appear as administrators enter verified data.
               </p>
             </div>
 
@@ -203,7 +203,7 @@ export const GisMapPage: React.FC = () => {
                 className="bg-stone-900/60 hover:bg-stone-800 text-stone-100 border-stone-700 text-xs font-semibold"
               >
                 <Navigation className="w-4 h-4 mr-1.5 text-emerald-400" />
-                Woreda Center Distance
+                Kebele Center Distance
               </Button>
               <Button
                 variant="primary"
@@ -211,7 +211,7 @@ export const GisMapPage: React.FC = () => {
                 className="bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs shadow-lg"
               >
                 <Printer className="w-4 h-4 mr-1.5" />
-                District Profile Report
+                Kebele Profile Report
               </Button>
             </div>
           </div>
@@ -219,9 +219,9 @@ export const GisMapPage: React.FC = () => {
           {/* Quick Metrics Ribbon */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 mt-8 pt-6 border-t border-emerald-800/60">
             <div className="p-3 bg-white/5 backdrop-blur-xs rounded-2xl border border-white/10">
-              <div className="text-[11px] text-emerald-300 font-medium">Districts (Woredas)</div>
+              <div className="text-[11px] text-emerald-300 font-medium">Kebeles</div>
               <div className="text-xl sm:text-2xl font-bold text-white mt-0.5">{gisSummary.woredaCount}</div>
-              <div className="text-[10px] text-emerald-200/60">Registered Woredas</div>
+              <div className="text-[10px] text-emerald-200/60">Registered Kebeles</div>
             </div>
             <div className="p-3 bg-white/5 backdrop-blur-xs rounded-2xl border border-white/10">
               <div className="text-[11px] text-emerald-300 font-medium">Total Masajid</div>
@@ -257,7 +257,7 @@ export const GisMapPage: React.FC = () => {
         )}
         {isLoadingWoredas && (
           <div className="rounded-xl border border-stone-200 bg-white p-4 text-sm text-stone-600">
-            Loading live Woreda profiles…
+            Loading live kebele profiles…
           </div>
         )}
 
@@ -285,7 +285,7 @@ export const GisMapPage: React.FC = () => {
               }`}
             >
               <TableIcon className="w-4 h-4" />
-              <span>{woredas.length}-Woreda Intelligence Matrix</span>
+              <span>{woredas.length}-Kebele Intelligence Matrix</span>
             </button>
 
             <button
@@ -306,7 +306,7 @@ export const GisMapPage: React.FC = () => {
             <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search woreda, mosque, Imam..."
+              placeholder="Search kebele, mosque, Imam..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-3.5 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-xs text-stone-900 dark:text-stone-100 placeholder-stone-400 outline-none focus:ring-2 focus:ring-emerald-500"
@@ -379,7 +379,7 @@ export const GisMapPage: React.FC = () => {
             {/* Quick Woreda Chip Selector Ribbon */}
             <div className="bg-white dark:bg-stone-900 p-4 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
               <div className="text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-3">
-                Quick Jump to Woreda ({woredas.length} Districts)
+                Quick Jump to Kebele ({woredas.length} Kebeles)
               </div>
               <div className="flex flex-wrap gap-2">
                 {woredas.map((w) => {
@@ -406,7 +406,7 @@ export const GisMapPage: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 2: DISTRICTS INTELLIGENCE MATRIX */}
+        {/* TAB 2: KEBELE INTELLIGENCE MATRIX */}
         {activeTab === 'districts' && (
           <div className="space-y-6">
             {/* Sorting and Search Toolbar */}
@@ -423,17 +423,17 @@ export const GisMapPage: React.FC = () => {
                   <option value="mosques">Mosque Count (Highest First)</option>
                   <option value="students">Student Enrollment</option>
                   <option value="zakat">Annual Zakat Disbursement</option>
-                  <option value="population">District Population</option>
+                  <option value="population">Kebele Population</option>
                   <option value="name">Alphabetical Order</option>
                 </select>
               </div>
 
               <div className="text-stone-500 font-medium">
-                Showing {sortedWoredas.length} of {woredas.length} Woredas
+                Showing {sortedWoredas.length} of {woredas.length} Kebeles
               </div>
             </div>
 
-            {/* Grid of Woreda Dossier Cards */}
+            {/* Grid of Kebele Dossier Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {sortedWoredas.map((w) => (
                 <div
@@ -528,15 +528,15 @@ export const GisMapPage: React.FC = () => {
         {/* TAB 3: INFRASTRUCTURE ANALYTICS */}
         {activeTab === 'analytics' && (
           <div className="space-y-8">
-            {/* Chart 1: Mosques vs Madrasas in Top 10 Districts */}
+            {/* Chart 1: Mosques vs Madrasas in Top 10 Kebeles */}
             <div className="bg-white dark:bg-stone-900 p-6 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-md">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
                 <div>
                   <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100">
-                    Mosque and Madrasa Distribution by District
+                    Mosque and Madrasa Distribution by Kebele
                   </h3>
                   <p className="text-xs text-stone-500">
-                    Live mosque, madrasa, and student records by woreda
+                    Live mosque, madrasa, and student records by kebele
                   </p>
                 </div>
                 <div className="flex items-center gap-4 text-xs font-medium">
@@ -577,7 +577,7 @@ export const GisMapPage: React.FC = () => {
               <div className="bg-white dark:bg-stone-900 p-6 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-md flex flex-col justify-between">
                 <div>
                   <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100">
-                    District Climate & Topographical Stratification
+                    Kebele Climate & Topographical Stratification
                   </h3>
                   <p className="text-xs text-stone-500 mt-1">
                     Affects solar suitability, rainy season accessibility, and seasonal agricultural Zakat cycles
@@ -607,15 +607,15 @@ export const GisMapPage: React.FC = () => {
                 <div className="grid grid-cols-3 gap-2 text-center text-xs pt-4 border-t border-stone-200 dark:border-stone-800">
                   <div className="p-2 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl">
                     <div className="font-bold text-emerald-800 dark:text-emerald-300">Midland (Weyna Dega)</div>
-                    <div className="text-[10px] text-stone-500">11 Woredas • 1,500-1,850m</div>
+                    <div className="text-[10px] text-stone-500">11 Kebeles • 1,500-1,850m</div>
                   </div>
                   <div className="p-2 bg-amber-50 dark:bg-amber-950/40 rounded-xl">
                     <div className="font-bold text-amber-800 dark:text-amber-300">Highland (Dega)</div>
-                    <div className="text-[10px] text-stone-500">6 Woredas • 1,850-2,400m</div>
+                    <div className="text-[10px] text-stone-500">6 Kebeles • 1,850-2,400m</div>
                   </div>
                   <div className="p-2 bg-blue-50 dark:bg-blue-950/40 rounded-xl">
                     <div className="font-bold text-blue-800 dark:text-blue-300">Lowland (Kolla)</div>
-                    <div className="text-[10px] text-stone-500">1 Woreda • &lt; 1,500m</div>
+                    <div className="text-[10px] text-stone-500">1 Kebele • &lt; 1,500m</div>
                   </div>
                 </div>
               </div>

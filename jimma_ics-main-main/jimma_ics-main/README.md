@@ -1,7 +1,7 @@
 # Jimma Zone Islamic Affairs Supreme Council Digital Platform
 ## Majlis Islaamaa Godina Jimmaa • የጅማ ዞን እስልምና ጉዳዮች ከፍተኛ ምክር ቤት
 
-An integrated digital governance portal and civic services platform engineered for the **Jimma Zone Islamic Affairs Supreme Council** in Oromia, Ethiopia. The platform unifies zonal institutional management, public Shari'ah civic services, GIS mosque infrastructure mapping, community crisis broadcasts, financial transparency, and educational administration across all 18 Woredas.
+An integrated digital governance portal and civic services platform engineered for the **Jimma Zone Islamic Affairs Supreme Council** in Oromia, Ethiopia. The platform unifies zonal institutional management, public Shari'ah civic services, GIS mosque infrastructure mapping, community crisis broadcasts, financial transparency, and educational administration across all 18 Kebeles.
 
 ---
 
@@ -9,7 +9,7 @@ An integrated digital governance portal and civic services platform engineered f
 
 ### 1. Civic Services & Shari'ah Desk (`/services`)
 - **Nikah Marriage Registration**: Online application submission, prerequisite checklist, document verification, and appointment scheduling.
-- **Zakat & Social Welfare Aid**: Streamlined application pipeline for eligible mustahiqqeen with district-level casework allocation.
+- **Zakat & Social Welfare Aid**: Streamlined application pipeline for eligible mustahiqqeen with kebele-level casework allocation.
 - **Janazah 24/7 Emergency Support**: Priority response desk for bereavement assistance, ghusl coordination, transport, and cemetery plots.
 - **Real-Time Application Tracker**: Public status desk to track submitted applications using reference numbers (e.g., `REQ-2026-00421`) with live review stages and assigned officer contacts.
 - **Interactive Zakat & Ushr Calculator**:
@@ -17,14 +17,14 @@ An integrated digital governance portal and civic services platform engineered f
   - Multi-asset assessment: cash reserves, business inventory, gold/jewelry, livestock (camels, cattle, sheep/goats), and agricultural harvest Ushr (rain-fed 10% vs. irrigated 5%).
 
 ### 2. GIS Mosques & Madrasas Directory (`/mosques`, `/map`)
-- **Interactive Cartography**: Geospatial mapping of historical and contemporary central mosques across Hermata, Agaro, Kersa, Limmu Kosa, Mana, Seka Chekorsa, and surrounding Woredas.
+- **Interactive Cartography**: Geospatial mapping of historical and contemporary central mosques across Hermata, Agaro, Kersa, Limmu Kosa, Mana, Seka Chekorsa, and surrounding Kebeles.
 - **Institutional Profiles**: Verified prayer times, Jumu'ah capacities, ablution & wudu amenities, Quranic boarding facilities, and imam profiles.
 - **Heritage Documentation**: Detailed architectural and historical profiles of renowned landmark institutions including Grand Anwar Mosque, Aba Jifar Palace Mosque, and traditional Islamic centers of learning.
 
 ### 3. Community Gateway & Broadcast Center
 - **Telegram Channel Integration**: Connected with the official broadcast channel [t.me/emyc1](https://t.me/emyc1) for instant announcements, prayer updates, and public notices.
 - **Zonal SMS / Telegram Dispatcher**: Bulk notification dispatch system supporting critical alerts, emergency janazah notices, and educational sabaq announcements across registered imams and community subscribers.
-- **Event Notification & Reminder Center**: Email and native browser push subscriptions for upcoming Quran Tahfeez competitions, Ulema symposia, youth workshops, and Ramadan community gatherings with customizable timing (instant, 24h prior, 48h prior, weekly Friday digest) and district-level filters.
+- **Event Notification & Reminder Center**: Email and native browser push subscriptions for upcoming Quran Tahfeez competitions, Ulema symposia, youth workshops, and Ramadan community gatherings with customizable timing (instant, 24h prior, 48h prior, weekly Friday digest) and kebele-level filters.
 
 ### 4. Transparency, Waqf & Institutional Governance (`/transparency`, `/about`)
 - **Executive Leadership Directory**: Biographies and portfolios of the Council President, Mufti / Fatwa Board Chairman, General Secretary, and Shari'ah Advisory Board.

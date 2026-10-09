@@ -223,7 +223,7 @@ export const DonationInflowTrendsChart: React.FC<DonationInflowTrendsChartProps>
         targetBenchmark: 7000000,
         yoyGrowthPct: 14.2,
         beneficiariesCount: 2450,
-        milestone: 'Manual Woreda Zakat Collection Registries',
+        milestone: 'Manual Kebele Zakat Collection Registries',
         auditedStatus: 'Verified Audit',
       },
       {
@@ -271,7 +271,7 @@ export const DonationInflowTrendsChart: React.FC<DonationInflowTrendsChartProps>
         targetBenchmark: 25000000,
         yoyGrowthPct: 36.3,
         beneficiariesCount: 8910,
-        milestone: '18-Woreda Asnaf Committee Real-Time Tracking',
+        milestone: '18-Kebele Asnaf Committee Real-Time Tracking',
         auditedStatus: 'Verified Audit',
       },
       {
@@ -766,7 +766,7 @@ export const DonationInflowTrendsChart: React.FC<DonationInflowTrendsChartProps>
             <div className="text-base sm:text-lg font-mono font-bold text-indigo-700 dark:text-indigo-400">
               {annualKpis.totalBeneficiaries.toLocaleString()}+
             </div>
-            <span className="text-[10px] text-stone-400">Families across 18 Woredas</span>
+            <span className="text-[10px] text-stone-400">Families across 18 Kebeles</span>
           </div>
         </div>
       )}
@@ -1008,10 +1008,10 @@ export const DonationInflowTrendsChart: React.FC<DonationInflowTrendsChartProps>
             </div>
             <div className="bg-white dark:bg-stone-900/60 p-2 rounded-lg border border-stone-200/60 dark:border-stone-700/60">
               <span className="font-bold text-teal-600 block">2024: Digital Inflow Expansion</span>
-              <span className="text-stone-500 text-[10px]">CBE Birr & Telebirr merchant accounts rolled out across 18 woredas (+36.9% growth).</span>
+              <span className="text-stone-500 text-[10px]">CBE Birr & Telebirr merchant accounts rolled out across 18 kebeles (+36.9% growth).</span>
             </div>
             <div className="bg-white dark:bg-stone-900/60 p-2 rounded-lg border border-stone-200/60 dark:border-stone-700/60">
-              <span className="font-bold text-amber-600 block">2025: 18-Woreda Asnaf Sync</span>
+              <span className="font-bold text-amber-600 block">2025: 18-Kebele Asnaf Sync</span>
               <span className="text-stone-500 text-[10px]">Beneficiary distribution capacity surpassed 8,900 families zone-wide.</span>
             </div>
             <div className="bg-white dark:bg-stone-900/60 p-2 rounded-lg border border-stone-200/60 dark:border-stone-700/60">

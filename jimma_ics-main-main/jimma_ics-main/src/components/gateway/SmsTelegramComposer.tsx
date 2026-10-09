@@ -129,6 +129,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
       raw = raw
         .replace(/{DeceasedName}/g, deceasedName)
         .replace(/{Age}/g, deceasedAge)
+        .replace(/{Kebele}/g, activeMosque ? activeMosque.district : 'Jimma City')
         .replace(/{Woreda}/g, activeMosque ? activeMosque.district : 'Jimma City')
         .replace(/{JanazahTime}/g, janazahTime)
         .replace(/{MosqueName}/g, activeMosque ? activeMosque.name : 'Grand Anwar Mosque')
@@ -148,7 +149,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
 
       setSenderId('JIMMA-ISLAM');
       setMessageTitle(`Moon Sighting Communique: ${moonOccasion}`);
-      setRecipientTarget(`All 18 Woredas Broadcast (${gatewayStats.telegramSubscribers.toLocaleString()} Subscribers + 142 Imams)`);
+      setRecipientTarget(`All 18 Kebeles Broadcast (${gatewayStats.telegramSubscribers.toLocaleString()} Subscribers + 142 Imams)`);
       setRecipientCount(gatewayStats.telegramSubscribers + 142);
     } else if (category === 'khutbah_advisory') {
       raw = raw
@@ -159,7 +160,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
 
       setSenderId('@JimmaIslamicCouncilBot');
       setMessageTitle(`Unified Khutbah: ${khutbahTheme.slice(0, 30)}...`);
-      setRecipientTarget('Jimma Zone Imams & Ulema League (142 Imams across 18 Woredas)');
+      setRecipientTarget('Jimma Zone Imams & Ulema League (142 Imams across 18 Kebeles)');
       setRecipientCount(142);
     } else {
       setMessageTitle('Official Council Announcement');
@@ -191,6 +192,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
         raw = raw
           .replace(/{DeceasedName}/g, deceasedName)
           .replace(/{Age}/g, deceasedAge)
+          .replace(/{Kebele}/g, activeMosque ? activeMosque.district : 'Jimma City')
           .replace(/{Woreda}/g, activeMosque ? activeMosque.district : 'Jimma City')
           .replace(/{JanazahTime}/g, janazahTime)
           .replace(/{MosqueName}/g, activeMosque ? activeMosque.name : 'Grand Anwar Mosque')
@@ -241,7 +243,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
 
         setMessageContent(raw);
         setMessageTitle(`Moon Sighting Communique: ${moonOccasion}`);
-        setRecipientTarget(`All 18 Woredas Broadcast (${gatewayStats.telegramSubscribers.toLocaleString()} Subscribers + 142 Imams)`);
+        setRecipientTarget(`All 18 Kebeles Broadcast (${gatewayStats.telegramSubscribers.toLocaleString()} Subscribers + 142 Imams)`);
       }
     } else if (selectedCategory === 'khutbah_advisory') {
       const template = gatewayTemplates.find((t) => t.category === 'khutbah_advisory');
@@ -256,7 +258,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
 
         setMessageContent(raw);
         setMessageTitle(`Unified Khutbah: ${khutbahTheme.slice(0, 30)}...`);
-        setRecipientTarget('Jimma Zone Imams & Ulema League (142 Imams across 18 Woredas)');
+        setRecipientTarget('Jimma Zone Imams & Ulema League (142 Imams across 18 Kebeles)');
       }
     }
   }, [deceasedName, deceasedAge, janazahTime, cemeteryName, familyContact, selectedMosqueId, selectedCategory, selectedLanguage, activeStudent, khutbahTheme, moonOccasion, eidLocation, gatewayStats.telegramSubscribers]);
@@ -441,7 +443,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
             {
               id: 'khutbah_advisory' as MessageCategory,
               label: 'Friday Khutbah Guidance',
-              desc: 'Unified theme advisory to 18 Woredas',
+              desc: 'Unified theme advisory to 18 Kebeles',
               icon: <FileText className="w-4 h-4 text-blue-600" />,
             },
             {

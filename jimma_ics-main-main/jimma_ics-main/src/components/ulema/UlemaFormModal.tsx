@@ -136,7 +136,7 @@ export const UlemaFormModal: React.FC<UlemaFormModalProps> = ({ isOpen, profile,
             {field('Full name', 'name', 'text', true)}
             {field('Arabic name', 'arabicName')}
             {field('Title / council role', 'title', 'text', true)}
-            {field('District', 'district', 'text', true)}
+            {field('Kebele', 'district', 'text', true)}
             {field('Contact phone', 'contactPhone', 'tel', true)}
             {field('Email address', 'email', 'email', true)}
             {field('Assigned institution', 'assignedMosqueName')}

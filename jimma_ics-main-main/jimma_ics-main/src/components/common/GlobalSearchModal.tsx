@@ -171,7 +171,7 @@ export const GlobalSearchModal: React.FC = () => {
                 No matching records found for "{query}"
               </p>
               <p className="text-xs mt-1">
-                {isSearchingDirectories ? 'Searching the live mosque and madrasa registry…' : directorySearchError || 'Try searching by district name, scholar title, or service category.'}
+                {isSearchingDirectories ? 'Searching the live mosque and madrasa registry…' : directorySearchError || 'Try searching by kebele name, scholar title, or service category.'}
               </p>
             </div>
           ) : (

@@ -280,7 +280,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold">District / Woreda</label>
+                <label className="text-xs font-semibold">Kebele</label>
                 <select
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}

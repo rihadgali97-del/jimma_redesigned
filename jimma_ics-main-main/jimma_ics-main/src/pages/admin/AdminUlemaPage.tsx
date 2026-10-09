@@ -105,7 +105,7 @@ export const AdminUlemaPage: React.FC = () => {
       <section className="flex flex-col gap-3 rounded-2xl border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-900 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
-          <input aria-label="Search scholars" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search by scholar, role, discipline or district" className="w-full rounded-xl bg-stone-50 py-2.5 pl-10 pr-3 text-sm outline-none ring-1 ring-transparent focus:ring-emerald-500 dark:bg-stone-800" />
+          <input aria-label="Search scholars" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search by scholar, role, discipline or Kebele" className="w-full rounded-xl bg-stone-50 py-2.5 pl-10 pr-3 text-sm outline-none ring-1 ring-transparent focus:ring-emerald-500 dark:bg-stone-800" />
         </div>
         <select aria-label="Filter by directory visibility" value={visibility} onChange={(event) => setVisibility(event.target.value as typeof visibility)} className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm dark:border-stone-700 dark:bg-stone-800">
           <option value="all">All profiles</option><option value="published">Published</option><option value="private">Private</option>
