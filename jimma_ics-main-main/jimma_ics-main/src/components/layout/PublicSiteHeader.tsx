@@ -36,7 +36,7 @@ const serviceLinks = [
   { label: 'All public services', path: '/services' },
   { label: 'Zakat & welfare assistance', path: '/services?apply=srv-2' },
   { label: 'Janazah support', path: '/services?apply=srv-3' },
-  { label: 'Zakat calculator', path: '/services?tab=zakat', icon: Calculator },
+  { label: 'Zakat calculator', path: '/donate?tab=zakat-calculator', icon: Calculator },
   { label: 'Waqf transparency', path: '/services?tab=waqf' },
   { label: 'Track an application', path: '/services?tab=track' },
 ];
@@ -136,7 +136,7 @@ export const PublicSiteHeader: React.FC = () => {
           </p>
           <div className="flex shrink-0 items-center gap-3 text-[11px] font-semibold sm:text-xs">
             <Link
-              to="/services?tab=zakat"
+              to="/donate?tab=zakat-calculator"
               className="hidden items-center gap-1.5 text-emerald-100 transition-colors hover:text-amber-300 sm:inline-flex"
             >
               <Calculator className="h-3.5 w-3.5" />
