@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../../context/AppContext';
+import { KEBELE_NAMES } from '../../../constants/kebeles';
 import { User, UserRole, StaffDepartment, StaffStatus } from '../../../types';
 import {
   X,
@@ -42,7 +43,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     title: '',
     department: 'Education Directorate' as StaffDepartment,
     phone: '',
-    district: 'Jimma Central',
+    district: KEBELE_NAMES[0],
     status: 'Active' as StaffStatus,
     accessLevel: 'Level 3 (Departmental Officer)',
     twoFactorEnabled: true,
@@ -65,18 +66,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     'IT & Media Communications',
   ];
 
-  const districts = [
-    'Jimma Central',
-    'Bosa Kito',
-    'Hermata',
-    'Mendera Kochore',
-    'Bosa Addis',
-    'Agaro',
-    'Seka Chekorsa',
-    'Mana',
-    'Gomma',
-    'Kersa',
-  ];
+  const districts = KEBELE_NAMES;
 
   const accessLevels = [
     'Level 1 (Full System Root)',
@@ -99,7 +89,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
         title: initialStaff.title || '',
         department: (initialStaff.department as StaffDepartment) || 'Education Directorate',
         phone: initialStaff.phone || '',
-        district: initialStaff.district || 'Jimma Central',
+        district: initialStaff.district || KEBELE_NAMES[0],
         status: initialStaff.status || 'Active',
         accessLevel: initialStaff.accessLevel || 'Level 3 (Departmental Officer)',
         twoFactorEnabled: initialStaff.twoFactorEnabled ?? true,
@@ -118,7 +108,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
         title: '',
         department: 'Education Directorate',
         phone: '+251 9',
-        district: 'Jimma Central',
+        district: KEBELE_NAMES[0],
         status: 'Active',
         accessLevel: 'Level 4 (Field & Mosque Staff)',
         twoFactorEnabled: true,
@@ -353,7 +343,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
                     onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                     className="w-full pl-9 pr-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500"
                   >
-                    {districts.map((d) => (
+                    {[...new Set([...districts, ...(districts.includes(formData.district) ? [] : [formData.district])])].map((d) => (
                       <option key={d} value={d}>
                         {d}
                       </option>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CouncilEvent, EventScheduleItem } from '../../types';
 import { useApp } from '../../context/AppContext';
+import { KEBELE_NAMES } from '../../constants/kebeles';
 import {
   X,
   Calendar,
@@ -40,7 +41,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   const [time, setTime] = useState(initialEvent?.time || '08:30 AM - 04:30 PM');
   const [location, setLocation] = useState(initialEvent?.location || 'Grand Anwar Mosque Auditorium');
   const [venueDetails, setVenueDetails] = useState(initialEvent?.venueDetails || 'Main Auditorium & Conference Hall');
-  const [district, setDistrict] = useState(initialEvent?.district || 'Jimma Central');
+  const [district, setDistrict] = useState(initialEvent?.district || KEBELE_NAMES[0]);
   const [organizer, setOrganizer] = useState(initialEvent?.organizer || 'Jimma Islamic Council Education Directorate');
   const [speaker, setSpeaker] = useState(initialEvent?.speaker || 'Sheikh Abdullah Ahmed Al-Jimmawi');
   const [description, setDescription] = useState(
@@ -286,7 +287,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                   onChange={(e) => setDistrict(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs sm:text-sm outline-hidden focus:ring-2 focus:ring-amber-500"
                 >
-                  {['Jimma Central', 'Bosa Kito', 'Hermata', 'Agaro Town', 'Seka Chekorsa', 'Mana', 'Gomma', 'Kersa'].map((d) => (
+                  {[...new Set([...KEBELE_NAMES, ...(KEBELE_NAMES.includes(district) ? [] : [district])])].map((d) => (
                     <option key={d} value={d}>{d}</option>
                   ))}
                 </select>

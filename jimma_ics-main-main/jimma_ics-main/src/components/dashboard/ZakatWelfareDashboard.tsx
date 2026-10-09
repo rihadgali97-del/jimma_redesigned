@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { KEBELE_NAMES } from '../../constants/kebeles';
 import {
   HeartHandshake,
   Users,
@@ -38,7 +39,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
   // Assessment Form states
   const [assessedName, setAssessedName] = useState('');
   const [assessedCategory, setAssessedCategory] = useState<'Destitute' | 'Widows' | 'Orphans' | 'Medical Relief' | 'Emergency'>('Destitute');
-  const [assessedDistrict, setAssessedDistrict] = useState('Jimma Central');
+  const [assessedDistrict, setAssessedDistrict] = useState(KEBELE_NAMES[0]);
   const [assessedDependents, setAssessedDependents] = useState('4');
   const [assessedIncome, setAssessedIncome] = useState('1200');
   const [assessedNotes, setAssessedNotes] = useState('');
@@ -111,8 +112,8 @@ export const ZakatWelfareDashboard: React.FC = () => {
       amountETB: amountNum,
       totalDisbursedETB: amountNum,
       beneficiaryCount: 1,
-      district: 'Jimma Central',
-      woredaDistrict: 'Jimma Central',
+      district: KEBELE_NAMES[0],
+      woredaDistrict: KEBELE_NAMES[0],
       verificationStatus: 'Disbursed',
       disbursementDate: new Date().toISOString().split('T')[0],
       lastDisbursalDate: new Date().toISOString().split('T')[0],
@@ -435,11 +436,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
                     onChange={(e) => setAssessedDistrict(e.target.value)}
                     className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
                   >
-                    <option value="Jimma Central">Jimma Central</option>
-                    <option value="Mendera Kochore">Mendera Kochore</option>
-                    <option value="Hermata">Hermata</option>
-                    <option value="Bosa Addis">Bosa Addis</option>
-                    <option value="Gomma">Gomma Kebele</option>
+                    {KEBELE_NAMES.map((kebele) => <option key={kebele} value={kebele}>{kebele}</option>)}
                   </select>
                 </div>
               </div>

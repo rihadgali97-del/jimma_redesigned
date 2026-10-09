@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { KEBELE_NAMES } from '../../constants/kebeles';
 import {
   Bell,
   BellRing,
@@ -70,17 +71,7 @@ export const EventNotificationModal: React.FC<EventNotificationModalProps> = ({
     'Community Gathering',
   ];
 
-  const districtOptions = [
-    'All',
-    'Jimma Central',
-    'Bosa Kito',
-    'Hermata',
-    'Agaro Town',
-    'Seka Chekorsa',
-    'Mana',
-    'Gomma',
-    'Kersa',
-  ];
+  const districtOptions = ['All', ...KEBELE_NAMES];
 
   // Check browser notification permission on mount
   useEffect(() => {

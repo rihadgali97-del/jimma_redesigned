@@ -101,8 +101,30 @@ async function seedRolePermissions(roleRecords, permissionRecords) {
 }
 
 async function seedWoredas() {
-  for (const code of WOREDA_CODES) {
-    await prisma.woreda.upsert({ where: { code }, update: {}, create: { code } });
+  for (const [index, code] of WOREDA_CODES.entries()) {
+    const woreda = await prisma.woreda.upsert({
+      where: { code },
+      update: {},
+      create: { code },
+    });
+    await prisma.translation.upsert({
+      where: {
+        entityType_entityId_field_locale: {
+          entityType: 'woreda',
+          entityId: woreda.id,
+          field: 'name',
+          locale: 'en',
+        },
+      },
+      update: {},
+      create: {
+        entityType: 'woreda',
+        entityId: woreda.id,
+        field: 'name',
+        locale: 'en',
+        value: `Kebele ${String(index + 1).padStart(2, '0')}`,
+      },
+    });
   }
 }
 

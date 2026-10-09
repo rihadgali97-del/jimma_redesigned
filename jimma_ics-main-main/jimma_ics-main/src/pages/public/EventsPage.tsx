@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { KEBELE_NAMES } from '../../constants/kebeles';
 import { CouncilEvent, EventRegistration } from '../../types';
 import {
   Calendar,
@@ -77,17 +78,7 @@ export const EventsPage: React.FC = () => {
     'Community Gathering',
   ];
 
-  const districts = [
-    'All',
-    'Jimma Central',
-    'Bosa Kito',
-    'Hermata',
-    'Agaro Town',
-    'Seka Chekorsa',
-    'Mana',
-    'Gomma',
-    'Kersa',
-  ];
+  const districts = ['All', ...KEBELE_NAMES];
 
   // Filtered Events
   const filteredEvents = events.filter((e) => {

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { KEBELE_NAMES } from '../../constants/kebeles';
 import {
   HeartHandshake,
   Search,
@@ -185,7 +186,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
     amountETB: 10000,
     fundId: funds[3]?.id || 'fund-4', // Default to Zakat & Social Welfare
     categoryType: 'Zakat ul-Mal' as Donation['categoryType'],
-    district: 'Jimma City (Central)',
+    district: KEBELE_NAMES[0],
     asnafCategory: 'Al-Fuqara (The Destitute)',
     paymentMethod: 'Telebirr' as Donation['paymentMethod'],
     transactionRef: '',
@@ -209,7 +210,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
   const [distFormData, setDistFormData] = useState<Omit<ZakatBeneficiaryDistribution, 'id'>>({
     asnafCategory: 'Al-Fuqara (The Destitute)',
     arabicName: 'الْفُقَرَاءُ',
-    woredaDistrict: 'Gomma Kebele',
+    woredaDistrict: KEBELE_NAMES[6],
     beneficiaryCount: 150,
     totalDisbursedETB: 600000,
     lastDisbursalDate: new Date().toISOString().split('T')[0],
@@ -1417,16 +1418,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                 className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700"
               >
-                <option value="Jimma City (Central)">Jimma City (Central)</option>
-                <option value="Jimma City (Hirmata)">Jimma City (Hirmata / Merkato)</option>
-                <option value="Gomma District">Gomma</option>
-                <option value="Mana District">Mana</option>
-                <option value="Limmu Kosa">Limmu Kosa</option>
-                <option value="Kersa District">Kersa</option>
-                <option value="Seka Chekorsa">Seka Chekorsa</option>
-                <option value="Agaro Town">Agaro Town</option>
-                <option value="Dedo District">Dedo</option>
-                <option value="Omo Nada">Omo Nada</option>
+                {KEBELE_NAMES.map((kebele) => <option key={kebele} value={kebele}>{kebele}</option>)}
                 <option value="Diaspora (North America)">Diaspora (North America)</option>
                 <option value="Diaspora (Middle East)">Diaspora (Middle East / Europe)</option>
               </select>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { KEBELE_NAMES } from '../../constants/kebeles';
 import {
   Wallet,
   ArrowUpRight,
@@ -54,7 +55,7 @@ export const FinanceDashboard: React.FC = () => {
   const [zakatBeneficiary, setZakatBeneficiary] = useState('');
   const [zakatCategory, setZakatCategory] = useState<'Orphans' | 'Widows' | 'Medical Relief' | 'Destitute' | 'Emergency'>('Destitute');
   const [zakatAmount, setZakatAmount] = useState('');
-  const [zakatDistrict, setZakatDistrict] = useState('Jimma Central');
+  const [zakatDistrict, setZakatDistrict] = useState(KEBELE_NAMES[0]);
   const [zakatNotes, setZakatNotes] = useState('');
 
   const totalTreasury = funds.reduce((acc, f) => acc + (f.allocatedETB || 0), 0);
@@ -701,12 +702,7 @@ export const FinanceDashboard: React.FC = () => {
                     onChange={(e) => setZakatDistrict(e.target.value)}
                     className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
                   >
-                    <option value="Jimma Central">Jimma Central</option>
-                    <option value="Mendera Kochore">Mendera Kochore</option>
-                    <option value="Hermata">Hermata</option>
-                    <option value="Bosa Addis">Bosa Addis</option>
-                    <option value="Agaro">Agaro</option>
-                    <option value="Gomma">Gomma</option>
+                    {KEBELE_NAMES.map((kebele) => <option key={kebele} value={kebele}>{kebele}</option>)}
                   </select>
                 </div>
               </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CouncilEvent, EventRegistration } from '../../types';
 import { useApp } from '../../context/AppContext';
+import { KEBELE_NAMES } from '../../constants/kebeles';
 import {
   X,
   Calendar,
@@ -64,7 +65,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [district, setDistrict] = useState(event.district || 'Jimma Central');
+  const [district, setDistrict] = useState(event.district || KEBELE_NAMES[0]);
   const [organization, setOrganization] = useState('');
   const [attendeesCount, setAttendeesCount] = useState(1);
   const [notes, setNotes] = useState('');
@@ -653,7 +654,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                         onChange={(e) => setDistrict(e.target.value)}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs sm:text-sm outline-hidden focus:ring-2 focus:ring-amber-500 text-stone-900 dark:text-stone-100"
                       >
-                        {['Jimma Central', 'Bosa Kito', 'Hermata', 'Agaro Town', 'Seka Chekorsa', 'Mana', 'Gomma', 'Kersa', 'Other Zone'].map((d) => (
+                        {[...new Set([...KEBELE_NAMES, ...(KEBELE_NAMES.includes(district) ? [] : [district]), 'Other Zone'])].map((d) => (
                           <option key={d} value={d}>{d}</option>
                         ))}
                       </select>
