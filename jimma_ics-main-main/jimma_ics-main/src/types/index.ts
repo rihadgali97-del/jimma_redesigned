@@ -95,10 +95,14 @@ export interface SecurityAuditLog {
   details: string;
 }
 
+export type MosqueCategory = "Jumaa'a" | "Jama'a";
+
 export interface Mosque {
   id: string;
   woredaId?: number;
   name: string;
+  code?: string;
+  category?: MosqueCategory;
   arabicName?: string;
   district: string;
   subCityOrWoreda: string;

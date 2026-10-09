@@ -10,7 +10,7 @@ import {
   updateMosqueRecord,
   DirectoryWoreda,
 } from '../../services/directoryApi';
-import { Madrasa } from '../../types';
+import { Madrasa, MosqueCategory } from '../../types';
 import {
   Plus,
   Search,
@@ -34,6 +34,8 @@ export const AdminMosquesPage: React.FC = () => {
   const [editingMosque, setEditingMosque] = useState<(typeof mosques)[number] | null>(null);
 
   const [name, setName] = useState('');
+  const [code, setCode] = useState('');
+  const [category, setCategory] = useState<MosqueCategory | ''>('');
   const [district, setDistrict] = useState('');
   const [selectedWoredaId, setSelectedWoredaId] = useState<number | null>(null);
   const [imam, setImam] = useState('');
@@ -97,6 +99,8 @@ export const AdminMosquesPage: React.FC = () => {
     const s = (searchTerm || '').toLowerCase();
     const matchSearch =
       (m.name || '').toLowerCase().includes(s) ||
+      (m.code || '').toLowerCase().includes(s) ||
+      (m.category || '').toLowerCase().includes(s) ||
       (m.district || '').toLowerCase().includes(s) ||
       (m.imam || '').toLowerCase().includes(s);
     const matchDistrict = selectedDistrict === 'All' || m.district === selectedDistrict;
@@ -106,6 +110,8 @@ export const AdminMosquesPage: React.FC = () => {
   const openAddModal = () => {
     setEditingMosque(null);
     setName('');
+    setCode('');
+    setCategory('');
     const firstActiveWoreda = woredas.find((woreda) => woreda.isActive);
     setDistrict(firstActiveWoreda?.name || '');
     setSelectedWoredaId(firstActiveWoreda?.id || null);
@@ -120,6 +126,8 @@ export const AdminMosquesPage: React.FC = () => {
   const openEditModal = (mosque: (typeof mosques)[number]) => {
     setEditingMosque(mosque);
     setName(mosque.name);
+    setCode(mosque.code || '');
+    setCategory(mosque.category || '');
     const selectedWoreda = woredas.find((woreda) => woreda.id === mosque.woredaId);
     setDistrict(selectedWoreda?.name || mosque.district);
     setSelectedWoredaId(selectedWoreda?.id || null);
@@ -143,8 +151,8 @@ export const AdminMosquesPage: React.FC = () => {
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !imam.trim()) {
-      addToast('Missing Required Fields', 'Please complete the mosque name and imam.', 'warning');
+    if (!name.trim() || !imam.trim() || !category) {
+      addToast('Missing Required Fields', 'Please complete the mosque name, category, and imam.', 'warning');
       return;
     }
 
@@ -153,6 +161,8 @@ export const AdminMosquesPage: React.FC = () => {
       const record = editingMosque
         ? await updateMosqueRecord(editingMosque.id, {
           name: name.trim(),
+          code,
+          category,
           woredaId: Number(selectedWoredaId),
           imam: imam.trim(),
           capacity: Number(capacity),
@@ -161,6 +171,8 @@ export const AdminMosquesPage: React.FC = () => {
         })
         : await createMosqueRecord({
           name: name.trim(),
+          code,
+          category,
           woredaId: Number(selectedWoredaId),
           imam: imam.trim(),
           capacity: Number(capacity),
@@ -267,6 +279,8 @@ export const AdminMosquesPage: React.FC = () => {
             <thead className="bg-stone-50 dark:bg-stone-800 text-stone-500 uppercase text-[10px] font-bold border-b border-stone-200 dark:border-stone-700">
               <tr>
                 <th className="p-3.5">Mosque Name</th>
+                <th className="p-3.5">Koodii</th>
+                <th className="p-3.5">Category</th>
                 <th className="p-3.5">District & Location</th>
                 <th className="p-3.5">Imam Khatib</th>
                 <th className="p-3.5">Capacity</th>
@@ -284,6 +298,8 @@ export const AdminMosquesPage: React.FC = () => {
                     </div>
                     <span className="text-[10px] text-stone-400 font-mono">ID: {m.id}</span>
                   </td>
+                  <td className="p-3.5 font-mono text-stone-600 dark:text-stone-300">{m.code || 'Not listed'}</td>
+                  <td className="p-3.5 text-stone-600 dark:text-stone-300">{m.category || 'Not listed'}</td>
                   <td className="p-3.5 text-stone-600 dark:text-stone-300">
                     <div className="font-semibold">{m.district}</div>
                     <span className="text-[11px] text-stone-400">{m.address}</span>
@@ -324,7 +340,7 @@ export const AdminMosquesPage: React.FC = () => {
         isOpen={isAddModalOpen}
         onClose={handleCloseModal}
         title={editingMosque ? 'Edit Registered Mosque' : 'Register New Mosque in Jimma Zone'}
-        subtitle="Manage the mosque name, woreda, imam, capacity, linked madrasa, description, and photo."
+        subtitle="Manage the mosque name, code, category, woreda, imam, capacity, linked madrasa, description, and photo."
       >
         <form onSubmit={handleAddSubmit} className="space-y-4">
           <p className="rounded-lg bg-blue-50 p-3 text-xs text-blue-800 dark:bg-blue-950/30 dark:text-blue-200">
@@ -342,6 +358,40 @@ export const AdminMosquesPage: React.FC = () => {
               onChange={(e) => setName(e.target.value)}
               className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden"
             />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                Koodii (Mosque Code)
+              </label>
+              <input
+                type="text"
+                maxLength={50}
+                placeholder="e.g. 04/02/01/01"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                Mosque Category *
+              </label>
+              <select
+                required
+                value={category}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setCategory(value === "Jumaa'a" || value === "Jama'a" ? value : '');
+                }}
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700"
+              >
+                <option value="">Select category</option>
+                <option value="Jumaa'a">Jumaa'a</option>
+                <option value="Jama'a">Jama'a</option>
+              </select>
+            </div>
           </div>
 
           <div>

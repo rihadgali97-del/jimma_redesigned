@@ -19,6 +19,8 @@ function toPublic(mosque, translations, photos, locale, madrasaTranslations = {}
   return {
     id: mosque.id,
     name: resolveLocale(translations?.name, locale),
+    code: mosque.code,
+    category: mosque.category,
     description: resolveLocale(translations?.description, locale),
     woreda: {
       id: mosque.woreda.id,

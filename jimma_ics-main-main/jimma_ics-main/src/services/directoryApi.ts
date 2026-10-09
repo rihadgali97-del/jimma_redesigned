@@ -1,9 +1,11 @@
 import { apiRequest, getPublicAssetUrl } from './authApi';
-import { Madrasa, Mosque } from '../types';
+import { Madrasa, Mosque, MosqueCategory } from '../types';
 
 type ApiMosque = {
   id: number;
   name: string;
+  code: string | null;
+  category: MosqueCategory | null;
   description: string | null;
   woreda: { id: number; code: string; name?: string | null };
   latitude: number | null;
@@ -134,10 +136,12 @@ export async function updateWoredaRecord(
   return { ...woreda, name: woreda.name || formatWoreda(woreda.code) };
 }
 
-export async function createMosqueRecord(data: { name: string; woredaId: number; imam: string; capacity: number; description: string; madrasaId: number | null }): Promise<{ id: number }> {
+export async function createMosqueRecord(data: { name: string; code: string; category: MosqueCategory; woredaId: number; imam: string; capacity: number; description: string; madrasaId: number | null }): Promise<{ id: number }> {
   return apiRequest<{ id: number }>('/admin/mosques', {
     method: 'POST',
     body: JSON.stringify({
+      code: data.code.trim() || null,
+      category: data.category,
       woredaId: data.woredaId,
       imamName: data.imam,
       capacity: data.capacity,
@@ -149,10 +153,12 @@ export async function createMosqueRecord(data: { name: string; woredaId: number;
   });
 }
 
-export async function updateMosqueRecord(id: string, data: { name: string; woredaId: number; imam: string; capacity: number; description: string; madrasaId: number | null }): Promise<{ id: number }> {
+export async function updateMosqueRecord(id: string, data: { name: string; code: string; category: MosqueCategory; woredaId: number; imam: string; capacity: number; description: string; madrasaId: number | null }): Promise<{ id: number }> {
   return apiRequest<{ id: number }>(`/admin/mosques/${id}`, {
     method: 'PATCH',
     body: JSON.stringify({
+      code: data.code.trim() || null,
+      category: data.category,
       woredaId: data.woredaId,
       imamName: data.imam,
       capacity: data.capacity,
@@ -230,6 +236,8 @@ function mapMosque(row: ApiMosque): Mosque {
     id: String(row.id),
     woredaId: row.woreda.id,
     name: row.name,
+    code: row.code || undefined,
+    category: row.category || undefined,
     district,
     hasMadrasa: Boolean(row.madrasa),
     madrasaId: row.madrasa ? String(row.madrasa.id) : undefined,

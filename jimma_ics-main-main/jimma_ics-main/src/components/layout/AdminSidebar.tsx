@@ -74,18 +74,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     {
       title: 'Main Operations',
       items: [
-        ...(roleCategory === 'Teacher' ||
-          (Boolean(currentUser.authRole) && checkRoutePermission(currentUser, '/admin/teacher').isAuthorized)
-          ? [
-              {
-                label: 'Tahfeez Sabaq Workbench',
-                path: '/admin/teacher',
-                icon: <BookOpen className="w-4 h-4 text-emerald-400" />,
-                badge: 'Workbench',
-                badgeVariant: 'emerald' as const,
-              },
-            ]
-          : []),
         { label: 'Executive Overview', path: '/admin', icon: <LayoutDashboard className="w-4 h-4" />, end: true },
         { label: 'Mosques Registry', path: '/admin/mosques', icon: <Building className="w-4 h-4" /> },
         { label: 'Madrasas & Centers', path: '/admin/madrasas', icon: <BookOpen className="w-4 h-4" /> },

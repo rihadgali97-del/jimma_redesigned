@@ -19,6 +19,8 @@ export const mosqueIdParamSchema = z.object({
 });
 
 const mosqueBodyBase = {
+  code: z.string().trim().max(50).nullable().optional(),
+  category: z.enum(["Jumaa'a", "Jama'a"]).nullable().optional(),
   woredaId: z.coerce.number().int().positive(),
   latitude: z.coerce.number().min(-90).max(90).optional(),
   longitude: z.coerce.number().min(-180).max(180).optional(),

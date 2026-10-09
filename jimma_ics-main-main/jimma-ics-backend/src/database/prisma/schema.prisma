@@ -422,6 +422,8 @@ model AuditLog {
 // Photos are stored in Cloudinary; only their URL and public ID live here.
 model Mosque {
   id              Int      @id @default(autoincrement())
+  code            String?  @db.VarChar(50)
+  category        String?  @db.VarChar(16)
   woredaId        Int      @map("woreda_id")
   woreda          Woreda   @relation(fields: [woredaId], references: [id])
   latitude        Float?
