@@ -1358,13 +1358,16 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
                 </span>
               </div>
               <div className="flex justify-between text-[11px] text-stone-400">
-                <span>Nisab Benchmark:</span>
+                <span>Nisab Benchmark (compared with net wealth):</span>
                 <span className="font-mono">{nisabThresholdETB.toLocaleString()} ETB</span>
               </div>
             </div>
 
             {/* Zakat Components */}
             <div className="space-y-2 text-xs bg-stone-50 dark:bg-stone-800/50 p-3 rounded-xl border border-stone-200 dark:border-stone-700">
+              <p className="text-[11px] leading-relaxed text-stone-500 dark:text-stone-400">
+                Eligible debts and deductions are subtracted from gross zakatable wealth first. Nisab and Zakat are then calculated from the remaining net wealth; deductions are not subtracted from the payable amount a second time.
+              </p>
               <div className="flex justify-between">
                 <span className="text-stone-600 dark:text-stone-300">Zakat al-Mal (2.5%):</span>
                 <span className="font-mono font-bold text-stone-900 dark:text-stone-100">

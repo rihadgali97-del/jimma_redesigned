@@ -57,6 +57,33 @@ describe('Zakat wealth and Nisab calculations', () => {
     assert.equal(calculate({ cashInHand: 100000, calendarType: 'gregorian' }).zakatAlMalDue, 2577);
   });
 
+  it('deducts eligible debts before Nisab and before calculating the payable amount', () => {
+    const withDebt = calculate({
+      cashInHand: 200000,
+      shortTermDebts: 40000,
+      overdueSupplierInvoices: 10000,
+      dueWagesAndTax: 10000,
+    });
+    const withoutDebt = calculate({ cashInHand: 200000 });
+
+    assert.equal(withDebt.totalDeductions, 60000);
+    assert.equal(withDebt.netZakatableWealth, 140000);
+    assert.equal(withDebt.zakatAlMalDue, 3500);
+    assert.equal(withoutDebt.zakatAlMalDue, 5000);
+    assert.equal(withDebt.grandTotalZakatETB, 3500);
+  });
+
+  it('does not charge monetary Zakat when deductions reduce wealth below Nisab', () => {
+    const result = calculate({
+      cashInHand: 100000,
+      shortTermDebts: 20000,
+    });
+
+    assert.equal(result.netZakatableWealth, 80000);
+    assert.equal(result.isNisabMet, false);
+    assert.equal(result.zakatAlMalDue, 0);
+  });
+
   it('ignores negative or non-finite numeric inputs and avoids a zero-price Nisab', () => {
     const malformed = calculate({
       cashInHand: -100,

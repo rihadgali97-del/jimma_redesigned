@@ -62,6 +62,7 @@ export function calculateZakatFigures(input: ZakatCalculationInputs) {
     : 595 * values.silverPricePerGram;
   const isNisabMet = nisabThresholdETB > 0 && netZakatableWealth >= nisabThresholdETB;
   const zakatRate = values.calendarType === 'hijri' ? 0.025 : 0.02577;
+  // Deduct eligible liabilities from wealth before checking Nisab and applying the rate.
   const zakatAlMalDue = isNisabMet && values.hasHawlPassed
     ? Math.round(netZakatableWealth * zakatRate)
     : 0;
