@@ -120,6 +120,14 @@ export function deleteBrowserPushSubscription(token: string, endpoint: string) {
   });
 }
 
+export function sendBrowserPushTest(token: string, endpoint: string) {
+  return apiRequest<{ id: string; status: 'SENT' }>('/notifications/subscriptions/current/push/test', {
+    method: 'POST',
+    headers: { 'x-notification-manage-token': token },
+    body: JSON.stringify({ endpoint }),
+  });
+}
+
 export function verifyNotificationEmail(token: string) {
   return apiRequest<EventNotificationSubscription>('/notifications/verify-email', {
     method: 'POST',

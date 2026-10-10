@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
+import { readNotificationManageToken, sendBrowserPushTest } from '../../services/notificationsApi';
 
 interface EventNotificationModalProps {
   isOpen: boolean;
@@ -59,6 +60,7 @@ export const EventNotificationModal: React.FC<EventNotificationModalProps> = ({
   const [browserPermission, setBrowserPermission] = useState<NotificationPermission | 'unsupported'>('default');
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSendingTest, setIsSendingTest] = useState(false);
 
   // Available options
   const categoryOptions = [
@@ -173,28 +175,36 @@ export const EventNotificationModal: React.FC<EventNotificationModalProps> = ({
     }
   };
 
-  const handleSendTestAlert = () => {
-    const title = '📢 Test Event Alert • Jimma Islamic Council';
-    const body = 'Annual Jimma Tahfeez Quran Championship begins in 48 hours at Grand Anwar Mosque! Gates open at 8:00 AM.';
-
-    if (browserPermission === 'granted' && typeof window !== 'undefined' && 'Notification' in window) {
-      try {
-        new Notification(title, {
-          body,
-          icon: '/favicon.ico',
-        });
-      } catch {
-        // fallback
-      }
+  const handleSendTestAlert = async () => {
+    if (browserPermission !== 'granted' || !('serviceWorker' in navigator)) {
+      addToast('Browser push is not ready', 'Grant notification permission and enable browser push for this subscription first.', 'error');
+      return;
     }
 
-    addToast(
-      'Test preview shown',
-      browserPermission === 'granted'
-        ? 'A local browser preview was triggered. This does not test email, remote push, or Telegram delivery.'
-        : 'No external notification was sent. This does not test email, remote push, or Telegram delivery.',
-      'info'
-    );
+    const token = primarySub?.manageToken || readNotificationManageToken();
+    if (!token) {
+      addToast('Could not send test push', 'Save your browser notification preferences first.', 'error');
+      return;
+    }
+
+    setIsSendingTest(true);
+    try {
+      const registration = await navigator.serviceWorker.getRegistration('/service-worker.js');
+      const pushSubscription = await registration?.pushManager.getSubscription();
+      if (!pushSubscription) {
+        throw new Error('This browser is not registered for push. Save your browser notification preferences first.');
+      }
+      const result = await sendBrowserPushTest(token, pushSubscription.endpoint);
+      addToast(
+        'Remote push accepted',
+        `The push service accepted a test for this browser. Check this device for the notification (log #${result.id}).`,
+        'success'
+      );
+    } catch (error) {
+      addToast('Remote push test failed', error instanceof Error ? error.message : 'Please try again.', 'error');
+    } finally {
+      setIsSendingTest(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -342,8 +352,10 @@ export const EventNotificationModal: React.FC<EventNotificationModalProps> = ({
                 </div>
 
                 <div className="mt-3 pt-3 border-t border-stone-200/60 dark:border-stone-700/60 flex items-center justify-between text-[11px] text-stone-500">
-                  <span>Delivery status</span>
-                  <span className="font-semibold text-amber-600 dark:text-amber-400">Provider pending</span>
+                  <span>Email verification</span>
+                  <span className={`font-semibold ${primarySub?.emailVerified ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                    {primarySub?.emailVerified ? 'Address verified' : 'Verification required'}
+                  </span>
                 </div>
               </div>
 
@@ -593,10 +605,11 @@ export const EventNotificationModal: React.FC<EventNotificationModalProps> = ({
             <button
               type="button"
               onClick={handleSendTestAlert}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 border border-stone-300 dark:border-stone-700 transition-colors"
+              disabled={isSendingTest || isSaving || !primarySub?.enableBrowser || !enableBrowser}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 border border-stone-300 dark:border-stone-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-3.5 h-3.5 text-amber-500" />
-              Send Test Notification
+              {isSendingTest ? 'Sending Test Push...' : primarySub?.enableBrowser ? 'Send Remote Push Test' : 'Save Browser Push to Test'}
             </button>
 
             <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">

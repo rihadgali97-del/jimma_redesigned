@@ -83,7 +83,7 @@ export const EventNotificationBanner: React.FC<EventNotificationBannerProps> = (
         });
         try {
           new Notification('Jimma Islamic Council • Alerts Active', {
-            body: 'Browser permission is enabled on this device. Remote push delivery is not configured yet.',
+            body: 'This device is registered for remote push alerts about upcoming events.',
             icon: '/favicon.ico',
           });
         } catch {
