@@ -142,6 +142,14 @@ export const PublicSiteHeader: React.FC = () => {
               <Calculator className="h-3.5 w-3.5" />
               Zakat calculator
             </Link>
+            <Link
+              to="/guide"
+              className="inline-flex items-center gap-1.5 text-emerald-100 transition-colors hover:text-amber-300"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Public user guide</span>
+              <span className="sm:hidden">Guide</span>
+            </Link>
             <Link to="/login" className="inline-flex items-center gap-1.5 text-emerald-100 transition-colors hover:text-amber-300">
               <LogIn className="h-3.5 w-3.5 text-amber-300" />
               <span className="hidden sm:inline">{isLoggedIn ? currentUser.role : 'Staff sign in'}</span>

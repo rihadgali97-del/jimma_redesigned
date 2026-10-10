@@ -29,6 +29,7 @@ const DonatePage = lazyPage(() => import('./pages/public/DonatePage'), 'DonatePa
 const EventsPage = lazyPage(() => import('./pages/public/EventsPage'), 'EventsPage');
 const AnnouncementsPage = lazyPage(() => import('./pages/public/AnnouncementsPage'), 'AnnouncementsPage');
 const ContactPage = lazyPage(() => import('./pages/public/ContactPage'), 'ContactPage');
+const UserGuidePage = lazyPage(() => import('./pages/public/UserGuidePage'), 'UserGuidePage');
 const GisMapPage = lazyPage(() => import('./pages/public/GisMapPage'), 'GisMapPage');
 const StaffLoginPage = lazyPage(() => import('./pages/public/StaffLoginPage'), 'StaffLoginPage');
 const TeachersPage = lazyPage(() => import('./pages/public/TeachersPage'), 'TeachersPage');
@@ -94,6 +95,7 @@ export default function App() {
                   <Route path="announcements" element={<AnnouncementsPage />} />
                   <Route path="waqf" element={<Navigate to="/services?tab=waqf" replace />} />
                   <Route path="contact" element={<ContactPage />} />
+                  <Route path="guide" element={<UserGuidePage />} />
                   <Route path="login" element={<StaffLoginPage />} />
                 </Route>
 
