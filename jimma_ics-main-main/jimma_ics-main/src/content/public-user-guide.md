@@ -86,10 +86,10 @@ The calculator is an aid for estimation, not a payment, official application, or
 
 ## Contact, language, and accessibility
 
-- Open [Contact](/contact) for the council's contact desks and frequently asked questions. Use the displayed council contact channels for follow-up.
+- Open [Contact](/contact) for the council's contact desks and frequently asked questions. To submit an official inquiry, enter your name and phone, choose its category and council desk, and describe your question. Email is optional. After submission, save the inquiry reference. To check its status later, enter the reference and the same phone number in **Track an Official Inquiry**; both are required to protect your inquiry details.
 - Use the language selector in the header to choose an available language. Use the theme control to switch between light and dark appearance.
 - The staff sign-in link is for authorized council personnel. Public services, directories, events, announcements, and the calculator are available without staff sign-in.
 
 ## Keep your references safe
 
-Save application references, payment references, event pass numbers, and the phone/email used on each request. Do not share private email-verification links or notification management links with others.
+Save inquiry and application references, payment references, event pass numbers, and the phone/email used on each request. Do not share private email-verification links or notification management links with others.

@@ -31,6 +31,7 @@ import {
   PanelLeftOpen,
   Scale,
   Settings,
+  MessageSquare,
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -119,6 +120,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           badge: pendingServicesCount > 0 ? pendingServicesCount : undefined,
           badgeVariant: 'blue' as const,
         },
+        { label: 'Official Inquiries', path: '/admin/official-inquiries', icon: <MessageSquare className="w-4 h-4" /> },
         { label: 'Interactive GIS Map', path: '/map', icon: <MapPin className="w-4 h-4 text-amber-500" /> },
         { label: 'Events & Programs', path: '/admin/events', icon: <Calendar className="w-4 h-4" /> },
         { label: 'Announcements', path: '/admin/announcements', icon: <Radio className="w-4 h-4" /> },

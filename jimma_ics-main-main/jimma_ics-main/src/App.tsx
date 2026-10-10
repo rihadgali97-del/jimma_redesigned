@@ -56,6 +56,7 @@ const AdminDonationsAndZakatPage = lazyPage(() => import('./pages/admin/AdminDon
 const AdminAuditPage = lazyPage(() => import('./pages/admin/AdminAuditPage'), 'AdminAuditPage');
 const TeacherWorkbenchPage = lazyPage(() => import('./pages/admin/TeacherWorkbenchPage'), 'TeacherWorkbenchPage');
 const AdminZakatApplicationsPage = lazyPage(() => import('./pages/admin/AdminZakatApplicationsPage'), 'AdminZakatApplicationsPage');
+const AdminOfficialInquiriesPage = lazyPage(() => import('./pages/admin/AdminOfficialInquiriesPage'), 'AdminOfficialInquiriesPage');
 const AdminSystemSettingsPage = lazyPage(() => import('./pages/admin/AdminSystemSettingsPage'), 'AdminSystemSettingsPage');
 const AdminWoredasPage = lazyPage(() => import('./pages/admin/AdminWoredasPage'), 'AdminWoredasPage');
 
@@ -121,6 +122,7 @@ export default function App() {
                   <Route path="donations" element={<AdminDonationsAndZakatPage />} />
                   <Route path="zakat" element={<AdminDonationsAndZakatPage />} />
                   <Route path="zakat/applications" element={<AdminZakatApplicationsPage />} />
+                  <Route path="official-inquiries" element={<AdminOfficialInquiriesPage />} />
                   <Route path="services" element={<AdminServicesPage />} />
                   <Route path="gateway" element={<AdminGatewayPage />} />
                   <Route path="events" element={<AdminEventsPage />} />

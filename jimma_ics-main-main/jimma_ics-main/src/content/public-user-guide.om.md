@@ -86,10 +86,10 @@ Herregni kun tilmaama qofaaf gargaara; kaffaltii, iyyata ofiisaa ykn murtii aman
 
 ## Quunnamtii, afaanii fi salphina fayyadamaa
 
-- Odeeffannoo kutaa quunnamtii fi gaaffilee yeroo baay'ee dhiyaataniif [Nu Qunnami](/contact) bani. Deebii argachuuf karaa quunnamtii mana maree agarsiifame fayyadami.
+- Odeeffannoo kutaa quunnamtii fi gaaffilee yeroo baay'ee dhiyaataniif [Nu Qunnami](/contact) bani. Gaaffii ofiisaa erguuf maqaa fi bilbila kee galchi; gosa gaaffii fi kutaa mana maree filadhu; gaaffii kee ibsi. Imeeliin dirqama miti. Erga erguu booda lakkoofsa wabii kuusii. Haala isaa booda ilaaluuf, lakkoofsa wabii fi lakkoofsa bilbilaa yeroo galmee keessatti fayyadamte **Gaaffii Ofiisaa Hordofi** keessatti galchi; lamaan isaanii odeeffannoo gaaffii kee eegsisuuf barbaachisu.
 - Afaan filachuuf filannoo afaanii gubbaa jiru fayyadami. Bifa ifaa fi dukkanaa gidduutti jijjiiruuf qindaa'ina bifa fayyadami.
 - Seensi hojjettootaa hojjettoota mana maree hayyama qaban qofaaf. Tajaajiloota ummataa, galmeewwan, sagantaawwan, beeksisota fi herrega Zakaa fayyadamuuf seensa hojjettootaa hin barbaachisu.
 
 ## Lakkoofsota wabii kee eegadhu
 
-Lakkoofsota wabii iyyataa, wabii kaffaltii, lakkoofsa paasii sagantaa, akkasumas imeelii ykn bilbila iyyata keessatti fayyadamte kuusii. Linkii mirkaneessa imeelii dhuunfaa ykn linkii bulchiinsa beeksisaa nama biraatti hin qoodin.
+Lakkoofsota wabii gaaffii fi iyyataa, wabii kaffaltii, lakkoofsa paasii sagantaa, akkasumas imeelii ykn bilbila iyyata keessatti fayyadamte kuusii. Linkii mirkaneessa imeelii dhuunfaa ykn linkii bulchiinsa beeksisaa nama biraatti hin qoodin.

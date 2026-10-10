@@ -22,6 +22,11 @@ import {
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
+import {
+  submitOfficialInquiry,
+  trackOfficialInquiry,
+  TrackedOfficialInquiry,
+} from '../../services/officialInquiriesApi';
 
 export const ContactPage: React.FC = () => {
   const { addToast } = useApp();
@@ -31,12 +36,18 @@ export const ContactPage: React.FC = () => {
   const [department, setDepartment] = useState('General Secretariat');
   const [inquiryType, setInquiryType] = useState('General');
   const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [submittedInquiry, setSubmittedInquiry] = useState<{
     id: string;
     name: string;
     department: string;
     timestamp: string;
   } | null>(null);
+  const [trackReference, setTrackReference] = useState('');
+  const [trackPhone, setTrackPhone] = useState('');
+  const [tracking, setTracking] = useState(false);
+  const [trackedInquiry, setTrackedInquiry] = useState<TrackedOfficialInquiry | null>(null);
+  const [trackingError, setTrackingError] = useState('');
 
   // FAQ Filter
   const [faqSearch, setFaqSearch] = useState('');
@@ -82,26 +93,41 @@ export const ContactPage: React.FC = () => {
     return matchesSearch && matchesCat;
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone || !message) {
+    if (!name.trim() || !phone.trim() || !message.trim()) {
       addToast('Missing Required Fields', 'Please complete all form fields.', 'warning');
       return;
     }
 
-    const ticketId = `INQ-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    setSubmittedInquiry({
-      id: ticketId,
-      name,
-      department,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    });
-
-    addToast(
-      'Inquiry Dispatched Successfully',
-      `Ticket #${ticketId} registered with the ${department}. We will reach out via ${phone}.`,
-      'success'
-    );
+    setSubmitting(true);
+    try {
+      const inquiry = await submitOfficialInquiry({
+        fullName: name.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+        inquiryType,
+        department,
+        message: message.trim(),
+      });
+      setSubmittedInquiry({
+        id: inquiry.referenceNumber,
+        name: name.trim(),
+        department,
+        timestamp: new Date(inquiry.createdAt).toLocaleString(),
+      });
+      setTrackReference(inquiry.referenceNumber);
+      setTrackPhone(phone.trim());
+      addToast('Inquiry received', `Save reference ${inquiry.referenceNumber} for follow-up.`, 'success');
+    } catch (error) {
+      addToast(
+        'Could not submit inquiry',
+        error instanceof Error ? error.message : 'Please try again.',
+        'error'
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleResetForm = () => {
@@ -110,6 +136,25 @@ export const ContactPage: React.FC = () => {
     setEmail('');
     setMessage('');
     setSubmittedInquiry(null);
+  };
+
+  const handleTrackInquiry = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setTracking(true);
+    setTrackingError('');
+    setTrackedInquiry(null);
+    try {
+      const result = await trackOfficialInquiry(trackReference.trim(), trackPhone.trim());
+      setTrackedInquiry(result);
+    } catch (error) {
+      setTrackingError(
+        error instanceof Error
+          ? error.message
+          : 'Could not find an inquiry with that reference and phone number.'
+      );
+    } finally {
+      setTracking(false);
+    }
   };
 
   return (
@@ -147,19 +192,19 @@ export const ContactPage: React.FC = () => {
               </div>
 
               <div className="text-center space-y-2">
-                <Badge variant="emerald">Ticket Dispatched</Badge>
+                <Badge variant="emerald">Inquiry Received</Badge>
                 <h3 className="font-serif font-bold text-2xl text-stone-900 dark:text-stone-100">
-                  Inquiry Successfully Received
+                  Inquiry Saved for Council Review
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 max-w-md mx-auto">
-                  Jazakallahu Khayran, Brother/Sister {submittedInquiry.name}. Your inquiry has been routed to the{' '}
+                  Thank you, {submittedInquiry.name}. Your inquiry has been recorded for the{' '}
                   <strong className="text-stone-900 dark:text-stone-100">{submittedInquiry.department}</strong>.
                 </p>
               </div>
 
               <div className="p-4 rounded-xl bg-white dark:bg-stone-900 border border-emerald-200 dark:border-emerald-800/80 space-y-2 text-xs font-mono">
                 <div className="flex justify-between">
-                  <span className="text-stone-400">Tracking Reference:</span>
+                  <span className="text-stone-400">Inquiry Reference:</span>
                   <span className="font-bold text-emerald-700 dark:text-emerald-400">{submittedInquiry.id}</span>
                 </div>
                 <div className="flex justify-between">
@@ -167,7 +212,7 @@ export const ContactPage: React.FC = () => {
                   <span className="text-stone-800 dark:text-stone-200">{submittedInquiry.department}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-stone-400">Recorded At:</span>
+                  <span className="text-stone-400">Received At:</span>
                   <span className="text-stone-800 dark:text-stone-200">{submittedInquiry.timestamp}</span>
                 </div>
               </div>
@@ -208,7 +253,10 @@ export const ContactPage: React.FC = () => {
                     </label>
                     <input
                       type="text"
+                      name="fullName"
                       required
+                      minLength={2}
+                      maxLength={150}
                       placeholder="e.g. Brother Ahmed Kebede"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -222,7 +270,10 @@ export const ContactPage: React.FC = () => {
                     </label>
                     <input
                       type="tel"
+                      name="phone"
                       required
+                      minLength={7}
+                      maxLength={30}
                       placeholder="e.g. +251 91 234 5678"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
@@ -238,6 +289,8 @@ export const ContactPage: React.FC = () => {
                     </label>
                     <input
                       type="email"
+                      name="email"
+                      maxLength={255}
                       placeholder="e.g. name@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -287,8 +340,11 @@ export const ContactPage: React.FC = () => {
                     Inquiry Message *
                   </label>
                   <textarea
+                    name="message"
                     rows={4}
                     required
+                    minLength={10}
+                    maxLength={5000}
                     placeholder="Describe your inquiry, proposal, or question in detail..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
@@ -299,10 +355,11 @@ export const ContactPage: React.FC = () => {
                 <Button
                   variant="primary"
                   type="submit"
+                  disabled={submitting}
                   icon={<Send className="w-4 h-4" />}
                   className="w-full justify-center text-sm font-semibold"
                 >
-                  Dispatch Inquiry
+                  {submitting ? 'Submitting…' : 'Submit Inquiry'}
                 </Button>
               </form>
             </Card>
@@ -403,6 +460,59 @@ export const ContactPage: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      <Card className="space-y-4">
+        <div>
+          <h2 className="font-serif text-xl font-bold text-stone-900 dark:text-stone-100">
+            Track an Official Inquiry
+          </h2>
+          <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
+            Enter the inquiry reference and the phone number used when you submitted it.
+          </p>
+        </div>
+        <form onSubmit={handleTrackInquiry} className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+          <label className="space-y-1 text-xs font-semibold text-stone-700 dark:text-stone-300">
+            <span>Inquiry reference</span>
+            <input
+              required
+              value={trackReference}
+              onChange={(event) => setTrackReference(event.target.value)}
+              placeholder="INQ-2026-A8237DF2E0874247"
+              className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2.5 text-sm font-mono text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+            />
+          </label>
+          <label className="space-y-1 text-xs font-semibold text-stone-700 dark:text-stone-300">
+            <span>Submission phone number</span>
+            <input
+              required
+              type="tel"
+              value={trackPhone}
+              onChange={(event) => setTrackPhone(event.target.value)}
+              placeholder="+251 91 234 5678"
+              className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2.5 text-sm font-mono text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+            />
+          </label>
+          <Button type="submit" variant="primary" disabled={tracking}>
+            {tracking ? 'Checking…' : 'Track inquiry'}
+          </Button>
+        </form>
+        {trackingError && (
+          <p role="alert" className="text-sm text-rose-700 dark:text-rose-300">{trackingError}</p>
+        )}
+        {trackedInquiry && (
+          <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm dark:border-emerald-800 dark:bg-emerald-950/30">
+            <p className="font-semibold text-stone-900 dark:text-stone-100">
+              {trackedInquiry.referenceNumber}
+              <span className="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
+                {trackedInquiry.status.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase())}
+              </span>
+            </p>
+            <p className="mt-1 text-xs text-stone-600 dark:text-stone-300">
+              Submitted {new Date(trackedInquiry.createdAt).toLocaleString()} · Last updated {new Date(trackedInquiry.updatedAt).toLocaleString()}
+            </p>
+          </div>
+        )}
+      </Card>
 
       {/* Interactive FAQ Section */}
       <div className="space-y-4 pt-6 border-t border-stone-200 dark:border-stone-800">
