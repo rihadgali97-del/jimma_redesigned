@@ -65,7 +65,7 @@ export async function registerForEventRecord(data: {
   eventId: string;
   fullName: string;
   phone: string;
-  email?: string;
+  email: string;
   district: string;
   organizationOrMadrasa?: string;
   attendeesCount: number;

@@ -131,6 +131,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
   // Walk-in form state
   const [walkInName, setWalkInName] = useState('');
   const [walkInPhone, setWalkInPhone] = useState('');
+  const [walkInEmail, setWalkInEmail] = useState('');
   const [walkInDistrict, setWalkInDistrict] = useState(event.district || 'Jimma Central');
   const [walkInOrg, setWalkInOrg] = useState('');
   const [walkInCount, setWalkInCount] = useState(1);
@@ -193,8 +194,8 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
 
   const handleWalkInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!walkInName.trim() || !walkInPhone.trim()) {
-      addToast('Validation', 'Please provide attendee name and phone.', 'warning');
+    if (!walkInName.trim() || !walkInPhone.trim() || !walkInEmail.trim()) {
+      addToast('Validation', 'Please provide attendee name, phone, and email.', 'warning');
       return;
     }
 
@@ -205,6 +206,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
       eventDate: event.date,
       fullName: walkInName.trim(),
       phone: walkInPhone.trim(),
+      email: walkInEmail.trim(),
       district: walkInDistrict,
       organizationOrMadrasa: walkInOrg.trim() || undefined,
       attendeesCount: Number(walkInCount) || 1,
@@ -216,6 +218,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
 
     setWalkInName('');
     setWalkInPhone('');
+    setWalkInEmail('');
     setWalkInOrg('');
     setShowAddWalkIn(false);
     addToast('Walk-in Added & Checked In', `${reg.fullName} admitted with pass #${reg.passNumber}.`, 'success');
@@ -413,7 +416,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
                 Cancel
               </button>
             </div>
-            <form onSubmit={handleWalkInSubmit} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+            <form onSubmit={handleWalkInSubmit} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 text-xs">
               <input
                 type="text"
                 required
@@ -428,6 +431,14 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
                 placeholder="Phone Number *"
                 value={walkInPhone}
                 onChange={(e) => setWalkInPhone(e.target.value)}
+                className="px-3 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-700"
+              />
+              <input
+                type="email"
+                required
+                placeholder="Email Address *"
+                value={walkInEmail}
+                onChange={(e) => setWalkInEmail(e.target.value)}
                 className="px-3 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-700"
               />
               <input

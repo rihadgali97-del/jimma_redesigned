@@ -90,10 +90,10 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || !phone.trim() || (event.isPaid && !email.trim()) || (event.isPaid && !paymentReceipt)) {
+    if (!fullName.trim() || !phone.trim() || !email.trim() || (event.isPaid && !paymentReceipt)) {
       addToast('Missing Fields', event.isPaid
         ? 'Enter your name, phone, email, and attach your payment receipt.'
-        : 'Please enter your full name and phone number.', 'warning');
+        : 'Please enter your full name, phone number, and email address.', 'warning');
       return;
     }
 
@@ -619,7 +619,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-stone-700 dark:text-stone-300">
-                        Phone Number (SMS Alert) <span className="text-rose-500">*</span>
+                        Phone Number <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="tel"
@@ -633,11 +633,11 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-stone-700 dark:text-stone-300">
-                        Email Address {event.isPaid ? <span className="text-rose-500">*</span> : '(Optional)'}
+                        Email Address <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="email"
-                        required={Boolean(event.isPaid)}
+                        required
                         placeholder="bilal@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}

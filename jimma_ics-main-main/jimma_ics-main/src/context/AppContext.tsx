@@ -220,7 +220,7 @@ interface AppContextType {
   eventRegistrations: EventRegistration[];
   refreshEventRegistrations: (eventId?: string) => Promise<void>;
   findMyEventRegistrations: (email: string, phone: string) => Promise<EventRegistration[]>;
-  registerForEvent: (data: Omit<EventRegistration, 'id' | 'passNumber' | 'status' | 'createdAt'> & { paymentReceipt?: File }) => Promise<EventRegistration>;
+  registerForEvent: (data: Omit<EventRegistration, 'id' | 'passNumber' | 'status' | 'createdAt' | 'email'> & { email: string; paymentReceipt?: File }) => Promise<EventRegistration>;
   reviewEventPayment: (regId: string, paymentStatus: 'APPROVED' | 'REJECTED') => Promise<EventRegistration>;
   fetchEventPaymentReceipt: (regId: string) => Promise<Blob>;
   cancelRegistration: (regId: string) => Promise<void>;
@@ -1629,7 +1629,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const registerForEvent = async (
-    data: Omit<EventRegistration, 'id' | 'passNumber' | 'status' | 'createdAt'> & { paymentReceipt?: File }
+    data: Omit<EventRegistration, 'id' | 'passNumber' | 'status' | 'createdAt' | 'email'> & { email: string; paymentReceipt?: File }
   ): Promise<EventRegistration> => {
     try {
       const newReg = await registerForEventRecord({
