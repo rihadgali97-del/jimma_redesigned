@@ -1,6 +1,6 @@
-# Qajeelfama Fayyadamaa Ummataa
+# Qajeelfama Fayyadama Ummataa
 
-Gara poortaala hawaasaa Mana Maree Islaamaa Jimmaa dhuftan. Qajeelfamni kun fuula ummataa irratti argaman akkamitti akka fayyadamtan ibsa. Fuula ummataa ilaaluuf ykn unka tajaajila ummataa guutuuf herrega hojjettootaa hin barbaachisu.
+Baga Nagaan Gara poortaala hawaasaa Mana Maree Islaamummaa Jimmaatti  dhuftan. Qajeelfamni kun fuula ummataa irratti argaman akkamitti akka fayyadamtan ibsa. Fuula ummataa ilaaluuf ykn unka tajaajila ummataa guutuuf herrega hojjettootaa hin barbaachisu.
 
 ## Geessituuwwan saffisaa
 
