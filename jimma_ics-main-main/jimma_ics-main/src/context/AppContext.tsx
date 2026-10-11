@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import {
   Mosque,
   Madrasa,
@@ -411,6 +411,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [teachersLoading, setTeachersLoading] = useState(false);
   const [teachersError, setTeachersError] = useState('');
+  const teacherRefreshRequest = useRef(0);
   const [ulema, setUlema] = useState<Ulema[]>([]);
   const [ulemaLoading, setUlemaLoading] = useState(false);
   const [ulemaError, setUlemaError] = useState('');
@@ -534,16 +535,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const refreshTeachers = async (adminView = false) => {
+    const requestId = ++teacherRefreshRequest.current;
     setTeachersLoading(true);
     setTeachersError('');
     try {
-      setTeachers(adminView ? await fetchAdminTeachers() : await fetchPublicTeachers());
+      const records = await (adminView ? fetchAdminTeachers() : fetchPublicTeachers());
+      if (requestId === teacherRefreshRequest.current) setTeachers(records);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Could not load teacher records.';
-      setTeachersError(message);
+      if (requestId === teacherRefreshRequest.current) setTeachersError(message);
       throw error;
     } finally {
-      setTeachersLoading(false);
+      if (requestId === teacherRefreshRequest.current) setTeachersLoading(false);
     }
   };
 

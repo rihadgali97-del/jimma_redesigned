@@ -84,7 +84,7 @@ export const AdminTeachersPage: React.FC = () => {
   );
 
   const totalMonthlyHonorarium = teachers.reduce(
-    (acc, t) => acc + (t.salaryETB ?? 8500),
+    (acc, t) => acc + (t.salaryETB ?? 0),
     0
   );
 
@@ -114,7 +114,7 @@ export const AdminTeachersPage: React.FC = () => {
     setSpecialization(teacher.specialization);
     setSanad(teacher.sanad || teacher.qualification);
     setExperienceYears(teacher.experienceYears);
-    setSalaryETB(teacher.salaryETB ?? 9000);
+    setSalaryETB(teacher.salaryETB ?? 0);
     setIsFeatured(Boolean(teacher.isFeatured));
     setIsPublished(Boolean(teacher.isPublished));
     setIsAddModalOpen(true);
@@ -367,7 +367,7 @@ export const AdminTeachersPage: React.FC = () => {
                 </tr>
               ) : (
                 pagination.paginatedItems.map((t) => {
-                  const safeSalary = t.salaryETB ?? 8500;
+                  const salary = t.salaryETB;
                   const safeStudents = t.assignedStudentsCount ?? t.studentsCount ?? 25;
                   const safeSanad = t.sanad || t.qualification || 'Authentic Sanad';
 
@@ -422,7 +422,7 @@ export const AdminTeachersPage: React.FC = () => {
                         {safeStudents}
                       </td>
                       <td className="p-3.5 font-mono font-bold text-stone-900 dark:text-stone-100">
-                        {safeSalary.toLocaleString()} ETB
+                        {salary === undefined ? 'Not set' : `${salary.toLocaleString()} ETB`}
                       </td>
                       <td className="p-3.5">
                         <button
@@ -715,7 +715,9 @@ export const AdminTeachersPage: React.FC = () => {
               <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700">
                 <span className="text-stone-400 block mb-0.5">Monthly Honorarium</span>
                 <span className="font-mono font-bold text-stone-900 dark:text-stone-100">
-                  {(selectedTeacherForDetail.salaryETB ?? 8500).toLocaleString()} ETB
+                  {selectedTeacherForDetail.salaryETB === undefined
+                    ? 'Not set'
+                    : `${selectedTeacherForDetail.salaryETB.toLocaleString()} ETB`}
                 </span>
               </div>
             </div>
