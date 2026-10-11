@@ -84,7 +84,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       items: [
         { label: 'Students & Hifz Records', path: '/admin/students', icon: <GraduationCap className="w-4 h-4" /> },
         { label: 'Teachers & Mu’allims', path: '/admin/teachers', icon: <Users2 className="w-4 h-4" /> },
-        { label: 'Materials & Khutbahs', path: '/admin/resources', icon: <BookOpen className="w-4 h-4 text-emerald-400" /> },
         { label: 'Ulema & Fatwa Board', path: '/admin/ulema', icon: <Users className="w-4 h-4" /> },
       ],
     },
