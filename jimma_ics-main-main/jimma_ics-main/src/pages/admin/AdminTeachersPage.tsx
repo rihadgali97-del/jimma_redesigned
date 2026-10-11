@@ -34,6 +34,7 @@ export const AdminTeachersPage: React.FC = () => {
   const [selectedMadrasaFilter, setSelectedMadrasaFilter] = useState('ALL');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<'ALL' | 'Active' | 'On Leave'>('ALL');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
   const [selectedTeacherForDetail, setSelectedTeacherForDetail] = useState<Teacher | null>(null);
 
   // Form State
@@ -89,7 +90,42 @@ export const AdminTeachersPage: React.FC = () => {
 
   const certifiedCount = teachers.filter((t) => t.isCertified ?? true).length;
 
-  const handleAddSubmit = async (e: React.FormEvent) => {
+  const openAddModal = () => {
+    setEditingTeacher(null);
+    setName('');
+    setPhone('');
+    setEmail('');
+    setMadrasaId(madrasas[0]?.id || 'madrasa-1');
+    setSpecialization('Hifz & Tajweed');
+    setSanad('Hafs an Asim (Shatibiyyah Tariq)');
+    setExperienceYears(8);
+    setSalaryETB(9000);
+    setIsFeatured(false);
+    setIsPublished(false);
+    setIsAddModalOpen(true);
+  };
+
+  const openEditModal = (teacher: Teacher) => {
+    setEditingTeacher(teacher);
+    setName(teacher.name);
+    setPhone(teacher.phone);
+    setEmail(teacher.email);
+    setMadrasaId(teacher.madrasaId);
+    setSpecialization(teacher.specialization);
+    setSanad(teacher.sanad || teacher.qualification);
+    setExperienceYears(teacher.experienceYears);
+    setSalaryETB(teacher.salaryETB ?? 9000);
+    setIsFeatured(Boolean(teacher.isFeatured));
+    setIsPublished(Boolean(teacher.isPublished));
+    setIsAddModalOpen(true);
+  };
+
+  const closeTeacherModal = () => {
+    setIsAddModalOpen(false);
+    setEditingTeacher(null);
+  };
+
+  const handleTeacherSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim() || !email.trim()) {
       addToast('Missing Fields', 'Please provide the teacher name, phone number, and email.', 'warning');
@@ -102,36 +138,35 @@ export const AdminTeachersPage: React.FC = () => {
       return;
     }
 
-    const created = await addTeacher({
+    const teacherData = {
       name: name.trim(),
       phone: phone.trim(),
       email: email.trim(),
-      madrasaId: madrasaId,
-      madrasaName: assignedMadrasa?.name || 'Madrasa Darul Uloom',
+      madrasaId,
+      madrasaName: assignedMadrasa.name,
       specialization: specialization.trim() || 'Hifz & Tajweed',
       sanad: sanad.trim() || 'Council Certified Sanad',
       qualification: sanad.trim() || 'Certified Mu’allim License',
-      experienceYears: Number(experienceYears) || 5,
-      studentsCount: 25,
-      assignedStudentsCount: 25,
-      salaryETB: Number(salaryETB) || 9000,
-      status: 'Active',
-      isCertified: true,
+      experienceYears: Number(experienceYears),
+      salaryETB: Number(salaryETB),
       isFeatured,
       isPublished,
-    });
-    if (!created) return;
+    };
 
-    setIsAddModalOpen(false);
-    setName('');
-    setPhone('');
-    setEmail('');
-    setSpecialization('Hifz & Tajweed');
-    setSanad('Hafs an Asim (Shatibiyyah Tariq)');
-    setExperienceYears(8);
-    setSalaryETB(9000);
-    setIsFeatured(false);
-    setIsPublished(false);
+    if (editingTeacher) {
+      const updated = await updateTeacher(editingTeacher.id, teacherData);
+      if (!updated) return;
+    } else {
+      const created = await addTeacher({
+        ...teacherData,
+        studentsCount: 25,
+        assignedStudentsCount: 25,
+        status: 'Active',
+        isCertified: true,
+      });
+      if (!created) return;
+    }
+    closeTeacherModal();
   };
 
   const toggleStatus = (teacher: Teacher) => {
@@ -173,7 +208,7 @@ export const AdminTeachersPage: React.FC = () => {
           variant="primary"
           size="sm"
           icon={<Plus className="w-4 h-4" />}
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={openAddModal}
         >
           Register Mu'allim
         </Button>
@@ -424,6 +459,15 @@ export const AdminTeachersPage: React.FC = () => {
                       </td>
                       <td className="p-3.5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(t)}
+                            className="p-1.5 text-stone-400 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg transition-colors"
+                            title={`Edit ${t.name}`}
+                            aria-label={`Edit ${t.name}`}
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -451,14 +495,16 @@ export const AdminTeachersPage: React.FC = () => {
         <div className="p-4"><PaginationControls {...pagination} itemLabel="teachers" onPageChange={pagination.setPage} /></div>
       </Card>
 
-      {/* Add Teacher Modal */}
+      {/* Add/Edit Teacher Modal */}
       <Modal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        title="Register Faculty Mu'allim"
-        subtitle="Add accredited Quranic teacher with Sanad verification into the Jimma City central council."
+        onClose={closeTeacherModal}
+        title={editingTeacher ? 'Edit Faculty Mu’allim' : "Register Faculty Mu'allim"}
+        subtitle={editingTeacher
+          ? 'Update this teacher’s contact, assignment, qualification, and directory details.'
+          : 'Add accredited Quranic teacher with Sanad verification into the Jimma City central council.'}
       >
-        <form onSubmit={handleAddSubmit} className="space-y-4">
+        <form onSubmit={handleTeacherSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
               Teacher Full Name *
@@ -522,7 +568,16 @@ export const AdminTeachersPage: React.FC = () => {
 
           <div className="grid grid-cols-1 gap-3 rounded-xl border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-800 sm:grid-cols-2">
             <label className="flex items-start gap-2 text-xs text-stone-700 dark:text-stone-200">
-              <input type="checkbox" checked={isPublished} onChange={(event) => setIsPublished(event.target.checked)} className="mt-0.5 accent-emerald-700" />
+              <input
+                type="checkbox"
+                checked={isPublished}
+                onChange={(event) => {
+                  const published = event.target.checked;
+                  setIsPublished(published);
+                  if (!published) setIsFeatured(false);
+                }}
+                className="mt-0.5 accent-emerald-700"
+              />
               <span><strong>Show in public directory</strong><span className="mt-1 block text-[11px] text-stone-500">Visitors can see the teacher’s name, qualifications, specialization, and assigned madrasa.</span></span>
             </label>
             <label className="flex items-start gap-2 text-xs text-stone-700 dark:text-stone-200">
@@ -566,7 +621,7 @@ export const AdminTeachersPage: React.FC = () => {
               </label>
               <input
                 type="number"
-                min="1"
+                min="0"
                 max="50"
                 value={experienceYears}
                 onChange={(e) => setExperienceYears(Number(e.target.value))}
@@ -580,7 +635,7 @@ export const AdminTeachersPage: React.FC = () => {
               </label>
               <input
                 type="number"
-                min="3000"
+                min="0"
                 step="500"
                 value={salaryETB}
                 onChange={(e) => setSalaryETB(Number(e.target.value))}
@@ -590,11 +645,11 @@ export const AdminTeachersPage: React.FC = () => {
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-100 dark:border-stone-800">
-            <Button variant="ghost" type="button" onClick={() => setIsAddModalOpen(false)}>
+            <Button variant="ghost" type="button" onClick={closeTeacherModal}>
               Cancel
             </Button>
             <Button variant="primary" type="submit">
-              Register Mu'allim
+              {editingTeacher ? 'Save Changes' : "Register Mu'allim"}
             </Button>
           </div>
         </form>
