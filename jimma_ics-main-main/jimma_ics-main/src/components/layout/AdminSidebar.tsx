@@ -14,7 +14,6 @@ import {
   Users2,
   Users,
   WalletCards,
-  FileCheck2,
   HeartHandshake,
   HandHeart,
   Calendar,
@@ -93,11 +92,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       title: 'Finance & Endowment',
       items: [
         { label: 'Financial Control Center', path: '/admin/finance', icon: <WalletCards className="w-4 h-4" />, end: true },
-        {
-          label: 'Expense Approvals',
-          path: '/admin/finance/approvals',
-          icon: <FileCheck2 className="w-4 h-4" />,
-        },
         { label: 'Donations & Zakat Logs', path: '/admin/finance/donations', icon: <HeartHandshake className="w-4 h-4" /> },
         { label: 'Zakat Applications', path: '/admin/zakat/applications', icon: <Scale className="w-4 h-4 text-amber-500" /> },
         { label: 'Audit & Compliance', path: '/admin/audit', icon: <Scale className="w-4 h-4 text-amber-500" /> },

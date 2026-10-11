@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft, ArrowRight, Eye, EyeOff, Landmark, LockKeyhole, Mail, Phone, ShieldCheck, UserRound } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { getAuthorizedDashboard, checkRoutePermission } from '../../middleware/authMiddleware';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
+import { resendStaffVerification, verifyStaffEmail } from '../../services/authApi';
 
 type FormMode = 'login' | 'register';
 
@@ -23,6 +24,25 @@ export const StaffLoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const verificationTokenHandled = useRef<string | null>(null);
+
+  useEffect(() => {
+    const token = new URLSearchParams(location.search).get('verifyEmail');
+    if (!token || verificationTokenHandled.current === token) return;
+    verificationTokenHandled.current = token;
+    setIsLoading(true);
+    verifyStaffEmail(token)
+      .then(() => {
+        setSuccessMessage('Your email is verified. A council administrator must assign your staff role before you can sign in.');
+        const params = new URLSearchParams(location.search);
+        params.delete('verifyEmail');
+        navigate({ pathname: location.pathname, search: params.toString() ? `?${params}` : '' }, { replace: true });
+      })
+      .catch((error: unknown) => {
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to verify your email. Request a new verification email and try again.');
+      })
+      .finally(() => setIsLoading(false));
+  }, [location.pathname, location.search, navigate]);
 
   useEffect(() => {
     if (!authReady || !isLoggedIn) return;
@@ -51,7 +71,7 @@ export const StaffLoginPage: React.FC = () => {
         setMode('login');
         setPassword('');
         setConfirmPassword('');
-        setSuccessMessage('Your account was created. Sign in to continue. A council administrator must assign your staff role before staff workspace access is enabled.');
+        setSuccessMessage('Your account request was created. Check your email and verify your address. A council administrator must then assign your staff role before you can sign in.');
       } else {
         const user = await login(email, password, rememberMe);
         const redirect = new URLSearchParams(location.search).get('redirect');
@@ -134,7 +154,7 @@ export const StaffLoginPage: React.FC = () => {
                 {mode === 'login' ? 'Welcome back' : 'Request a council account'}
               </h2>
               <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-                {mode === 'login' ? 'Enter the email and password associated with your account.' : 'New accounts start with no staff permissions. An administrator assigns access.'}
+                {mode === 'login' ? 'Sign-in is available after email verification and administrator approval.' : 'Verify your email after registration. An administrator then assigns your staff role.'}
               </p>
             </div>
 
@@ -206,6 +226,25 @@ export const StaffLoginPage: React.FC = () => {
                 {!isLoading && <ArrowRight className="h-4 w-4" />}
               </Button>
             </form>
+
+            {mode === 'login' && (
+              <button
+                type="button"
+                disabled={isLoading || !email}
+                onClick={async () => {
+                  setErrorMessage('');
+                  try {
+                    await resendStaffVerification(email);
+                    setSuccessMessage('If your account needs verification, a new email has been sent.');
+                  } catch (error) {
+                    setErrorMessage(error instanceof Error ? error.message : 'Unable to send a verification email.');
+                  }
+                }}
+                className="w-full text-center text-sm font-semibold text-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-300"
+              >
+                Resend verification email
+              </button>
+            )}
 
             <p className="flex items-center justify-center gap-2 border-t border-stone-100 pt-4 text-xs text-stone-500 dark:border-stone-800 dark:text-stone-400">
               <ShieldCheck className="h-4 w-4 text-emerald-600" /> Role and permissions are checked by the backend

@@ -15,6 +15,7 @@ export interface AuthUser {
   fullName: string;
   email: string;
   phone?: string | null;
+  emailVerified?: boolean;
   role: string;
   roleId: number;
   permissions: string[];
@@ -198,11 +199,26 @@ export async function loginWithPassword(email: string, password: string, remembe
 export function registerAccount(data: { fullName: string; email: string; phone?: string; password: string }) {
   return publicRequest<{
     accountCreated: boolean;
+    emailVerificationRequired: boolean;
     awaitingRoleAssignment: boolean;
     user: AuthUser;
   }>('/auth/register', {
     method: 'POST',
     body: JSON.stringify(data),
+  });
+}
+
+export function verifyStaffEmail(token: string) {
+  return publicRequest<{ emailVerified: boolean; awaitingAdministratorApproval: boolean }>('/auth/verify-email', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  });
+}
+
+export function resendStaffVerification(email: string) {
+  return publicRequest<{ message: string }>('/auth/resend-verification', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
   });
 }
 
