@@ -1,4 +1,5 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000/api/v1').replace(/\/$/, '');
+import { API_BASE_URL, API_ORIGIN } from './apiConfig';
+
 const SESSION_KEY = 'jimma_ics_auth_session';
 
 export function getApiUrl(path: string) {
@@ -7,7 +8,7 @@ export function getApiUrl(path: string) {
 
 export function getPublicAssetUrl(path: string) {
   if (!path) return '';
-  return new URL(path, new URL(API_BASE_URL, window.location.origin).origin).toString();
+  return new URL(path, `${API_ORIGIN}/`).toString();
 }
 
 export interface AuthUser {

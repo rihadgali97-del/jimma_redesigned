@@ -5,10 +5,9 @@ import {
   User,
 } from '../types';
 import { apiRequest } from './authApi';
+import { API_BASE_URL, API_ORIGIN } from './apiConfig';
 
 type Metadata = Record<string, unknown>;
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000/api/v1').replace(/\/$/, '');
-const API_ORIGIN = new URL(API_BASE_URL, window.location.origin).origin;
 
 function resolveStaffPhotoUrl(url: string): string {
   const resolved = new URL(url, `${API_ORIGIN}/`);

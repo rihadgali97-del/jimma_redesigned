@@ -2,10 +2,10 @@ FROM node:20-alpine AS base
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
 
 COPY . .
-RUN npx prisma generate
+RUN npm run prisma:generate
 
 ENV NODE_ENV=production
 EXPOSE 4000

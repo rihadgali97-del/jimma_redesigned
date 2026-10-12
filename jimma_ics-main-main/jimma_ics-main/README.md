@@ -107,6 +107,9 @@ Open your browser and navigate to `http://localhost:3000`.
 
 ### Production Build & Linting
 
+- **API URL**: Local development uses `http://localhost:4000/api/v1`. Before
+  building for production, set `VITE_API_BASE_URL` to the public HTTPS API URL;
+  production bundles fail fast if it is missing or not HTTPS.
 - **Type-Check & Linting**:
   ```bash
   npm run lint

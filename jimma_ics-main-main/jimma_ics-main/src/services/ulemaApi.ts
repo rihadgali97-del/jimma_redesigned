@@ -1,5 +1,6 @@
 import { Ulema } from '../types';
 import { apiRequest } from './authApi';
+import { API_BASE_URL, API_ORIGIN } from './apiConfig';
 
 type ApiUlema = Omit<Ulema, 'id' | 'avatar'> & {
   id: number;
@@ -7,9 +8,6 @@ type ApiUlema = Omit<Ulema, 'id' | 'avatar'> & {
 };
 
 export type UlemaInput = Omit<Ulema, 'id' | 'avatar'> & { avatar?: string };
-
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000/api/v1').replace(/\/$/, '');
-const API_ORIGIN = new URL(API_BASE_URL, window.location.origin).origin;
 
 function resolveAvatarUrl(url?: string | null) {
   if (!url) return '';
