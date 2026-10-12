@@ -52,6 +52,8 @@ import {
   updateAuditDirective as updateAuditDirectiveApi,
 } from '../../services/auditComplianceApi';
 
+type AuditorTab = 'overview' | 'directives' | 'ledger' | 'checklist' | 'vouchers' | 'security' | 'certificate';
+
 export const AuditorDashboard: React.FC = () => {
   const {
     transactions,
@@ -115,9 +117,8 @@ export const AuditorDashboard: React.FC = () => {
   }, [defaultAuditChecklist, auditReloadKey]);
 
   // Navigation tabs
-  const [activeTab, setActiveTab] = useState<
-    'overview' | 'directives' | 'ledger' | 'checklist' | 'vouchers' | 'security' | 'certificate'
-  >('overview');
+  const [activeTab, setActiveTab] = useState<AuditorTab>('overview');
+  const isActiveTab = (tab: AuditorTab) => activeTab === tab;
 
   // Reconciliation state
   const [isVerifying, setIsVerifying] = useState(false);
@@ -366,7 +367,7 @@ export const AuditorDashboard: React.FC = () => {
   const selectedVoucher = expenseApprovals.find((v) => v.id === selectedVoucherId) || expenseApprovals[0];
 
   if (activeTab === 'overview') {
-    const sections: { id: typeof activeTab; title: string; description: string; icon: React.ReactNode; count: string }[] = [
+    const sections: { id: Exclude<AuditorTab, 'overview'>; title: string; description: string; icon: React.ReactNode; count: string }[] = [
       { id: 'directives', title: 'Audit findings', description: 'Create, assign, escalate, and resolve review findings.', icon: <AlertTriangle className="h-5 w-5" />, count: `${openDirectivesCount} open` },
       { id: 'checklist', title: 'Compliance checklist', description: 'Review standards and record verification notes.', icon: <ShieldCheck className="h-5 w-5" />, count: `${compliantChecklistCount}/${totalChecklistCount} compliant` },
       { id: 'ledger', title: 'Data integrity', description: 'Create a SHA-256 snapshot of persisted donation and Zakat records.', icon: <Database className="h-5 w-5" />, count: integritySnapshot ? `${integritySnapshot.checkedRecords} records scanned` : 'Not scanned' },
@@ -476,7 +477,7 @@ export const AuditorDashboard: React.FC = () => {
       </div>
 
       {/* Overview metrics are hidden while a specific feature is selected. */}
-      {activeTab === 'overview' && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {isActiveTab('overview') && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="space-y-2 relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">
@@ -580,7 +581,7 @@ export const AuditorDashboard: React.FC = () => {
         <button
           onClick={() => setActiveTab('overview')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold whitespace-nowrap transition-all ${
-            activeTab === 'overview'
+            isActiveTab('overview')
               ? 'bg-amber-600 text-white shadow-xs'
               : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
           }`}
@@ -651,7 +652,7 @@ export const AuditorDashboard: React.FC = () => {
       </div>
 
       {/* TAB 1: EXECUTIVE AUDIT OVERVIEW */}
-      {activeTab === 'overview' && (
+      {isActiveTab('overview') && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Shari'ah & Institutional Compliance Status Card */}
@@ -1431,14 +1432,14 @@ export const AuditorDashboard: React.FC = () => {
                 >
                   <div className="flex items-center justify-between font-mono font-bold">
                     <span className="text-amber-700 dark:text-amber-400">{v.id}</span>
-                    <span className="text-stone-900 dark:text-stone-100 font-mono">ETB {v.amount.toLocaleString()}</span>
+                    <span className="text-stone-900 dark:text-stone-100 font-mono">ETB {v.amountETB.toLocaleString()}</span>
                   </div>
                   <div className="font-sans font-semibold text-stone-800 dark:text-stone-200 truncate">
                     {v.title}
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-stone-400 pt-1">
-                    <span>{v.department}</span>
-                    <Badge variant={stampedVouchers[v.id] === 'Passed' ? 'emerald' : v.status === 'Approved' ? 'emerald' : 'amber'}>
+                    <span>{v.role}</span>
+                    <Badge variant={stampedVouchers[v.id] === 'Passed' ? 'emerald' : v.status === 'Finance Approved' ? 'emerald' : 'amber'}>
                       {stampedVouchers[v.id] || v.status}
                     </Badge>
                   </div>
@@ -1457,7 +1458,7 @@ export const AuditorDashboard: React.FC = () => {
                       <span className="text-sm font-mono font-bold text-amber-700 dark:text-amber-400">
                         {selectedVoucher.id}
                       </span>
-                      <Badge variant="gold">{selectedVoucher.department}</Badge>
+                      <Badge variant="gold">{selectedVoucher.role}</Badge>
                       {stampedVouchers[selectedVoucher.id] && (
                         <Badge variant={stampedVouchers[selectedVoucher.id] === 'Passed' ? 'emerald' : 'error'}>
                           Audit Stamped: {stampedVouchers[selectedVoucher.id]}
@@ -1471,7 +1472,7 @@ export const AuditorDashboard: React.FC = () => {
 
                   <div className="text-right">
                     <div className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 font-mono">
-                      ETB {selectedVoucher.amount.toLocaleString()}
+                      ETB {selectedVoucher.amountETB.toLocaleString()}
                     </div>
                     <span className="text-xs text-stone-400">Date: {selectedVoucher.date}</span>
                   </div>
@@ -1480,19 +1481,19 @@ export const AuditorDashboard: React.FC = () => {
                 <div className="space-y-3 text-xs">
                   <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 space-y-1">
                     <span className="font-bold text-stone-400 uppercase text-[10px]">Justification & Purpose:</span>
-                    <p className="text-stone-700 dark:text-stone-300 leading-relaxed">{selectedVoucher.purpose}</p>
+                    <p className="text-stone-700 dark:text-stone-300 leading-relaxed">{selectedVoucher.justification || selectedVoucher.description}</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="p-3 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 space-y-1">
                       <span className="font-bold text-stone-400 uppercase text-[10px]">Submitted By:</span>
-                      <div className="font-bold text-stone-800 dark:text-stone-200">{selectedVoucher.submittedBy}</div>
-                      <div className="text-[11px] text-stone-500 font-mono">Department: {selectedVoucher.department}</div>
+                      <div className="font-bold text-stone-800 dark:text-stone-200">{selectedVoucher.requestedBy}</div>
+                      <div className="text-[11px] text-stone-500 font-mono">Department: {selectedVoucher.role}</div>
                     </div>
 
                     <div className="p-3 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 space-y-1">
                       <span className="font-bold text-stone-400 uppercase text-[10px]">Target Fund Allocation:</span>
-                      <div className="font-bold text-stone-800 dark:text-stone-200">{selectedVoucher.fund}</div>
+                      <div className="font-bold text-stone-800 dark:text-stone-200">{selectedVoucher.fundName}</div>
                       <div className="text-[11px] text-stone-500 font-mono">Dual-Authorization: Verified</div>
                     </div>
                   </div>

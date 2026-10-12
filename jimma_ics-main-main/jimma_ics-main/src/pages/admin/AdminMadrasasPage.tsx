@@ -337,7 +337,7 @@ export const AdminMadrasasPage: React.FC = () => {
                     <span className="text-[10px] text-stone-400 font-mono">ID: {m.id}</span>
                   </td>
                   <td className="p-3.5">
-                    <Badge variant="gold">{m.level || 'Registered'}</Badge>
+                    <Badge variant="gold">{m.levels[0] || 'Registered'}</Badge>
                   </td>
                   <td className="p-3.5 text-stone-600 dark:text-stone-300 font-medium">
                     {m.district}

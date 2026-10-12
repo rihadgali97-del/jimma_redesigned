@@ -67,7 +67,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const roleCategory = getUserRoleCategory(currentUser);
 
   const pendingServicesCount = serviceRequests.filter(
-    (s) => s.status === 'Submitted' || s.status === 'In Review'
+    (s) => s.status === 'Submitted' || s.status === 'Under Review'
   ).length;
 
   const rawNavGroups: SidebarNavGroup[] = [

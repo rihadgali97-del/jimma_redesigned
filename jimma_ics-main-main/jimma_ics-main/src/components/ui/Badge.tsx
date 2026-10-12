@@ -2,7 +2,7 @@ import React from 'react';
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'emerald' | 'gold' | 'amber' | 'blue' | 'rose' | 'slate' | 'teal' | 'outline';
+  variant?: 'emerald' | 'gold' | 'amber' | 'blue' | 'rose' | 'slate' | 'teal' | 'outline' | 'success' | 'warning' | 'error' | 'stone' | 'purple';
   size?: 'sm' | 'md';
   className?: string;
 }
@@ -24,6 +24,11 @@ export const Badge: React.FC<BadgeProps> = ({
     slate: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700',
     teal: 'bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200 dark:border-teal-800',
     outline: 'bg-transparent text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-700',
+    success: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800',
+    warning: 'bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300 border border-orange-200 dark:border-orange-800',
+    error: 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800',
+    stone: 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border border-stone-200 dark:border-stone-700',
+    purple: 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800',
   };
 
   return (

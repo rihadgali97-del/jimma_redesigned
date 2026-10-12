@@ -23,6 +23,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { IncomeExpenseChart, FundDistributionCard } from '../charts/FinancialCharts';
+import type { Transaction } from '../../types';
 
 export const FinanceDashboard: React.FC = () => {
   const {
@@ -48,7 +49,16 @@ export const FinanceDashboard: React.FC = () => {
   const [txCategory, setTxCategory] = useState('Zakat Collection');
   const [txAmount, setTxAmount] = useState('');
   const [txDescription, setTxDescription] = useState('');
-  const [txPaymentMethod, setTxPaymentMethod] = useState('Telebirr');
+  const [txPaymentMethod, setTxPaymentMethod] = useState<Transaction['paymentMethod']>('Telebirr');
+  const paymentMethods: Transaction['paymentMethod'][] = [
+    'Telebirr',
+    'CBE Birr',
+    'Bank Transfer',
+    'Cash',
+    'Cheque',
+    'Awash Bank',
+    'International Remittance',
+  ];
   const [txFundId, setTxFundId] = useState('fund-zakat');
 
   // Form states for Zakat Disbursal
@@ -60,7 +70,7 @@ export const FinanceDashboard: React.FC = () => {
 
   const totalTreasury = funds.reduce((acc, f) => acc + (f.allocatedETB || 0), 0);
   const pendingApprovals = expenseApprovals.filter(
-    (e) => e.status === 'Pending' || e.status === 'Under Review'
+    (e) => e.status === 'Pending Review'
   );
 
   const totalDonationsMonth = donations.reduce((acc, d) => acc + (d.amountETB || 0), 0);
@@ -77,6 +87,11 @@ export const FinanceDashboard: React.FC = () => {
       addToast('Missing Description', 'Please provide a clear transaction memo.', 'error');
       return;
     }
+    const selectedFund = funds.find((fund) => fund.id === txFundId);
+    if (!selectedFund) {
+      addToast('Fund Required', 'Select a valid fund before recording the transaction.', 'error');
+      return;
+    }
 
     addTransaction({
       date: new Date().toISOString().split('T')[0],
@@ -84,9 +99,11 @@ export const FinanceDashboard: React.FC = () => {
       category: txCategory,
       amountETB: amountNum,
       description: txDescription,
-      paymentMethod: txPaymentMethod as any,
+      paymentMethod: txPaymentMethod,
       fundId: txFundId,
+      fundName: selectedFund.name,
       status: 'Completed',
+      recordedBy: currentUser.name,
     });
 
     addToast(
@@ -351,7 +368,7 @@ export const FinanceDashboard: React.FC = () => {
                           {req.title}
                         </h4>
                         <p className="text-xs text-stone-600 dark:text-stone-300 mt-0.5">
-                          Requested by: <span className="font-semibold">{req.requestedBy}</span> ({req.department})
+                          Requested by: <span className="font-semibold">{req.requestedBy}</span> ({req.role})
                         </p>
                       </div>
                       <div className="text-right">
@@ -385,7 +402,7 @@ export const FinanceDashboard: React.FC = () => {
                         className="text-xs"
                         icon={<CheckCircle2 className="w-3.5 h-3.5" />}
                         onClick={() => {
-                          updateExpenseStatus(req.id, 'Approved', 'Approved by Finance Officer');
+                          updateExpenseStatus(req.id, 'Finance Approved', 'Approved by Finance Officer');
                           addToast('Voucher Approved', `Voucher ${req.id} (ETB ${req.amountETB.toLocaleString()}) approved.`, 'success');
                         }}
                       >
@@ -573,12 +590,15 @@ export const FinanceDashboard: React.FC = () => {
                   </label>
                   <select
                     value={txPaymentMethod}
-                    onChange={(e) => setTxPaymentMethod(e.target.value)}
+                    onChange={(e) => {
+                      const method = paymentMethods.find((item) => item === e.target.value);
+                      if (method) setTxPaymentMethod(method);
+                    }}
                     className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
                   >
                     <option value="Telebirr">Telebirr Merchant</option>
                     <option value="Bank Transfer">CBE Direct Transfer</option>
-                    <option value="Cash Receipt">Council Cash Receipt</option>
+                    <option value="Cash">Council Cash Receipt</option>
                     <option value="Cheque">Awash Bank Cheque</option>
                   </select>
                 </div>

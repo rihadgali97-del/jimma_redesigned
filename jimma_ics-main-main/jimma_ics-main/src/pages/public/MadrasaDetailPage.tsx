@@ -17,13 +17,14 @@ import {
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
+import type { Madrasa } from '../../types';
 
 export const MadrasaDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { madrasas = [], students = [], teachers = [], mosques = [] } = useApp();
   const navigate = useNavigate();
 
-  const madrasa =
+  const madrasa: Madrasa =
     (madrasas || []).find((m) => m.id === id) ||
     (madrasas || [])[0] || {
       id: 'madrasa-1',
@@ -45,6 +46,7 @@ export const MadrasaDetailPage: React.FC = () => {
       status: 'active',
       shifts: ['Morning', 'Afternoon', 'Weekend'],
       contactPhone: '+251 47 111 8290',
+      image: '',
       description: 'The premier Islamic educational institution in Jimma City.',
       accreditationStatus: 'Fully Accredited',
     };

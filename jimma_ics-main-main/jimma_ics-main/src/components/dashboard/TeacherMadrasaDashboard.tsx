@@ -21,6 +21,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Link } from 'react-router-dom';
+import type { Student } from '../../types';
 
 export const TeacherMadrasaDashboard: React.FC = () => {
   const {
@@ -36,7 +37,7 @@ export const TeacherMadrasaDashboard: React.FC = () => {
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStudentForSabaq, setSelectedStudentForSabaq] = useState<any | null>(null);
+  const [selectedStudentForSabaq, setSelectedStudentForSabaq] = useState<Student | null>(null);
   const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
   const [isSabaqModalOpen, setIsSabaqModalOpen] = useState(false);
   const [isSendingSms, setIsSendingSms] = useState(false);
@@ -91,22 +92,32 @@ export const TeacherMadrasaDashboard: React.FC = () => {
         'success'
       );
     } catch (err) {
-      addToast('Dispatch Completed', `Sent attendance notices to ${absentCount} parent contacts.`, 'success');
+      addToast(
+        'SMS Dispatch Failed',
+        err instanceof Error ? err.message : 'Could not send attendance notices. Please try again.',
+        'error'
+      );
     } finally {
       setIsSendingSms(false);
     }
   };
 
-  const handleSaveSabaq = (e: React.FormEvent) => {
+  const handleSaveSabaq = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStudentForSabaq) return;
 
-    void updateStudentProgress(selectedStudentForSabaq.id, {
-      juzCompleted: parseInt(sabaqJuz, 10) || selectedStudentForSabaq.juzCompleted,
-      currentSurah: sabaqSurah,
-      lastTestedDate: new Date().toISOString().split('T')[0],
-      retentionScore: sabaqGrade === 'Mumtaz' ? 98 : sabaqGrade === 'Jayyid Jiddan' ? 90 : 80,
+    const saved = await updateStudentProgress(selectedStudentForSabaq.id, {
+      quranJuzCompleted: parseInt(sabaqJuz, 10) || selectedStudentForSabaq.quranJuzCompleted,
+      sabaqSurah,
+      tajweedRating: sabaqGrade === 'Mumtaz'
+        ? 'Excellent'
+        : sabaqGrade === 'Jayyid Jiddan'
+          ? 'Very Good'
+          : sabaqGrade === 'Jayyid'
+            ? 'Good'
+            : 'Needs Practice',
     });
+    if (!saved) return;
 
     addToast(
       'Daily Sabaq Recorded',
@@ -130,14 +141,20 @@ export const TeacherMadrasaDashboard: React.FC = () => {
       madrasaName: newMadrasa,
       teacherId: 'teacher-1',
       teacherName: currentUser.name || 'Ustadh Yusuf Ali',
-      juzCompleted: parseInt(newStartJuz, 10) || 1,
-      currentSurah: 'Surah Al-Baqarah',
+      className: 'Advanced Tahfeez Level 3',
+      attendanceRate: 100,
+      quranJuzCompleted: parseInt(newStartJuz, 10) || 1,
+      currentJuz: parseInt(newStartJuz, 10) || 1,
+      currentJuzProgress: 0,
+      hifzStatus: { sabaq: 'Surah Al-Baqarah', sabqi: '', manzil: '' },
+      tajweedRating: 'Needs Practice',
+      examScoreAvg: 0,
       status: 'Active',
       enrollmentDate: new Date().toISOString().split('T')[0],
+      parentName: 'Ato Mohammed',
+      parentPhone: newParentPhone,
       guardianName: 'Ato Mohammed',
       guardianPhone: newParentPhone,
-      retentionScore: 92,
-      lastTestedDate: new Date().toISOString().split('T')[0],
     });
 
     addToast('Student Enrolled', `${newName} has been enrolled in ${newMadrasa}.`, 'success');
@@ -261,7 +278,7 @@ export const TeacherMadrasaDashboard: React.FC = () => {
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-serif font-bold text-amber-700 dark:text-amber-400 font-mono">
-            {students.filter((s) => s.juzCompleted >= 25).length}{' '}
+            {students.filter((s) => s.quranJuzCompleted >= 25).length}{' '}
             <span className="text-sm font-sans font-normal text-stone-500">candidates</span>
           </div>
           <div className="text-xs text-stone-400 flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800">
@@ -300,7 +317,7 @@ export const TeacherMadrasaDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredStudents.map((student) => {
             const currentAttendance = attendanceMap[student.id] || 'Present';
-            const progressPercent = Math.min(100, Math.round((student.juzCompleted / 30) * 100));
+            const progressPercent = Math.min(100, Math.round((student.quranJuzCompleted / 30) * 100));
 
             return (
               <div
@@ -352,7 +369,7 @@ export const TeacherMadrasaDashboard: React.FC = () => {
                     <div className="flex justify-between text-[11px] font-mono">
                       <span className="text-stone-500">Progress:</span>
                       <span className="font-bold text-emerald-700 dark:text-emerald-400">
-                        {student.juzCompleted} / 30 Juz ({progressPercent}%)
+                        {student.quranJuzCompleted} / 30 Juz ({progressPercent}%)
                       </span>
                     </div>
                     <div className="w-full h-2 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
@@ -362,8 +379,8 @@ export const TeacherMadrasaDashboard: React.FC = () => {
                       />
                     </div>
                     <div className="flex justify-between text-[10px] text-stone-400 pt-0.5">
-                      <span>Current: {student.currentSurah || 'Surah Al-Baqarah'}</span>
-                      <span>Retention: {student.retentionScore || 90}%</span>
+                      <span>Current: {student.sabaqSurah || student.hifzStatus.sabaq || 'Surah Al-Baqarah'}</span>
+                      <span>Exam average: {student.examScoreAvg}%</span>
                     </div>
                   </div>
                 </div>
@@ -387,8 +404,8 @@ export const TeacherMadrasaDashboard: React.FC = () => {
                       className="text-[10px] h-7 px-2.5"
                       onClick={() => {
                         setSelectedStudentForSabaq(student);
-                        setSabaqJuz(student.juzCompleted.toString());
-                        setSabaqSurah(student.currentSurah || 'Surah Al-Kahf');
+                        setSabaqJuz(student.quranJuzCompleted.toString());
+                        setSabaqSurah(student.sabaqSurah || student.hifzStatus.sabaq || 'Surah Al-Kahf');
                         setIsSabaqModalOpen(true);
                       }}
                     >

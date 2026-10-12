@@ -439,7 +439,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const refreshJanazahRequests = async () => {
     try {
       const requests = await fetchJanazahRequests();
-      const mapped = requests.map((request) => ({
+      const mapped = requests.map((request): ServiceRequest => ({
         id: String(request.id),
         trackingNo: request.referenceNumber,
         serviceType: 'Janazah Support',

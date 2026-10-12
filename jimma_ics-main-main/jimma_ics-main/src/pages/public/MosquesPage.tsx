@@ -98,7 +98,6 @@ export const MosquesPage: React.FC = () => {
           const facilitiesList = mosque.facilities || [];
           const imageSrc =
             mosque.image ||
-            mosque.imageUrl ||
             'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=800&q=80';
 
           return (

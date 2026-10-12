@@ -20,12 +20,14 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Link } from 'react-router-dom';
+import type { CouncilEvent, MessageChannel } from '../../types';
 
 export const MediaBroadcastDashboard: React.FC = () => {
   const {
-    messages,
+    dispatchHistory,
     dispatchMessage,
     events,
+    eventRegistrations,
     checkInAttendee,
     currentUser,
     addToast,
@@ -37,7 +39,7 @@ export const MediaBroadcastDashboard: React.FC = () => {
 
   // Form states
   const [targetGroup, setTargetGroup] = useState('All Registered Jimma Residents (18,450)');
-  const [msgChannel, setMsgChannel] = useState<'SMS_AND_TELEGRAM' | 'SMS_ONLY' | 'TELEGRAM_ONLY'>('SMS_AND_TELEGRAM');
+  const [msgChannel, setMsgChannel] = useState<MessageChannel>('hybrid');
   const [msgContent, setMsgContent] = useState('');
   const [isDispatching, setIsDispatching] = useState(false);
 
@@ -47,13 +49,32 @@ export const MediaBroadcastDashboard: React.FC = () => {
 
   const [telecomBalance, setTelecomBalance] = useState(14500);
 
-  const totalDispatches = messages.length;
-  const activeEvent = events[0] || {
+  const totalDispatches = dispatchHistory.length;
+  const activeEvent: CouncilEvent = events[0] || {
     id: 'evt-1',
     title: 'Annual Jimma Islamic Heritage & Hifz Graduation Ceremony',
-    registeredCount: 420,
-    checkedInCount: 185,
+    category: 'Community Gathering',
+    date: '',
+    hijriDate: '',
+    time: '',
+    location: 'Jimma',
+    district: 'Jimma',
+    organizer: 'Jimma Islamic Council',
+    speaker: 'Council Representative',
+    description: '',
+    attendeesCount: 420,
+    maxCapacity: 420,
+    isFeatured: false,
+    image: '',
+    registrationOpen: false,
   };
+  const activeEventRegistrations = eventRegistrations.filter(
+    (registration) => registration.eventId === activeEvent.id
+  );
+  const registeredCount = activeEventRegistrations.length || activeEvent.attendeesCount;
+  const checkedInCount = activeEventRegistrations.filter(
+    (registration) => registration.status === 'Checked-In'
+  ).length;
 
   const handleDispatch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,11 +86,14 @@ export const MediaBroadcastDashboard: React.FC = () => {
     setIsDispatching(true);
     try {
       await dispatchMessage({
-        type: 'Public_Announcement',
-        recipientGroup: targetGroup,
+        title: 'Public Announcement',
+        category: 'general_bulletin',
         channel: msgChannel,
-        messageContent: msgContent,
-        authorName: currentUser.name,
+        senderId: currentUser.id,
+        recipientTarget: targetGroup,
+        recipientCount: Number(targetGroup.match(/\(([\d,]+)\)/)?.[1]?.replace(/,/g, '') || 0),
+        content: msgContent,
+        costETB: 180,
       });
 
       addToast(
@@ -87,15 +111,32 @@ export const MediaBroadcastDashboard: React.FC = () => {
     }
   };
 
-  const handleManualCheckIn = (e: React.FormEvent) => {
+  const handleManualCheckIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!scanPassCode.trim()) return;
 
-    addToast(
-      'Gate Pass Verified & Checked In',
-      `Attendee with Pass #${scanPassCode.toUpperCase()} admitted to ${activeEvent.title}.`,
-      'success'
+    const registration = eventRegistrations.find(
+      (item) => item.eventId === activeEvent.id &&
+        item.passNumber?.toUpperCase() === scanPassCode.trim().toUpperCase()
     );
+    if (!registration) {
+      addToast('Pass Not Found', 'No registration matches this pass for the active event.', 'error');
+      return;
+    }
+    if (registration.status === 'Cancelled') {
+      addToast('Pass Cancelled', 'This registration was cancelled and cannot be checked in.', 'error');
+      return;
+    }
+    if (registration.status === 'Checked-In') {
+      addToast('Already Checked In', 'This attendee has already been admitted.', 'info');
+      return;
+    }
+    try {
+      await checkInAttendee(registration.id);
+    } catch (error) {
+      addToast('Check-in Failed', error instanceof Error ? error.message : 'Please try again.', 'error');
+      return;
+    }
     setIsCheckInModalOpen(false);
     setScanPassCode('');
   };
@@ -223,7 +264,7 @@ export const MediaBroadcastDashboard: React.FC = () => {
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-serif font-bold text-purple-700 dark:text-purple-400 font-mono">
-            {activeEvent.checkedInCount || 185} / {activeEvent.registeredCount || 420}
+            {checkedInCount} / {registeredCount}
           </div>
           <div className="text-xs text-stone-400 flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800">
             <span>Live Gate Check-in</span>
@@ -255,7 +296,7 @@ export const MediaBroadcastDashboard: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              {messages.map((msg) => (
+              {dispatchHistory.map((msg) => (
                 <div
                   key={msg.id}
                   className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700/80 space-y-2.5"
@@ -263,24 +304,24 @@ export const MediaBroadcastDashboard: React.FC = () => {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <span className="text-[10px] font-mono font-bold text-blue-600 uppercase">
-                        {msg.type} • {msg.channel}
+                        {msg.category} • {msg.channel}
                       </span>
                       <h4 className="font-bold text-sm text-stone-900 dark:text-stone-100 mt-0.5">
-                        {msg.recipientGroup}
+                        {msg.title} · {msg.recipientTarget}
                       </h4>
                     </div>
-                    <Badge variant={msg.status === 'Delivered' ? 'emerald' : 'gold'}>
+                    <Badge variant={msg.status === 'delivered' ? 'emerald' : 'gold'}>
                       {msg.status}
                     </Badge>
                   </div>
 
                   <p className="text-xs text-stone-600 dark:text-stone-300 bg-white dark:bg-stone-900 p-2.5 rounded-xl border border-stone-100 dark:border-stone-800 font-mono text-[11px] leading-relaxed">
-                    "{msg.messageContent}"
+                    "{msg.content}"
                   </p>
 
                   <div className="flex items-center justify-between text-[11px] text-stone-400 pt-1 border-t border-stone-200/60 dark:border-stone-700">
-                    <span>Sender: {msg.authorName || 'Media Directorate'}</span>
-                    <span>{new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span>Sender: {msg.senderId}</span>
+                    <span>{msg.timestamp}</span>
                   </div>
                 </div>
               ))}
@@ -307,13 +348,13 @@ export const MediaBroadcastDashboard: React.FC = () => {
               <div className="flex justify-between text-stone-600 dark:text-stone-300">
                 <span>Admitted Guests:</span>
                 <span className="font-mono font-bold text-purple-700 dark:text-purple-400">
-                  {activeEvent.checkedInCount} / {activeEvent.registeredCount} (44%)
+                  {checkedInCount} / {registeredCount}
                 </span>
               </div>
               <div className="w-full h-2 bg-purple-200 dark:bg-purple-900 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-purple-600 rounded-full"
-                  style={{ width: `${Math.round(((activeEvent.checkedInCount || 185) / (activeEvent.registeredCount || 420)) * 100)}%` }}
+                  style={{ width: `${registeredCount ? Math.round((checkedInCount / registeredCount) * 100) : 0}%` }}
                 />
               </div>
 
@@ -399,12 +440,12 @@ export const MediaBroadcastDashboard: React.FC = () => {
                 </label>
                 <select
                   value={msgChannel}
-                  onChange={(e) => setMsgChannel(e.target.value as any)}
+                  onChange={(e) => setMsgChannel(e.target.value as MessageChannel)}
                   className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
                 >
-                  <option value="SMS_AND_TELEGRAM">SMS + Telegram (Dual Channel)</option>
-                  <option value="SMS_ONLY">SMS Only (Ethio Telecom)</option>
-                  <option value="TELEGRAM_ONLY">Telegram Channel Only</option>
+                  <option value="hybrid">SMS + Telegram (Dual Channel)</option>
+                  <option value="sms">SMS Only (Ethio Telecom)</option>
+                  <option value="telegram">Telegram Channel Only</option>
                 </select>
               </div>
 

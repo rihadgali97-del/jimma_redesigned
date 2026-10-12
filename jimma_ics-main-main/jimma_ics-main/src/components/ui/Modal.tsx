@@ -4,10 +4,11 @@ import { X } from 'lucide-react';
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
   subtitle?: string;
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -16,7 +17,8 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   subtitle,
   children,
-  maxWidth = 'lg',
+  maxWidth,
+  size,
 }) => {
   useEffect(() => {
     if (isOpen) {
@@ -39,6 +41,7 @@ export const Modal: React.FC<ModalProps> = ({
     '2xl': 'max-w-2xl',
     '3xl': 'max-w-4xl',
   };
+  const resolvedWidth = maxWidth || size || 'lg';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
@@ -50,16 +53,14 @@ export const Modal: React.FC<ModalProps> = ({
 
       {/* Modal Dialog */}
       <div
-        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-2xl z-10 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-150`}
+        className={`relative w-full ${maxWidthClasses[resolvedWidth]} bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-2xl z-10 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-150`}
         role="dialog"
         aria-modal="true"
       >
         {/* Modal Header */}
-        <div className="flex items-start justify-between p-5 md:p-6 border-b border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/50">
+        <div className={`flex items-start justify-between ${title || subtitle ? 'p-5 md:p-6 border-b border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/50' : 'p-2'}`}>
           <div>
-            <h3 className="text-lg md:text-xl font-bold text-stone-900 dark:text-stone-100 font-serif">
-              {title}
-            </h3>
+            {title && <h3 className="text-lg md:text-xl font-bold text-stone-900 dark:text-stone-100 font-serif">{title}</h3>}
             {subtitle && (
               <p className="text-xs md:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
                 {subtitle}

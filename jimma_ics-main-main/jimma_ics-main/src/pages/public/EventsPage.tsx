@@ -140,7 +140,7 @@ export const EventsPage: React.FC = () => {
   };
 
   const handleOpenExistingPass = (reg: EventRegistration) => {
-    const matchedEvent = events.find((e) => e.id === reg.eventId) || {
+    const matchedEvent: CouncilEvent = events.find((e) => e.id === reg.eventId) || {
       id: reg.eventId,
       title: reg.eventTitle,
       category: 'Community Gathering',
@@ -149,10 +149,12 @@ export const EventsPage: React.FC = () => {
       time: '09:00 AM',
       location: 'Grand Anwar Mosque',
       district: reg.district,
+      organizer: 'Jimma Islamic Council',
       speaker: 'Council Representative',
       description: '',
       attendeesCount: reg.attendeesCount,
       maxCapacity: 100,
+      isFeatured: false,
       registrationOpen: true,
       image: 'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=1200&q=80',
     };

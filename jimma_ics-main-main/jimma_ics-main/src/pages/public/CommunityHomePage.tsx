@@ -184,7 +184,7 @@ export const CommunityHomePage: React.FC = () => {
           <div className="space-y-3">
             {mosques.slice(0, 2).map((mosque) => (
               <Link key={mosque.id} to={`/mosques/${mosque.id}`} className="flex items-center gap-3 rounded-2xl border border-stone-100 p-3 transition hover:border-emerald-700/30 hover:bg-stone-50 dark:border-stone-800 dark:hover:bg-stone-800">
-                <img src={mosque.imageUrl} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-16 w-16 shrink-0 rounded-xl bg-stone-200 object-cover dark:bg-stone-700" />
+                <img src={mosque.image} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-16 w-16 shrink-0 rounded-xl bg-stone-200 object-cover dark:bg-stone-700" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-bold text-stone-900 dark:text-stone-100">{mosque.name}</span>
                   <span className="mt-1 block truncate text-xs text-stone-500 dark:text-stone-400">{mosque.district} · {mosque.capacity.toLocaleString()} worshippers</span>

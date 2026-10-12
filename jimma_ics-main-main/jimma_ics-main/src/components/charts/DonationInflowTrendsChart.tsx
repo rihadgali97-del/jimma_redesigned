@@ -313,7 +313,17 @@ export const DonationInflowTrendsChart: React.FC<DonationInflowTrendsChartProps>
     let sumZakat = 0;
     let sumSadaqah = 0;
     let sumWaqf = 0;
-    let peak: MonthlyTrendPoint = monthlyData[0] || { monthFull: 'March 2026', total: 0 };
+    let peak: MonthlyTrendPoint = monthlyData[0] || {
+      key: '',
+      month: '',
+      monthFull: 'March 2026',
+      zakatUshr: 0,
+      sadaqah: 0,
+      waqfRelief: 0,
+      total: 0,
+      target: 0,
+      transactionCount: 0,
+    };
 
     monthlyData.forEach((item) => {
       sumTotal += item.total;
@@ -343,7 +353,18 @@ export const DonationInflowTrendsChart: React.FC<DonationInflowTrendsChartProps>
   const annualKpis = useMemo(() => {
     let cumulativeAllTime = 0;
     let totalBeneficiaries = 0;
-    let highestAnnual: AnnualTrendPoint = annualData[0] || { year: '2025', total: 0 };
+    let highestAnnual: AnnualTrendPoint = annualData[0] || {
+      year: '2025',
+      zakatUshr: 0,
+      sadaqah: 0,
+      waqfRelief: 0,
+      total: 0,
+      targetBenchmark: 0,
+      yoyGrowthPct: 0,
+      beneficiariesCount: 0,
+      milestone: '',
+      auditedStatus: '',
+    };
 
     annualData.forEach((item) => {
       cumulativeAllTime += item.total;

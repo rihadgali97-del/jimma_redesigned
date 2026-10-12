@@ -22,6 +22,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { QuickJanazahModal } from '../../components/gateway/QuickJanazahModal';
+import type { Mosque } from '../../types';
 
 export const MosqueDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,20 +32,27 @@ export const MosqueDetailPage: React.FC = () => {
 
   const [isJanazahModalOpen, setIsJanazahModalOpen] = useState(false);
 
-  const mosque =
+  const mosque: Mosque =
     (mosques || []).find((m) => m.id === id) ||
     (mosques || [])[0] || {
       id: 'mosque-1',
       name: 'Grand Anwar Mosque of Jimma',
       arabicName: 'جامع الأنوار الكبير بجيما',
       district: 'Jimma Central',
+      subCityOrWoreda: 'Jimma Central',
       address: 'Merkato Center, Main Street, Jimma',
       imam: 'Sheikh Abdullah Ahmed Al-Jimmawi',
-      muadhin: 'Ustadh Bilal Abdi',
+      muazzin: 'Ustadh Bilal Abdi',
+      committeeChairman: 'Jimma Islamic Council',
       capacity: 5500,
+      students: 0,
       establishedYear: 1940,
-      status: 'Active',
+      status: 'active',
       facilities: ['Main Prayer Hall', 'Women Gallery', 'Wudhu Stations (120 taps)', 'Library & Manuscript Archive'],
+      hasMadrasa: false,
+      image: '',
+      jummahAttendance: 0,
+      monthlyExpensesETB: 0,
       description: 'The historical spiritual epicenter of Jimma City, established in 1940.',
       contactPhone: '+251 47 111 8290',
     };
@@ -61,7 +69,6 @@ export const MosqueDetailPage: React.FC = () => {
   const facilitiesList = mosque.facilities || [];
   const imageSrc =
     mosque.image ||
-    mosque.imageUrl ||
     'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=1200&q=80';
 
   return (
@@ -211,7 +218,7 @@ export const MosqueDetailPage: React.FC = () => {
                       Official Mu'adhin
                     </span>
                     <h4 className="font-serif font-bold text-sm text-stone-900 dark:text-stone-100">
-                      {mosque.muadhin || 'Ustadh Bilal Abdi'}
+                      {mosque.muazzin || 'Ustadh Bilal Abdi'}
                     </h4>
                   </div>
                 </div>

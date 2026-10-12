@@ -253,7 +253,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
       netZakatableWealthETB: netZakatableWealth,
       isEligible: isNisabMet || isCropNisabMet,
       totalZakatObligationETB: grandTotalZakatETB,
-      status: 'Obligation Pending',
+      status: 'Obligation Pending' as const,
       assetBreakdown: {
         cashAndLiquidityETB: cashTotal,
         goldAndSilverETB: metalsTotal,

@@ -60,7 +60,7 @@ export const DonatePage: React.FC = () => {
   const [showQuickEstimator, setShowQuickEstimator] = useState(false);
   const [quickWealthETB, setQuickWealthETB] = useState<string>('');
 
-  const paymentSectionRef = useRef<HTMLDivElement>(null);
+  const paymentSectionRef = useRef<HTMLFormElement>(null);
 
   // User's recorded Zakat calculations count
   const userCalculationsCount = useMemo(() => {
