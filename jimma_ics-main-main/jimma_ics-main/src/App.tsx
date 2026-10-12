@@ -97,11 +97,11 @@ export default function App() {
                   <Route path="waqf" element={<Navigate to="/services?tab=waqf" replace />} />
                   <Route path="contact" element={<ContactPage />} />
                   <Route path="guide" element={<UserGuidePage />} />
-                  <Route path="login" element={<StaffLoginPage />} />
                 </Route>
 
-                {/* Staff Login Route Alias */}
-                <Route path="/admin/login" element={<StaffLoginPage />} />
+                {/* Standalone staff sign-in; intentionally not part of public navigation/layout. */}
+                <Route path="/login" element={<StaffLoginPage />} />
+                <Route path="/admin/login" element={<Navigate to="/login" replace />} />
 
                 {/* Admin Management Routes */}
                 <Route path="/admin" element={<AdminLayout />}>

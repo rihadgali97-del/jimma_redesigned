@@ -14,11 +14,9 @@ import {
   Compass,
   HeartHandshake,
   Landmark,
-  LogIn,
   Menu,
   Moon,
   Search,
-  Shield,
   Sun,
   Users,
   X,
@@ -44,7 +42,7 @@ const serviceLinks = [
 export const PublicSiteHeader: React.FC = () => {
   const { t, language } = useLanguage();
   const { theme, toggleTheme } = useTheme();
-  const { setIsSearchOpen, currentUser, isLoggedIn } = useApp();
+  const { setIsSearchOpen } = useApp();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<'institutions' | 'services' | null>(null);
@@ -149,11 +147,6 @@ export const PublicSiteHeader: React.FC = () => {
               <BookOpen className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Public user guide</span>
               <span className="sm:hidden">Guide</span>
-            </Link>
-            <Link to="/login" className="inline-flex items-center gap-1.5 text-emerald-100 transition-colors hover:text-amber-300">
-              <LogIn className="h-3.5 w-3.5 text-amber-300" />
-              <span className="hidden sm:inline">{isLoggedIn ? currentUser.role : 'Staff sign in'}</span>
-              <span className="sm:hidden">Staff</span>
             </Link>
           </div>
         </div>
@@ -285,13 +278,6 @@ export const PublicSiteHeader: React.FC = () => {
               <Link to="/donate" onClick={closeMenus} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-bold text-emerald-950">
                 <HeartHandshake className="h-4 w-4" />
                 {t('donate')}
-              </Link>
-              <Link to="/login" onClick={closeMenus} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200">
-                <LogIn className="h-4 w-4" />
-                Staff
-              </Link>
-              <Link to="/admin" onClick={closeMenus} aria-label="Council admin portal" className="grid h-11 w-11 place-items-center rounded-xl border border-stone-200 bg-white text-stone-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200">
-                <Shield className="h-4 w-4" />
               </Link>
             </div>
           </nav>

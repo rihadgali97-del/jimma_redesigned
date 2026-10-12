@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import {
   History,
   Lock,
-  LogIn,
   LogOut,
   UserCheck,
   CheckCircle2,
@@ -114,7 +113,6 @@ export const ZakatHistory: React.FC<ZakatHistoryProps> = ({
         <Lock className="mx-auto mb-3 h-8 w-8 text-emerald-700" />
         <h3 className="text-xl font-bold text-stone-900 dark:text-stone-100">Sign in to view your Zakat history</h3>
         <p className="mx-auto mt-2 max-w-lg text-sm text-stone-600 dark:text-stone-400">Use your council account to access saved assessments, donation records, and receipts.</p>
-        <a href="/login" className="mt-5 inline-flex rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Sign in or create account</a>
       </div>
     );
   }
