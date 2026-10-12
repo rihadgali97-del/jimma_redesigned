@@ -55,7 +55,7 @@ import {
 import {
   createEventRecord,
   deleteEventRecord,
-  fetchAdminEvents,
+  fetchAllAdminEvents,
   fetchEventRegistrations,
   fetchPublicEvents,
   findMyEventRegistrationsRecord,
@@ -209,7 +209,7 @@ interface AppContextType {
   updateServiceRequestStatus: (id: string, status: ServiceRequest['status'], officer?: string) => void;
 
   events: CouncilEvent[];
-  refreshEvents: (adminView?: boolean) => Promise<void>;
+  refreshEvents: (adminView?: boolean) => Promise<boolean>;
   addEvent: (event: Omit<CouncilEvent, 'id'>) => Promise<CouncilEvent>;
   updateEvent: (id: string, updates: Partial<CouncilEvent>) => Promise<void>;
   deleteEvent: (id: string) => Promise<void>;
@@ -1361,11 +1361,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
 
-  const refreshEvents = async (adminView = false) => {
+  const refreshEvents = async (adminView = false): Promise<boolean> => {
     try {
-      setEvents(adminView ? await fetchAdminEvents() : await fetchPublicEvents());
+      setEvents(adminView ? await fetchAllAdminEvents() : await fetchPublicEvents());
+      return true;
     } catch (error) {
+      if (adminView) setEvents([]);
       if (import.meta.env.DEV) console.warn('[API] Event refresh failed.', error);
+      return false;
     }
   };
 

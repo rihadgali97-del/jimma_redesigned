@@ -13,6 +13,15 @@ type ApiRegistration = Omit<EventRegistration, 'id' | 'eventId' | 'status' | 'cr
   createdAt: string;
 };
 
+export interface EventAdminOverview {
+  eventCount: number;
+  totalCapacity: number;
+  openRegistrationEventCount: number;
+  confirmedAttendeeCount: number;
+  checkedInAttendeeCount: number;
+  issuedPassCount: number;
+}
+
 const mapEvent = (event: ApiEvent): CouncilEvent => ({ ...event, id: String(event.id) });
 const mapRegistration = (registration: ApiRegistration): EventRegistration => ({
   ...registration,
@@ -23,6 +32,12 @@ const mapRegistration = (registration: ApiRegistration): EventRegistration => ({
 });
 
 const ADMIN_EVENT_PAGE_SIZE = 100;
+const PAGE_BATCH_SIZE = 4;
+const ADMIN_DATA_TIMEOUT_MS = 20_000;
+
+function adminDataTimeoutSignal() {
+  return AbortSignal.timeout(ADMIN_DATA_TIMEOUT_MS);
+}
 
 function paginationParams(page = 1) {
   return new URLSearchParams({ page: String(page), pageSize: String(ADMIN_EVENT_PAGE_SIZE) });
@@ -39,17 +54,34 @@ export async function fetchAdminEvents(): Promise<CouncilEvent[]> {
 }
 
 export async function fetchAllAdminEvents(signal?: AbortSignal): Promise<CouncilEvent[]> {
-  const events: CouncilEvent[] = [];
-  let page = 1;
-  let rows: ApiEvent[];
+  const requestSignal = signal ?? adminDataTimeoutSignal();
+  const firstPage = await apiRequest<ApiEvent[]>(`/admin/events?${paginationParams(1)}`, { signal: requestSignal });
+  const events = firstPage.map(mapEvent);
+  let page = 2;
+  let hasMore = firstPage.length === ADMIN_EVENT_PAGE_SIZE;
 
-  do {
-    rows = await apiRequest<ApiEvent[]>(`/admin/events?${paginationParams(page)}`, { signal });
-    events.push(...rows.map(mapEvent));
-    page += 1;
-  } while (rows.length === ADMIN_EVENT_PAGE_SIZE);
+  while (hasMore) {
+    const pages = await Promise.all(Array.from({ length: PAGE_BATCH_SIZE }, async (_, index) => {
+      const pageNumber = page + index;
+      const rows = await apiRequest<ApiEvent[]>(`/admin/events?${paginationParams(pageNumber)}`, { signal: requestSignal });
+      return { pageNumber, rows };
+    }));
+    pages.sort((left, right) => left.pageNumber - right.pageNumber);
+    for (const { rows } of pages) {
+      events.push(...rows.map(mapEvent));
+      if (rows.length < ADMIN_EVENT_PAGE_SIZE) {
+        hasMore = false;
+        break;
+      }
+    }
+    page += PAGE_BATCH_SIZE;
+  }
 
   return events;
+}
+
+export function fetchAdminEventOverview(): Promise<EventAdminOverview> {
+  return apiRequest<EventAdminOverview>('/admin/events/overview', { signal: adminDataTimeoutSignal() });
 }
 
 function eventPayload(event: Partial<CouncilEvent>) {
@@ -115,10 +147,35 @@ export async function findMyEventRegistrationsRecord(email: string, phone: strin
 }
 
 export async function fetchEventRegistrations(eventId?: string): Promise<EventRegistration[]> {
-  const query = paginationParams();
-  if (eventId) query.set('eventId', eventId);
-  const rows = await apiRequest<ApiRegistration[]>(`/admin/events/registrations?${query}`);
-  return rows.map(mapRegistration);
+  const signal = adminDataTimeoutSignal();
+  const fetchPage = (pageNumber: number) => {
+    const query = paginationParams(pageNumber);
+    if (eventId) query.set('eventId', eventId);
+    return apiRequest<ApiRegistration[]>(`/admin/events/registrations?${query}`, { signal });
+  };
+  const firstPage = await fetchPage(1);
+  const registrations = firstPage.map(mapRegistration);
+  let page = 2;
+  let hasMore = firstPage.length === ADMIN_EVENT_PAGE_SIZE;
+
+  while (hasMore) {
+    const pages = await Promise.all(Array.from({ length: PAGE_BATCH_SIZE }, async (_, index) => {
+      const pageNumber = page + index;
+      const rows = await fetchPage(pageNumber);
+      return { pageNumber, rows };
+    }));
+    pages.sort((left, right) => left.pageNumber - right.pageNumber);
+    for (const { rows } of pages) {
+      registrations.push(...rows.map(mapRegistration));
+      if (rows.length < ADMIN_EVENT_PAGE_SIZE) {
+        hasMore = false;
+        break;
+      }
+    }
+    page += PAGE_BATCH_SIZE;
+  }
+
+  return registrations;
 }
 
 export async function updateEventRegistrationStatus(id: string, status: 'CHECKED_IN' | 'CANCELLED') {

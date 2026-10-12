@@ -30,6 +30,7 @@ import { Card } from '../../components/ui/Card';
 import { CreateEventModal } from '../../components/events/CreateEventModal';
 import { EventAttendeesModal } from '../../components/events/EventAttendeesModal';
 import { EventPassModal } from '../../components/events/EventPassModal';
+import { EventAdminOverview, fetchAdminEventOverview, fetchEventRegistrations } from '../../services/eventsApi';
 
 function formatEventDate(value: string) {
   const dateOnly = (value || '').slice(0, 10);
@@ -45,8 +46,6 @@ export const AdminEventsPage: React.FC = () => {
     deleteEvent,
     updateEvent,
     refreshEvents,
-    refreshEventRegistrations,
-    eventRegistrations,
     addToast,
   } = useApp();
 
@@ -54,6 +53,12 @@ export const AdminEventsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [selectedDate, setSelectedDate] = useState('');
+  const [isEventsLoading, setIsEventsLoading] = useState(true);
+  const [isOverviewLoading, setIsOverviewLoading] = useState(true);
+  const [eventsAvailable, setEventsAvailable] = useState(false);
+  const [overviewAvailable, setOverviewAvailable] = useState(false);
+  const [overview, setOverview] = useState<EventAdminOverview | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Modals
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -65,8 +70,32 @@ export const AdminEventsPage: React.FC = () => {
   } | null>(null);
 
   useEffect(() => {
-    void refreshEvents(true);
-    void refreshEventRegistrations();
+    let isCurrent = true;
+
+    void refreshEvents(true).then((eventsOk) => {
+      if (!isCurrent) return;
+      setEventsAvailable(eventsOk);
+      setIsEventsLoading(false);
+    });
+
+    void fetchAdminEventOverview()
+      .then((result) => {
+        if (!isCurrent) return;
+        setOverview(result);
+        setOverviewAvailable(true);
+      })
+      .catch(() => {
+        if (!isCurrent) return;
+        setOverviewAvailable(false);
+      })
+      .finally(() => {
+        if (!isCurrent) return;
+        setIsOverviewLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
   }, []);
 
   const categories = [
@@ -79,7 +108,8 @@ export const AdminEventsPage: React.FC = () => {
     'Community Gathering',
   ];
 
-  const filteredEvents = events.filter((e) => {
+  const adminEvents = isEventsLoading ? [] : events;
+  const filteredEvents = adminEvents.filter((e) => {
     const s = (searchTerm || '').toLowerCase();
     const matchesSearch =
       (e.title || '').toLowerCase().includes(s) ||
@@ -96,11 +126,6 @@ export const AdminEventsPage: React.FC = () => {
   const pagination = usePagination(filteredEvents, 10, `${searchTerm}|${selectedCategory}|${selectedStatus}`);
 
   // Global KPIs
-  const totalCapacity = events.reduce((sum, e) => sum + (e.maxCapacity || 0), 0);
-  const totalSeatsBooked = events.reduce((sum, e) => sum + (e.attendeesCount || 0), 0);
-  const totalCheckedIn = eventRegistrations.filter((r) => r.status === 'Checked-In').length;
-  const activeRegistrationsOpen = events.filter((e) => e.registrationOpen).length;
-
   const handleToggleRegistration = async (event: CouncilEvent) => {
     try {
     await updateEvent(event.id, { registrationOpen: !event.registrationOpen });
@@ -120,9 +145,23 @@ export const AdminEventsPage: React.FC = () => {
     }
   };
 
-  const handleExportAllRegistrations = () => {
+  const handleExportAllRegistrations = async () => {
+    setIsExporting(true);
+    let registrations: EventRegistration[];
+    try {
+      registrations = await fetchEventRegistrations();
+    } catch (error) {
+      addToast(
+        'Could Not Export Registrations',
+        error instanceof Error ? error.message : 'Check your staff access and API connection, then try again.',
+        'error'
+      );
+      setIsExporting(false);
+      return;
+    }
+
     const headers = ['Event ID', 'Event Title', 'Pass Number', 'Attendee Full Name', 'Phone', 'Kebele', 'Madrasa / Org', 'Seats', 'Status', 'Registered Date'];
-    const rows = eventRegistrations.map((r) => [
+    const rows = registrations.map((r) => [
       r.eventId,
       `"${r.eventTitle}"`,
       r.passNumber,
@@ -143,7 +182,8 @@ export const AdminEventsPage: React.FC = () => {
     link.download = `All_Council_Event_Registrations_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
-    addToast('All Registrations Exported', `Downloaded CSV for ${eventRegistrations.length} registrations.`, 'success');
+    addToast('All Registrations Exported', `Downloaded CSV for ${registrations.length} registrations.`, 'success');
+    setIsExporting(false);
   };
 
   return (
@@ -169,10 +209,11 @@ export const AdminEventsPage: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={handleExportAllRegistrations}
+            disabled={isExporting}
             icon={<Download className="w-4 h-4" />}
             className="text-xs flex-1 sm:flex-none"
           >
-            Export All Registrations
+            {isExporting ? 'Preparing Export…' : 'Export All Registrations'}
           </Button>
 
           <Button
@@ -190,6 +231,17 @@ export const AdminEventsPage: React.FC = () => {
         </div>
       </div>
 
+      {!isEventsLoading && !isOverviewLoading && (!eventsAvailable || !overviewAvailable) && (
+        <div
+          role="alert"
+          className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+        >
+          Could not load {!eventsAvailable && !overviewAvailable
+            ? 'event list or KPI data'
+            : !eventsAvailable ? 'event list' : 'KPI data'} from the server. Affected metrics are unavailable; refresh this page to retry.
+        </div>
+      )}
+
       {/* KPI Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm space-y-1">
@@ -199,9 +251,15 @@ export const AdminEventsPage: React.FC = () => {
               <Calendar className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">{events.length}</p>
+          <p className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
+            {isOverviewLoading ? '…' : overviewAvailable ? overview?.eventCount.toLocaleString() ?? '—' : '—'}
+          </p>
           <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-            {activeRegistrationsOpen} Gatherings RSVP Open
+            {isOverviewLoading
+              ? 'Loading event data…'
+              : overviewAvailable
+                ? `${overview?.openRegistrationEventCount.toLocaleString() ?? '—'} Gatherings RSVP Open`
+                : 'RSVP data unavailable'}
           </p>
         </div>
 
@@ -213,10 +271,18 @@ export const AdminEventsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
-            {totalSeatsBooked.toLocaleString()}
+            {isOverviewLoading
+              ? '…'
+              : overviewAvailable
+                ? overview?.confirmedAttendeeCount.toLocaleString() ?? '—'
+                : '—'}
           </p>
           <p className="text-[11px] text-stone-500">
-            Total Capacity: {totalCapacity.toLocaleString()} seats
+            Total Capacity: {isOverviewLoading
+              ? '…'
+              : overviewAvailable
+                ? `${overview?.totalCapacity.toLocaleString() ?? '—'} seats`
+                : '—'}
           </p>
         </div>
 
@@ -228,7 +294,11 @@ export const AdminEventsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-serif font-bold text-emerald-600 dark:text-emerald-400">
-            {totalCheckedIn}
+            {isOverviewLoading
+              ? '…'
+              : overviewAvailable
+                ? overview?.checkedInAttendeeCount.toLocaleString() ?? '—'
+                : '—'}
           </p>
           <p className="text-[11px] text-stone-500">
             Pass verification active
@@ -243,7 +313,11 @@ export const AdminEventsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
-            {eventRegistrations.length}
+            {isOverviewLoading
+              ? '…'
+              : overviewAvailable
+                ? overview?.issuedPassCount.toLocaleString() ?? '—'
+                : '—'}
           </p>
           <p className="text-[11px] text-stone-500">
             Across all council programs
@@ -301,7 +375,6 @@ export const AdminEventsPage: React.FC = () => {
       {/* Compact cards on narrow screens */}
       <div className="space-y-3 md:hidden">
         {pagination.paginatedItems.map((event) => {
-          const count = eventRegistrations.filter((registration) => registration.eventId === event.id).length;
           return <article key={event.id} className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900">
             {event.image && <img src={event.image} alt="" className="h-36 w-full object-cover" />}
             <div className="space-y-3 p-4">
@@ -315,7 +388,7 @@ export const AdminEventsPage: React.FC = () => {
                 <p>RSVP {event.registrationOpen ? 'Open' : 'Paused'}</p>
               </div>
               <div className="flex flex-wrap gap-2 border-t border-stone-100 pt-3 dark:border-stone-800">
-                <Button variant="primary" size="sm" icon={<Users className="h-3.5 w-3.5" />} onClick={() => setAttendeesEvent(event)}>Attendees ({count})</Button>
+                <Button variant="primary" size="sm" icon={<Users className="h-3.5 w-3.5" />} onClick={() => setAttendeesEvent(event)}>Attendees</Button>
                 <Button variant="outline" size="sm" onClick={() => void handleToggleRegistration(event)}>{event.registrationOpen ? 'Pause RSVP' : 'Open RSVP'}</Button>
                 <Button variant="outline" size="sm" icon={<Edit className="h-3.5 w-3.5" />} onClick={() => { setEditingEvent(event); setIsCreateOpen(true); }}>Edit</Button>
                 <Button variant="ghost" size="sm" icon={<Trash2 className="h-3.5 w-3.5" />} onClick={() => handleDeleteEvent(event.id, event.title)} aria-label={`Delete ${event.title}`} />
@@ -323,7 +396,11 @@ export const AdminEventsPage: React.FC = () => {
             </div>
           </article>;
         })}
-        {filteredEvents.length === 0 && <p className="rounded-2xl border border-dashed border-stone-300 p-8 text-center text-sm text-stone-500 dark:border-stone-700">No events or programs match those filters.</p>}
+        {filteredEvents.length === 0 && (
+          <p className="rounded-2xl border border-dashed border-stone-300 p-8 text-center text-sm text-stone-500 dark:border-stone-700">
+            {isEventsLoading ? 'Loading event records…' : 'No events or programs match those filters.'}
+          </p>
+        )}
       </div>
 
       {/* Full event table on wider screens */}
@@ -343,7 +420,6 @@ export const AdminEventsPage: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
               {pagination.paginatedItems.map((event) => {
-                const eventRegs = eventRegistrations.filter((r) => r.eventId === event.id);
                 const capacityPercent = Math.min(
                   100,
                   Math.round(((event.attendeesCount || 0) / (event.maxCapacity || 1)) * 100)
@@ -424,7 +500,7 @@ export const AdminEventsPage: React.FC = () => {
                           />
                         </div>
                         <p className="text-[10px] text-stone-500">
-                          {eventRegs.length} Registered Passes
+                          {event.attendeesCount} Seats Booked
                         </p>
                       </div>
                     </td>
@@ -454,7 +530,7 @@ export const AdminEventsPage: React.FC = () => {
                           onClick={() => setAttendeesEvent(event)}
                           className="text-[11px] py-1 bg-amber-600 hover:bg-amber-700 text-white"
                         >
-                          Check-In ({eventRegs.length})
+                          Check-In
                         </Button>
 
                         <button
