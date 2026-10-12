@@ -30,12 +30,26 @@ export const MediaBroadcastDashboard: React.FC = () => {
 
   useEffect(() => {
     let cancelled = false;
-    let timedOut = false;
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => {
-      timedOut = true;
-      controller.abort();
-    }, 15000);
+    const controllers = new Set<AbortController>();
+    const requestWithTimeout = <T,>(request: (signal: AbortSignal) => Promise<T>) => {
+      const controller = new AbortController();
+      controllers.add(controller);
+      let timeoutId: number;
+      const timeout = new Promise<never>((_resolve, reject) => {
+        timeoutId = window.setTimeout(() => {
+          controller.abort();
+          reject(new Error('Request timed out after 15 seconds.'));
+        }, 15000);
+      });
+
+      return Promise.race([
+        Promise.resolve().then(() => request(controller.signal)),
+        timeout,
+      ]).finally(() => {
+        window.clearTimeout(timeoutId);
+        controllers.delete(controller);
+      });
+    };
     setIsLoading(true);
     setErrors([]);
     setTelegramStatus(null);
@@ -44,61 +58,55 @@ export const MediaBroadcastDashboard: React.FC = () => {
     setFailedCount(null);
     setUpcomingEvents(null);
 
-    const load = async () => {
-      const results = await Promise.allSettled([
-        fetchTelegramGatewayStatus(controller.signal),
-        fetchTelegramGatewayHistory(1, 5, undefined, controller.signal),
-        fetchTelegramGatewayHistory(1, 1, undefined, controller.signal),
-        fetchTelegramGatewayHistory(1, 1, 'FAILED', controller.signal),
-        fetchAllAdminEvents(controller.signal),
-      ] as const);
-      window.clearTimeout(timeoutId);
-      if (cancelled) return;
+    const loadRequest = async <T,>(
+      label: string,
+      request: (signal: AbortSignal) => Promise<T>,
+      onSuccess: (value: T) => void
+    ) => {
+      try {
+        const value = await requestWithTimeout(request);
+        if (!cancelled) onSuccess(value);
+      } catch (error) {
+        if (cancelled) return;
+        const message = error instanceof Error ? error.message : 'Unexpected request error.';
+        setErrors((currentErrors) => [...currentErrors, `${label}: ${message}`]);
+      }
+    };
 
-      const requestError = (reason: unknown, fallback: string) => (
-        timedOut
-          ? 'Request timed out after 15 seconds.'
-          : reason instanceof Error ? reason.message : fallback
-      );
-      const nextErrors: string[] = [];
-      const [statusResult, recentResult, broadcastsResult, failedResult, eventsResult] = results;
-
-      if (statusResult.status === 'fulfilled') setTelegramStatus(statusResult.value);
-      else nextErrors.push(`Telegram gateway status: ${requestError(statusResult.reason, 'Unable to load status.')}`);
-
-      if (recentResult.status === 'fulfilled') setRecentBroadcasts(recentResult.value.items);
-      else nextErrors.push(`Telegram broadcast history: ${requestError(recentResult.reason, 'Unable to load history.')}`);
-
-      if (broadcastsResult.status === 'fulfilled') setBroadcastCount(broadcastsResult.value.meta.totalItems);
-      else nextErrors.push(`Admin broadcast count: ${requestError(broadcastsResult.reason, 'Unable to load count.')}`);
-
-      if (failedResult.status === 'fulfilled') setFailedCount(failedResult.value.meta.totalItems);
-      else nextErrors.push(`Failed broadcast count: ${requestError(failedResult.reason, 'Unable to load count.')}`);
-
-      if (eventsResult.status === 'fulfilled') {
+    const requests = [
+      loadRequest('Telegram gateway status', fetchTelegramGatewayStatus, setTelegramStatus),
+      loadRequest('Telegram broadcast history', (signal) => fetchTelegramGatewayHistory(1, 5, undefined, signal), (result) => {
+        if (!Array.isArray(result.items)) throw new Error('The API returned an invalid response.');
+        setRecentBroadcasts(result.items);
+      }),
+      loadRequest('Admin broadcast count', (signal) => fetchTelegramGatewayHistory(1, 1, undefined, signal), (result) => {
+        if (!Number.isFinite(result.meta?.totalItems)) throw new Error('The API returned an invalid response.');
+        setBroadcastCount(result.meta.totalItems);
+      }),
+      loadRequest('Failed broadcast count', (signal) => fetchTelegramGatewayHistory(1, 1, 'FAILED', signal), (result) => {
+        if (!Number.isFinite(result.meta?.totalItems)) throw new Error('The API returned an invalid response.');
+        setFailedCount(result.meta.totalItems);
+      }),
+      loadRequest('Council events', (signal) => fetchAllAdminEvents(signal), (events) => {
+        if (!Array.isArray(events)) throw new Error('The API returned an invalid response.');
         const today = new Date().toISOString().slice(0, 10);
         setUpcomingEvents(
-          eventsResult.value
+          events
             .filter((event) => event.status === 'Upcoming' && event.date >= today)
             .sort((left, right) => left.date.localeCompare(right.date))
         );
-      } else {
-        nextErrors.push(`Council events: ${requestError(eventsResult.reason, 'Unable to load events.')}`);
-      }
-
-      setErrors(nextErrors);
-      setIsLoading(false);
-    };
-
-    void load();
+      }),
+    ];
+    void Promise.all(requests).finally(() => {
+      if (!cancelled) setIsLoading(false);
+    });
     return () => {
       cancelled = true;
-      window.clearTimeout(timeoutId);
-      controller.abort();
+      controllers.forEach((controller) => controller.abort());
     };
   }, [refreshVersion]);
 
-  const metricValue = (value: number | null) => (isLoading ? '…' : value === null ? '—' : value.toLocaleString());
+  const metricValue = (value: number | null) => (value === null ? '—' : value.toLocaleString());
 
   return (
     <div className="space-y-6">
@@ -151,7 +159,9 @@ export const MediaBroadcastDashboard: React.FC = () => {
             <Radio className="h-5 w-5 text-sky-600" />
           </div>
           <div className="text-xl font-bold text-stone-900 dark:text-stone-100">
-            {isLoading ? 'Checking…' : telegramStatus ? (telegramStatus.enabled ? 'Configured' : 'Not configured') : 'Unavailable'}
+            {telegramStatus
+              ? telegramStatus.enabled ? 'Configured' : 'Not configured'
+              : 'Unavailable'}
           </div>
           <div className="border-t border-stone-100 pt-2 text-xs text-stone-500 dark:border-stone-800">
             {telegramStatus?.channelId || 'Channel status unavailable'}
