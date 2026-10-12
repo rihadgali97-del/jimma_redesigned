@@ -223,6 +223,20 @@ export function resendStaffVerification(email: string) {
   });
 }
 
+export function requestStaffPasswordReset(email: string) {
+  return publicRequest<{ message: string }>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function resetStaffPassword(token: string, newPassword: string) {
+  return publicRequest<{ passwordReset: boolean }>('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, newPassword }),
+  });
+}
+
 export async function restoreAuthUser() {
   if (!readSession()) return null;
   try {

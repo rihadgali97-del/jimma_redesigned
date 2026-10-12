@@ -5,9 +5,14 @@ import { useApp } from '../../context/AppContext';
 import { getAuthorizedDashboard, checkRoutePermission } from '../../middleware/authMiddleware';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { resendStaffVerification, verifyStaffEmail } from '../../services/authApi';
+import {
+  requestStaffPasswordReset,
+  resendStaffVerification,
+  resetStaffPassword,
+  verifyStaffEmail,
+} from '../../services/authApi';
 
-type FormMode = 'login' | 'register';
+type FormMode = 'login' | 'register' | 'forgot' | 'reset';
 
 export const StaffLoginPage: React.FC = () => {
   const { currentUser, isLoggedIn, authReady, login, register, logout } = useApp();
@@ -19,6 +24,7 @@ export const StaffLoginPage: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetToken, setResetToken] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,7 +33,16 @@ export const StaffLoginPage: React.FC = () => {
   const verificationTokenHandled = useRef<string | null>(null);
 
   useEffect(() => {
-    const token = new URLSearchParams(location.search).get('verifyEmail');
+    const params = new URLSearchParams(location.search);
+    const resetTokenFromUrl = params.get('resetPassword');
+    if (resetTokenFromUrl) {
+      setResetToken(resetTokenFromUrl);
+      setMode('reset');
+      params.delete('resetPassword');
+      navigate({ pathname: location.pathname, search: params.toString() ? `?${params}` : '' }, { replace: true });
+    }
+
+    const token = params.get('verifyEmail');
     if (!token || verificationTokenHandled.current === token) return;
     verificationTokenHandled.current = token;
     setIsLoading(true);
@@ -63,6 +78,10 @@ export const StaffLoginPage: React.FC = () => {
       setErrorMessage('The passwords do not match.');
       return;
     }
+    if (mode === 'reset' && password !== confirmPassword) {
+      setErrorMessage('The passwords do not match.');
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -72,6 +91,16 @@ export const StaffLoginPage: React.FC = () => {
         setPassword('');
         setConfirmPassword('');
         setSuccessMessage('Your account request was created. Check your email and verify your address. A council administrator must then assign your staff role before you can sign in.');
+      } else if (mode === 'forgot') {
+        await requestStaffPasswordReset(email);
+        setSuccessMessage('If an account exists for this email, a password reset link has been sent.');
+      } else if (mode === 'reset') {
+        await resetStaffPassword(resetToken, password);
+        setMode('login');
+        setResetToken('');
+        setPassword('');
+        setConfirmPassword('');
+        setSuccessMessage('Your password has been reset. You can now sign in with your new password.');
       } else {
         const user = await login(email, password, rememberMe);
         const redirect = new URLSearchParams(location.search).get('redirect');
@@ -140,21 +169,33 @@ export const StaffLoginPage: React.FC = () => {
 
         <section className="lg:col-span-7">
           <Card className="h-full p-6 sm:p-8 space-y-6 shadow-lg">
-            <div className="flex gap-2 p-1 rounded-xl bg-stone-100 dark:bg-stone-800">
-              <button type="button" onClick={() => { setMode('login'); setErrorMessage(''); setSuccessMessage(''); }} className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${mode === 'login' ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-sm' : 'text-stone-500 dark:text-stone-400'}`}>
-                Sign in
+            {mode === 'login' || mode === 'register' ? (
+              <div className="flex gap-2 p-1 rounded-xl bg-stone-100 dark:bg-stone-800">
+                <button type="button" onClick={() => { setMode('login'); setErrorMessage(''); setSuccessMessage(''); }} className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${mode === 'login' ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-sm' : 'text-stone-500 dark:text-stone-400'}`}>
+                  Sign in
+                </button>
+                <button type="button" onClick={() => { setMode('register'); setErrorMessage(''); setSuccessMessage(''); }} className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${mode === 'register' ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-sm' : 'text-stone-500 dark:text-stone-400'}`}>
+                  Create staff account
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => { setMode('login'); setErrorMessage(''); setSuccessMessage(''); }} className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                <ArrowLeft className="mr-1 inline h-4 w-4" /> Back to sign in
               </button>
-              <button type="button" onClick={() => { setMode('register'); setErrorMessage(''); setSuccessMessage(''); }} className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${mode === 'register' ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-sm' : 'text-stone-500 dark:text-stone-400'}`}>
-                Create staff account
-              </button>
-            </div>
+            )}
 
             <div>
               <h2 className="text-xl font-serif font-bold text-stone-900 dark:text-stone-100">
-                {mode === 'login' ? 'Welcome back' : 'Request a council account'}
+                {mode === 'login' ? 'Welcome back' : mode === 'register' ? 'Request a council account' : mode === 'forgot' ? 'Reset your password' : 'Choose a new password'}
               </h2>
               <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-                {mode === 'login' ? 'Sign-in is available after email verification and administrator approval.' : 'Verify your email after registration. An administrator then assigns your staff role.'}
+                {mode === 'login'
+                  ? 'Sign-in is available after email verification and administrator approval.'
+                  : mode === 'register'
+                    ? 'Verify your email after registration. An administrator then assigns your staff role.'
+                    : mode === 'forgot'
+                      ? 'Enter your account email and we will send a secure password reset link if an account matches.'
+                      : 'Choose a new password for your account.'}
               </p>
             </div>
 
@@ -180,13 +221,15 @@ export const StaffLoginPage: React.FC = () => {
                 </label>
               )}
 
-              <label className="block space-y-1.5">
-                <span className="text-sm font-medium text-stone-700 dark:text-stone-300">Email address</span>
-                <span className="relative block">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
-                  <input autoComplete="email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} className="w-full border border-stone-200 bg-white py-3 pl-10 pr-3 text-sm text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100" placeholder="name@council.org" />
-                </span>
-              </label>
+              {mode !== 'reset' && (
+                <label className="block space-y-1.5">
+                  <span className="text-sm font-medium text-stone-700 dark:text-stone-300">Email address</span>
+                  <span className="relative block">
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+                    <input autoComplete="email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} className="w-full border border-stone-200 bg-white py-3 pl-10 pr-3 text-sm text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100" placeholder="name@council.org" />
+                  </span>
+                </label>
+              )}
 
               {mode === 'register' && (
                 <label className="block space-y-1.5">
@@ -198,34 +241,47 @@ export const StaffLoginPage: React.FC = () => {
                 </label>
               )}
 
-              <label className="block space-y-1.5">
-                <span className="text-sm font-medium text-stone-700 dark:text-stone-300">Password</span>
-                <span className="relative block">
-                  <LockKeyhole className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
-                  <input autoComplete={mode === 'login' ? 'current-password' : 'new-password'} type={showPassword ? 'text' : 'password'} required minLength={mode === 'register' ? 10 : 1} maxLength={128} value={password} onChange={(event) => setPassword(event.target.value)} className="w-full border border-stone-200 bg-white py-3 pl-10 pr-12 text-sm text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100" placeholder={mode === 'register' ? 'At least 10 characters' : 'Enter your password'} />
-                  <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-stone-700 dark:hover:text-stone-100" aria-label={showPassword ? 'Hide password' : 'Show password'}>
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </span>
-              </label>
+              {mode !== 'forgot' && (
+                <label className="block space-y-1.5">
+                  <span className="text-sm font-medium text-stone-700 dark:text-stone-300">Password</span>
+                  <span className="relative block">
+                    <LockKeyhole className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+                    <input autoComplete={mode === 'login' ? 'current-password' : 'new-password'} type={showPassword ? 'text' : 'password'} required minLength={mode === 'login' ? 1 : 10} maxLength={128} value={password} onChange={(event) => setPassword(event.target.value)} className="w-full border border-stone-200 bg-white py-3 pl-10 pr-12 text-sm text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100" placeholder={mode === 'login' ? 'Enter your password' : 'At least 10 characters'} />
+                    <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-stone-700 dark:hover:text-stone-100" aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </span>
+                </label>
+              )}
 
-              {mode === 'register' ? (
+              {mode === 'register' || mode === 'reset' ? (
                 <label className="block space-y-1.5">
                   <span className="text-sm font-medium text-stone-700 dark:text-stone-300">Confirm password</span>
                   <input autoComplete="new-password" type="password" required minLength={10} maxLength={128} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} className="w-full border border-stone-200 bg-white px-3 py-3 text-sm text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100" placeholder="Re-enter your password" />
                 </label>
-              ) : (
+              ) : mode === 'login' ? (
                 <label className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400">
                   <input type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} className="rounded border-stone-300 text-emerald-700 focus:ring-emerald-600" />
                   Remember me on this device
                 </label>
-              )}
+              ) : null}
 
               <Button type="submit" size="lg" disabled={isLoading} className="w-full justify-center">
-                {isLoading ? 'Please wait…' : mode === 'login' ? 'Sign in securely' : 'Create account'}
+                {isLoading ? 'Please wait…' : mode === 'login' ? 'Sign in securely' : mode === 'register' ? 'Create account' : mode === 'forgot' ? 'Send reset link' : 'Reset password'}
                 {!isLoading && <ArrowRight className="h-4 w-4" />}
               </Button>
             </form>
+
+            {mode === 'login' && (
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={() => { setMode('forgot'); setErrorMessage(''); setSuccessMessage(''); }}
+                className="w-full text-center text-sm font-semibold text-emerald-700 dark:text-emerald-300"
+              >
+                Forgot password?
+              </button>
+            )}
 
             {mode === 'login' && (
               <button
