@@ -196,7 +196,7 @@ export function getAuthorizedDashboard(user: User | null | undefined): RoleDashb
       role: user.role,
       dashboardPath: '/admin/teacher',
       dashboardTitle: 'Tahfeez & Sabaq Classroom Workbench',
-      dashboardSubtitle: 'Daily student attendance, Quran memorization tracking, sabaq grading, and parent SMS alerts',
+      dashboardSubtitle: 'Daily student attendance, Quran memorization tracking, and sabaq grading. Guardian messaging is unavailable until a provider is configured.',
       badgeVariant: 'emerald',
       badgeColorClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300',
       allowedRoutePrefixes: [

@@ -4,7 +4,6 @@ import {
   GraduationCap,
   CalendarCheck2,
   BookOpen,
-  Send,
   Plus,
   CheckCircle2,
   XCircle,
@@ -30,8 +29,6 @@ export const TeacherMadrasaDashboard: React.FC = () => {
     updateStudentProgress,
     attendanceMap,
     setStudentAttendance,
-    dailyAttendanceSessions,
-    sendAbsenceSmsAlerts,
     addToast,
     currentUser,
   } = useApp();
@@ -40,7 +37,6 @@ export const TeacherMadrasaDashboard: React.FC = () => {
   const [selectedStudentForSabaq, setSelectedStudentForSabaq] = useState<Student | null>(null);
   const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
   const [isSabaqModalOpen, setIsSabaqModalOpen] = useState(false);
-  const [isSendingSms, setIsSendingSms] = useState(false);
 
   // Sabaq Form state
   const [sabaqSurah, setSabaqSurah] = useState('Surah Al-Kahf (Ayah 1 - 25)');
@@ -74,32 +70,6 @@ export const TeacherMadrasaDashboard: React.FC = () => {
   const handleMarkAllPresent = () => {
     filteredStudents.forEach((s) => setStudentAttendance(s.id, 'Present'));
     addToast('Roll Call Updated', 'Marked all class students as Present for today.', 'success');
-  };
-
-  const handleSendAbsenceSms = async () => {
-    if (absentCount === 0) {
-      addToast('No Absentees', 'There are no absent students marked today.', 'info');
-      return;
-    }
-
-    setIsSendingSms(true);
-    try {
-      const activeSession = dailyAttendanceSessions[0];
-      const result = await sendAbsenceSmsAlerts(activeSession?.id || 'session-1', 'Absent');
-      addToast(
-        'Parent SMS Alerts Dispatched',
-        `Successfully delivered automated absence notifications to ${result.sentCount} parent phones.`,
-        'success'
-      );
-    } catch (err) {
-      addToast(
-        'SMS Dispatch Failed',
-        err instanceof Error ? err.message : 'Could not send attendance notices. Please try again.',
-        'error'
-      );
-    } finally {
-      setIsSendingSms(false);
-    }
   };
 
   const handleSaveSabaq = async (e: React.FormEvent) => {
@@ -181,15 +151,9 @@ export const TeacherMadrasaDashboard: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            icon={<Send className={`w-4 h-4 text-emerald-600 ${isSendingSms ? 'animate-pulse' : ''}`} />}
-            onClick={handleSendAbsenceSms}
-            disabled={isSendingSms || absentCount === 0}
-          >
-            {isSendingSms ? 'Sending SMS...' : `Send Parent SMS (${absentCount} Absent)`}
-          </Button>
+          <span className="text-xs text-stone-500 dark:text-stone-400" title="SMS provider is not configured">
+            Parent SMS disabled
+          </span>
 
           <Button
             variant="outline"
@@ -263,8 +227,8 @@ export const TeacherMadrasaDashboard: React.FC = () => {
             {absentCount} <span className="text-sm font-sans font-normal text-stone-500">absent</span>
           </div>
           <div className="text-xs text-stone-400 flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800">
-            <span>Parent SMS alerts ready</span>
-            <Badge variant="rose">{absentCount} pending</Badge>
+            <span>Parent SMS disabled</span>
+            <Badge variant="amber">Provider unavailable</Badge>
           </div>
         </Card>
 

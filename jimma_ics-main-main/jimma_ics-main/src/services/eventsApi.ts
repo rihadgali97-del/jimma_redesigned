@@ -22,8 +22,10 @@ const mapRegistration = (registration: ApiRegistration): EventRegistration => ({
     : registration.status === 'CANCELLED' ? 'Cancelled' : 'Confirmed',
 });
 
-function paginationParams() {
-  return new URLSearchParams({ page: '1', pageSize: '100' });
+const ADMIN_EVENT_PAGE_SIZE = 100;
+
+function paginationParams(page = 1) {
+  return new URLSearchParams({ page: String(page), pageSize: String(ADMIN_EVENT_PAGE_SIZE) });
 }
 
 export async function fetchPublicEvents(): Promise<CouncilEvent[]> {
@@ -34,6 +36,20 @@ export async function fetchPublicEvents(): Promise<CouncilEvent[]> {
 export async function fetchAdminEvents(): Promise<CouncilEvent[]> {
   const rows = await apiRequest<ApiEvent[]>(`/admin/events?${paginationParams()}`);
   return rows.map(mapEvent);
+}
+
+export async function fetchAllAdminEvents(signal?: AbortSignal): Promise<CouncilEvent[]> {
+  const events: CouncilEvent[] = [];
+  let page = 1;
+  let rows: ApiEvent[];
+
+  do {
+    rows = await apiRequest<ApiEvent[]>(`/admin/events?${paginationParams(page)}`, { signal });
+    events.push(...rows.map(mapEvent));
+    page += 1;
+  } while (rows.length === ADMIN_EVENT_PAGE_SIZE);
+
+  return events;
 }
 
 function eventPayload(event: Partial<CouncilEvent>) {

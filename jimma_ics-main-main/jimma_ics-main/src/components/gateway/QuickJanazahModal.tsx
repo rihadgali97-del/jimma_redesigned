@@ -11,6 +11,7 @@ import {
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
+import { sendTelegramGatewayMessage } from '../../services/notificationsApi';
 
 interface QuickJanazahModalProps {
   isOpen: boolean;
@@ -25,50 +26,49 @@ export const QuickJanazahModal: React.FC<QuickJanazahModalProps> = ({
   defaultMosqueName = 'Grand Anwar Mosque (Hermata)',
   defaultDistrict = 'Hermata, Jimma City',
 }) => {
-  const { dispatchMessage, gatewayStats, addToast } = useApp();
-  const [deceasedName, setDeceasedName] = useState('Haji Oumer Kedir Ababor');
-  const [deceasedAge, setDeceasedAge] = useState('84');
-  const [janazahTime, setJanazahTime] = useState('Today after Salatul Asr (4:15 PM)');
+  const { addToast } = useApp();
+  const [deceasedName, setDeceasedName] = useState('');
+  const [deceasedAge, setDeceasedAge] = useState('');
+  const [janazahTime, setJanazahTime] = useState('');
   const [mosqueName, setMosqueName] = useState(defaultMosqueName);
-  const [cemeteryName, setCemeteryName] = useState('Hermata Muslim Public Cemetery');
-  const [familyContact, setFamilyContact] = useState('+251 91 190 4421');
+  const [cemeteryName, setCemeteryName] = useState('');
   const [isSending, setIsSending] = useState(false);
 
   const handleBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!deceasedName.trim() || !janazahTime.trim() || !mosqueName.trim() || !cemeteryName.trim()) {
+      addToast('Complete announcement details', 'Enter the deceased name, prayer time, mosque, and burial location before posting.', 'warning');
+      return;
+    }
+    if (!window.confirm('This message will be posted publicly to the configured Telegram channel. Continue?')) return;
+
     setIsSending(true);
-
-    const messageContent = `🚨 JANAZAH PRAYER ANNOUNCEMENT - JIMMA CITY\n\n'Inna lillahi wa inna ilayhi raji'un'\n\nJanazah prayer for the late ${deceasedName} (${deceasedAge} yrs, ${defaultDistrict}) will take place:\n⏰ Time: ${janazahTime}\n🕌 Location: ${mosqueName}\n🪦 Burial: ${cemeteryName}\n📞 Family Contact: ${familyContact}\n\nMay Allah grant them Jannatul Firdaws. All are requested to attend.`;
-
-    setTimeout(async () => {
-      await dispatchMessage({
-        title: `Emergency Janazah: ${deceasedName}`,
-        category: 'janazah_broadcast',
-        channel: 'hybrid',
-        senderId: 'JIMMA-ISLAM',
-        recipientTarget: `Zonal Emergency Janazah Broadcast List & Telegram Channel (${gatewayStats.telegramSubscribers.toLocaleString()} reach)`,
-        recipientCount: gatewayStats.telegramSubscribers + 5400,
-        content: messageContent,
-        costETB: 350.0,
-        metadata: {
-          woreda: defaultDistrict,
-          mosqueName,
-          deceasedName,
-          janazahTime,
-          cemetery: cemeteryName,
-        },
-      });
-      setIsSending(false);
+    try {
+      const content = `JANAZAH PRAYER ANNOUNCEMENT - JIMMA CITY\n\nInna lillahi wa inna ilayhi raji'un\n\nJanazah prayer for the late ${deceasedName}${deceasedAge ? ` (${deceasedAge} years old)` : ''} (${defaultDistrict}) will take place:\nTime: ${janazahTime}\nMosque: ${mosqueName}\nBurial: ${cemeteryName}\n\nMay Allah grant them Jannatul Firdaws. All are requested to attend.`;
+      const result = await sendTelegramGatewayMessage(
+        `Emergency Janazah: ${deceasedName}`,
+        content,
+        'janazah_broadcast'
+      );
+      addToast('Telegram announcement sent', `Telegram accepted the post for ${result.channelId}.`, 'success');
       onClose();
-    }, 700);
+    } catch (error) {
+      addToast(
+        'Telegram announcement failed',
+        error instanceof Error ? error.message : 'The Telegram post could not be sent.',
+        'error'
+      );
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="🚨 Broadcast Emergency Janazah Notification"
-      subtitle="Dispatches urgent SMS and Telegram channel broadcast to thousands of community members across Jimma City."
+      title="Prepare a Janazah Telegram announcement"
+      subtitle="This message will be posted publicly to the configured Telegram channel. SMS delivery is disabled."
     >
       <form onSubmit={handleBroadcast} className="space-y-4 text-xs">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -136,27 +136,14 @@ export const QuickJanazahModal: React.FC<QuickJanazahModalProps> = ({
             />
           </div>
 
-          <div>
-            <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
-              Family Contact Phone
-            </label>
-            <input
-              type="text"
-              value={familyContact}
-              onChange={(e) => setFamilyContact(e.target.value)}
-              className="w-full p-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 font-mono"
-            />
-          </div>
         </div>
 
-        <div className="p-3 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-800 text-stone-700 dark:text-stone-300 flex items-center justify-between">
+        <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800 text-stone-700 dark:text-stone-300 flex items-center justify-between">
           <div>
-            <span className="font-bold text-rose-900 dark:text-rose-200 block">Zonal Reach Estimate</span>
-            <span className="text-[11px] text-stone-500">
-              ~{(gatewayStats.telegramSubscribers + 5400).toLocaleString()} Verified Community Subscribers
-            </span>
+            <span className="font-bold text-amber-900 dark:text-amber-200 block">Public Telegram post</span>
+            <span className="text-[11px] text-stone-500">No subscriber estimate is available from the configured API.</span>
           </div>
-          <Badge variant="amber">Dual SMS + Telegram Blast</Badge>
+          <Badge variant="amber">SMS disabled</Badge>
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-stone-800">
@@ -169,7 +156,7 @@ export const QuickJanazahModal: React.FC<QuickJanazahModalProps> = ({
             disabled={isSending}
             icon={isSending ? <Radio className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
           >
-            {isSending ? 'Blasting Janazah Alert...' : 'Broadcast to Entire Zone'}
+            {isSending ? 'Posting to Telegram…' : 'Post public announcement'}
           </Button>
         </div>
       </form>

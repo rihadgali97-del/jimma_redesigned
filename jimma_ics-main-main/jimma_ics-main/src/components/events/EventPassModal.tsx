@@ -15,7 +15,6 @@ import {
   Share2,
   CheckCircle2,
   Printer,
-  Smartphone,
   ShieldCheck,
   MapPin,
   Clock,
@@ -42,7 +41,7 @@ export const EventPassModal: React.FC<EventPassModalProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
-  const { addToast, dispatchMessage, currentUser } = useApp();
+  const { addToast } = useApp();
   const passNumber = registration.passNumber;
 
   useEffect(() => {
@@ -107,20 +106,6 @@ export const EventPassModal: React.FC<EventPassModalProps> = ({
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     addToast('Pass Code Copied', `${passNumber} copied to clipboard.`, 'info');
-  };
-
-  const handleSendSmsConfirmation = async () => {
-    await dispatchMessage({
-      title: `Event Admission Pass - ${event.title.substring(0, 30)}`,
-      category: 'general_bulletin',
-      channel: 'sms',
-      senderId: currentUser.id,
-      recipientTarget: registration.phone,
-      recipientCount: 1,
-      content: `Assalamu Alaykum ${registration.fullName}, your registration for "${event.title}" is confirmed! Pass #${passNumber}. Date: ${event.date} at ${event.location}. - Jimma Islamic Council`,
-      costETB: 0.35,
-    });
-    addToast('SMS Notification Dispatched', `Confirmation sent to ${registration.phone} via Ethio Telecom.`, 'success');
   };
 
   return (
@@ -237,14 +222,9 @@ export const EventPassModal: React.FC<EventPassModalProps> = ({
               <span>Apple / Outlook iCal</span>
             </button>
 
-            {/* SMS Resend */}
-            <button
-              onClick={handleSendSmsConfirmation}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 transition-colors"
-            >
-              <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-              <span>SMS Ticket</span>
-            </button>
+            <span className="text-xs text-stone-400" title="SMS provider is not configured">
+              SMS delivery disabled
+            </span>
           </div>
 
           <div className="flex items-center gap-2">

@@ -9,14 +9,12 @@ import {
   CheckCircle2,
   Clock,
   Download,
-  MessageSquare,
   QrCode,
   UserPlus,
   Filter,
   Phone,
   Building,
   ShieldCheck,
-  Send,
   Printer,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -114,15 +112,12 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
     registerForEvent,
     reviewEventPayment,
     fetchEventPaymentReceipt,
-    dispatchMessage,
-    currentUser,
     addToast,
   } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Confirmed' | 'Checked-In' | 'Cancelled'>('All');
   const [showAddWalkIn, setShowAddWalkIn] = useState(false);
-  const [showBroadcastSms, setShowBroadcastSms] = useState(false);
   const [showQrScanner, setShowQrScanner] = useState(false);
   const [isLoadingAttendees, setIsLoadingAttendees] = useState(false);
   const [receiptPreviewUrl, setReceiptPreviewUrl] = useState<string | null>(null);
@@ -136,11 +131,6 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
   const [walkInOrg, setWalkInOrg] = useState('');
   const [walkInCount, setWalkInCount] = useState(1);
 
-  // SMS Broadcast state
-  const [smsContent, setSmsContent] = useState(
-    `Important update regarding "${event.title}": Gathering starts at ${event.time} at ${event.location}. Please have your Pass ready for gate scan.`
-  );
-  const [isSendingSms, setIsSendingSms] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -171,7 +161,6 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
   const totalSeats = eventAttendees
     .filter((registration) => registration.status !== 'Cancelled')
     .reduce((acc, r) => acc + (r.attendeesCount || 1), 0);
-  const passHolders = eventAttendees.filter((registration) => registration.status !== 'Cancelled' && registration.passNumber);
 
   const handlePassCodeScanned = async (passCode: string) => {
     setShowQrScanner(false);
@@ -273,35 +262,6 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
     }
   };
 
-  const handleSendBroadcastSms = async () => {
-    if (!smsContent.trim()) return;
-    setIsSendingSms(true);
-    try {
-      await dispatchMessage({
-        title: `Attendee Broadcast - ${event.title.substring(0, 25)}`,
-        category: 'general_bulletin',
-        channel: 'sms',
-        senderId: currentUser.id,
-        recipientTarget: `${passHolders.length} Confirmed Attendees for ${event.title}`,
-        recipientCount: passHolders.length,
-        content: smsContent,
-        costETB: passHolders.length * 0.35,
-      });
-
-      setIsSendingSms(false);
-      setShowBroadcastSms(false);
-      addToast(
-        'Broadcast Message Dispatched',
-        `SMS sent to ${passHolders.length} approved attendees via Ethio Telecom shortcode.`,
-        'success'
-      );
-    } catch (err) {
-      console.error(err);
-      setIsSendingSms(false);
-      addToast('Dispatch Failed', 'Could not send broadcast.', 'error');
-    }
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-950/80 backdrop-blur-sm overflow-y-auto">
       <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto text-stone-900 dark:text-stone-100 animate-in fade-in zoom-in-95 duration-200">
@@ -346,15 +306,6 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
               className="hidden sm:inline-flex text-xs"
             >
               Export CSV
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowBroadcastSms(!showBroadcastSms)}
-              icon={<Send className="w-3.5 h-3.5 text-emerald-500" />}
-              className="text-xs"
-            >
-              Broadcast SMS
             </Button>
             {!event.isPaid && (
               <Button
@@ -461,43 +412,6 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
                 Admit & Check In
               </Button>
             </form>
-          </div>
-        )}
-
-        {/* SMS Broadcast Drawer (Conditional) */}
-        {showBroadcastSms && (
-          <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 border-b border-emerald-200 dark:border-emerald-900/40 animate-in slide-in-from-top-2 duration-150 space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                <Send className="w-4 h-4" />
-                <span>Send SMS Broadcast to all {eventAttendees.length} Attendees</span>
-              </h4>
-              <button
-                onClick={() => setShowBroadcastSms(false)}
-                className="text-xs text-stone-500 hover:text-stone-800 dark:hover:text-stone-300"
-              >
-                Close
-              </button>
-            </div>
-            <textarea
-              rows={2}
-              value={smsContent}
-              onChange={(e) => setSmsContent(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-xs sm:text-sm"
-            />
-            <div className="flex items-center justify-between text-xs text-stone-500">
-              <span>Estimated Cost: {(eventAttendees.length * 0.35).toFixed(2)} ETB via Ethio Telecom Shortcode</span>
-              <Button
-                variant="primary"
-                size="sm"
-                disabled={isSendingSms}
-                onClick={handleSendBroadcastSms}
-                icon={<Send className="w-3.5 h-3.5" />}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs"
-              >
-                {isSendingSms ? 'Transmitting...' : 'Dispatch Broadcast Now'}
-              </Button>
-            </div>
           </div>
         )}
 

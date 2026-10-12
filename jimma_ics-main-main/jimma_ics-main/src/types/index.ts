@@ -609,8 +609,6 @@ export interface DispatchLogItem {
   content: string;
   status: MessageDeliveryStatus;
   gatewayResponseCode: string;
-  costETB: number;
-  deliveryRate: number;
   metadata?: {
     studentId?: string;
     studentName?: string;
@@ -625,27 +623,6 @@ export interface DispatchLogItem {
     telegramMessageId?: string;
     telegramErrorMessage?: string;
   };
-}
-
-export type DispatchMessageInput = Omit<
-  DispatchLogItem,
-  'id' | 'timestamp' | 'status' | 'gatewayResponseCode' | 'deliveryRate'
-> & {
-  confirmation?: {
-    title: string;
-    message: string;
-  };
-};
-
-export interface GatewayChannelStats {
-  smsBalanceETB: number;
-  smsTotalSent: number;
-  smsSuccessRate: number;
-  ethioShortCode: string;
-  telegramBotUsername: string;
-  telegramChannelName: string;
-  telegramSubscribers: number;
-  telegramMessagesSent: number;
 }
 
 // Educational Materials, PDF Handbooks & Khutbah Templates

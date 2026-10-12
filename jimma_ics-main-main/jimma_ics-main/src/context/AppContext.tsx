@@ -18,9 +18,6 @@ import {
   DailyAttendanceSession,
   StudentAttendanceEntry,
   StaffAttendanceEntry,
-  DispatchLogItem,
-  DispatchMessageInput,
-  GatewayChannelStats,
   EventRegistration,
   EventNotificationSubscription,
   RoleDefinition,
@@ -38,7 +35,6 @@ import { mockFunds, mockTransactions, mockDonations, mockExpenseApprovals } from
 import { mockPublicServices, mockServiceRequests, ServiceItem } from '../data/mockServices';
 import { mockEvents, mockAnnouncements } from '../data/mockEventsAndDocs';
 import { initialCouncilResources } from '../data/mockResources';
-import { mockDispatchHistory, initialGatewayStats } from '../data/mockGatewayData';
 import { initialStaffMembers, permissionCategories as defaultPermissionCategories } from '../data/mockStaffAndRoles';
 import { initialAttendanceSessions, initialStaffAttendance } from '../data/mockAttendance';
 import { mockAuditDirectives, mockAuditChecklist, mockLedgerBlocks } from '../data/mockAuditCompliance';
@@ -242,13 +238,6 @@ interface AppContextType {
   deleteResource: (id: string) => void;
   incrementResourceDownload: (id: string) => void;
 
-  // Gateway & Communications
-  gatewayStats: GatewayChannelStats;
-  dispatchHistory: DispatchLogItem[];
-  dispatchMessage: (item: DispatchMessageInput) => Promise<DispatchLogItem>;
-  topUpSmsBalance: (amountETB: number) => void;
-  clearDispatchHistory: () => void;
-
   // Attendance
   attendanceMap: Record<string, 'Present' | 'Absent' | 'Late' | 'Excused'>;
   setStudentAttendance: (studentId: string, status: 'Present' | 'Absent' | 'Late' | 'Excused') => void;
@@ -258,7 +247,6 @@ interface AppContextType {
   saveDailyAttendanceSession: (session: DailyAttendanceSession) => void;
   updateStudentAttendanceEntry: (sessionId: string, studentId: string, updates: Partial<StudentAttendanceEntry>) => void;
   batchMarkAttendance: (sessionId: string, status: AttendanceStatus) => void;
-  sendAbsenceSmsAlerts: (sessionId: string, filter?: 'Absent' | 'Late' | 'All') => Promise<{ sentCount: number; costETB: number }>;
   updateStaffAttendanceRecord: (id: string, updates: Partial<StaffAttendanceEntry>) => void;
   addStaffAttendanceRecord: (entry: Omit<StaffAttendanceEntry, 'id'>) => StaffAttendanceEntry;
 
@@ -1303,62 +1291,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addToast('Batch Status Applied', `All students in session marked as "${status}".`, 'info');
   };
 
-  const sendAbsenceSmsAlerts = async (
-    sessionId: string,
-    filter: 'Absent' | 'Late' | 'All' = 'Absent'
-  ): Promise<{ sentCount: number; costETB: number }> => {
-    const session = dailyAttendanceSessions.find((s) => s.id === sessionId);
-    if (!session) return { sentCount: 0, costETB: 0 };
-
-    const targetStudents = session.entries.filter((e) => {
-      if (filter === 'Absent') return e.status === 'Absent';
-      if (filter === 'Late') return e.status === 'Late';
-      return e.status === 'Absent' || e.status === 'Late';
-    });
-
-    if (targetStudents.length === 0) {
-      addToast('No Recipients Found', `No students match the "${filter}" filter in this session.`, 'info');
-      return { sentCount: 0, costETB: 0 };
-    }
-
-    const costPerMsg = 0.35; // ETB per Ethio Telecom SMS
-    const totalCost = Math.round(targetStudents.length * costPerMsg * 100) / 100;
-
-    // Dispatch via Gateway
-    await dispatchMessage({
-      title: `Daily Absence Notice: ${session.className}`,
-      category: 'sabaq_alert',
-      channel: 'sms',
-      senderId: currentUser.id,
-      recipientTarget: `${targetStudents.length} Parent(s) (${session.madrasaName})`,
-      recipientCount: targetStudents.length,
-      content: `Assalamu Alaikum. This is an official notice from ${session.madrasaName} (Jimma City Islamic Affairs Council). Your child was recorded as ABSENT for the ${session.shift} session on ${session.hijriDate} (${session.date}). For inquiries: ${currentUser.phone || '+251 47 111 8290'}.`,
-      costETB: totalCost,
-    });
-
-    // Mark entries as notified
-    setDailyAttendanceSessions((prev) =>
-      prev.map((s) => {
-        if (s.id === sessionId) {
-          const notifiedEntries = s.entries.map((entry) => {
-            const isTarget = targetStudents.some((ts) => ts.studentId === entry.studentId);
-            return isTarget ? { ...entry, parentNotified: true } : entry;
-          });
-          return { ...s, entries: notifiedEntries };
-        }
-        return s;
-      })
-    );
-
-    addToast(
-      'SMS Absence Alerts Dispatched',
-      `Sent ${targetStudents.length} automated Ethio Telecom SMS notifications to guardians. Total cost: ${totalCost} ETB.`,
-      'success'
-    );
-
-    return { sentCount: targetStudents.length, costETB: totalCost };
-  };
-
   const updateStaffAttendanceRecord = (id: string, updates: Partial<StaffAttendanceEntry>) => {
     setStaffAttendanceList((prev) =>
       prev.map((staff) => (staff.id === id ? { ...staff, ...updates } : staff))
@@ -1376,9 +1308,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addToast('Staff Attendance Logged', `${entry.staffName} marked as ${entry.status}.`, 'success');
     return newRecord;
   };
-
-  const [gatewayStats, setGatewayStats] = useState<GatewayChannelStats>(initialGatewayStats);
-  const [dispatchHistory, setDispatchHistory] = useState<DispatchLogItem[]>(mockDispatchHistory);
 
   const updateStudentProgress = async (id: string, updates: any): Promise<boolean> => {
     const student = students.find((item) => item.id === id);
@@ -1430,88 +1359,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setStudents((prev) => prev.map((item) => (item.id === id ? locallyUpdated : item)));
     return true;
-  };
-
-  const dispatchMessage = async (
-    data: DispatchMessageInput
-  ): Promise<DispatchLogItem> => {
-    const { confirmation, ...dispatchData } = data;
-    const id = `disp-${Date.now()}`;
-    const timestamp = new Date().toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-
-    const isSms = dispatchData.channel === 'sms' || dispatchData.channel === 'hybrid';
-    const isTelegram = dispatchData.channel === 'telegram' || dispatchData.channel === 'hybrid';
-
-    const gatewayCode = isSms && isTelegram
-      ? 'ETHIO_SMS_BATCH_OK_200 / TG_200_OK'
-      : isSms
-      ? 'ETHIO_SMS_DELIVRD_200'
-      : 'TELEGRAM_BOT_MSG_OK_200';
-
-    const newItem: DispatchLogItem = {
-      ...dispatchData,
-      id,
-      timestamp,
-      status: 'delivered',
-      gatewayResponseCode: gatewayCode,
-      deliveryRate: 99.8,
-    };
-
-    setDispatchHistory((prev) => [newItem, ...prev]);
-
-    // Update channel stats
-    setGatewayStats((prev) => {
-      let newBalance = prev.smsBalanceETB;
-      let newSmsSent = prev.smsTotalSent;
-      let newTgSent = prev.telegramMessagesSent;
-
-      if (isSms) {
-        newBalance = Math.max(0, newBalance - dispatchData.costETB);
-        newSmsSent += dispatchData.recipientCount;
-      }
-      if (isTelegram) {
-        newTgSent += 1;
-      }
-
-      return {
-        ...prev,
-        smsBalanceETB: Math.round(newBalance * 100) / 100,
-        smsTotalSent: newSmsSent,
-        telegramMessagesSent: newTgSent,
-      };
-    });
-
-    addToast(
-      confirmation?.title || 'Gateway Dispatch Successful',
-      confirmation?.message ||
-        `${dispatchData.title} delivered to ${dispatchData.recipientCount.toLocaleString()} recipient(s) via ${dispatchData.channel.toUpperCase()}.`,
-      'success'
-    );
-
-    return newItem;
-  };
-
-  const topUpSmsBalance = (amountETB: number) => {
-    setGatewayStats((prev) => ({
-      ...prev,
-      smsBalanceETB: prev.smsBalanceETB + amountETB,
-    }));
-    addToast(
-      'Ethio Telecom SMS Gateway Refilled',
-      `Recharged ${amountETB.toLocaleString()} ETB via Telebirr Corporate Merchant API.`,
-      'success'
-    );
-  };
-
-  const clearDispatchHistory = () => {
-    setDispatchHistory([]);
-    addToast('Audit Logs Cleared', 'Historical dispatch records reset.', 'info');
   };
 
   const refreshEvents = async (adminView = false) => {
@@ -2121,11 +1968,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateResource,
         deleteResource,
         incrementResourceDownload,
-        gatewayStats,
-        dispatchHistory,
-        dispatchMessage,
-        topUpSmsBalance,
-        clearDispatchHistory,
         attendanceMap,
         setStudentAttendance,
         saveDailyAttendance,
@@ -2134,7 +1976,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         saveDailyAttendanceSession,
         updateStudentAttendanceEntry,
         batchMarkAttendance,
-        sendAbsenceSmsAlerts,
         updateStaffAttendanceRecord,
         addStaffAttendanceRecord,
         auditDirectives,

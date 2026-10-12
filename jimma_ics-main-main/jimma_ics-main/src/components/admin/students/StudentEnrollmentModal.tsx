@@ -195,7 +195,7 @@ export const StudentEnrollmentModal: React.FC<StudentEnrollmentModalProps> = ({
           </div>
           <div>
             <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-              Guardian Phone (SMS alerts) *
+              Guardian Phone *
             </label>
             <input
               type="tel"

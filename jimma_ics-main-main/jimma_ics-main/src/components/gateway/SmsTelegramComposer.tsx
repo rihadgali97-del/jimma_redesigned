@@ -31,29 +31,30 @@ interface SmsTelegramComposerProps {
   initialStudentId?: string;
   initialMosqueId?: string;
   onSuccess?: () => void;
-  telegramOnly?: boolean;
+  telegramOnly: true;
   telegramStatus?: TelegramGatewayStatus | null;
   telegramStatusError?: string | null;
 }
 
 export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
-  initialCategory = 'sabaq_alert',
+  initialCategory = 'general_bulletin',
   initialStudentId,
   initialMosqueId,
-  telegramOnly = false,
+  telegramOnly,
   telegramStatus = null,
   telegramStatusError = null,
   onSuccess,
 }) => {
-  const { students, mosques, dispatchMessage, addToast, gatewayStats } = useApp();
+  const { students, mosques, addToast } = useApp();
 
   // State
   const [selectedCategory, setSelectedCategory] = useState<MessageCategory>(
     telegramOnly ? 'general_bulletin' : initialCategory
   );
-  const [selectedChannel, setSelectedChannel] = useState<MessageChannel>(
-    telegramOnly ? 'telegram' : 'hybrid'
+  const [selectedTemplateId, setSelectedTemplateId] = useState(
+    gatewayTemplates.find((template) => template.category === (telegramOnly ? 'general_bulletin' : initialCategory))?.id || ''
   );
+  const [selectedChannel, setSelectedChannel] = useState<MessageChannel>('telegram');
   const [selectedLanguage, setSelectedLanguage] = useState<'en' | 'om' | 'ar'>('om');
   const [senderId, setSenderId] = useState('JIMMA-ISLAM');
 
@@ -66,220 +67,142 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
   );
 
   // Form Fields for different categories
-  const [deceasedName, setDeceasedName] = useState('Haji Oumer Kedir Ababor');
-  const [deceasedAge, setDeceasedAge] = useState('84');
-  const [janazahTime, setJanazahTime] = useState('Today after Salatul Asr (4:15 PM)');
-  const [cemeteryName, setCemeteryName] = useState('Hermata Muslim Public Cemetery');
-  const [familyContact, setFamilyContact] = useState('+251 91 190 4421');
+  const [deceasedName, setDeceasedName] = useState('');
+  const [deceasedAge, setDeceasedAge] = useState('');
+  const [janazahTime, setJanazahTime] = useState('');
+  const [cemeteryName, setCemeteryName] = useState('');
 
-  const [khutbahTheme, setKhutbahTheme] = useState(
-    'Preserving Waqf Endowments & Supporting Rural Quranic Madrasas'
-  );
-  const [moonOccasion, setMoonOccasion] = useState('Shawwal 1447 AH (Eid-ul-Fitr)');
-  const [eidLocation, setEidLocation] = useState('Jimma City Central Stadium & Eid Gah Grounds');
+  const [khutbahTheme, setKhutbahTheme] = useState('');
+  const [moonOccasion, setMoonOccasion] = useState('');
+  const [eidLocation, setEidLocation] = useState('');
 
   // Recipient Target
-  const [recipientTarget, setRecipientTarget] = useState('Parent: Haji Mohammed Abafita (+251 91 190 2831)');
+  const [recipientTarget, setRecipientTarget] = useState('Configured Telegram channel');
   const [recipientCount, setRecipientCount] = useState<number>(1);
 
   // Message body
   const [messageTitle, setMessageTitle] = useState('');
   const [messageContent, setMessageContent] = useState('');
 
-  // Dispatch Animation Simulation
   const [isDispatching, setIsDispatching] = useState(false);
-  const [dispatchStage, setDispatchStage] = useState<number>(0);
 
   const activeStudent = students.find((s) => s.id === selectedStudentId) || students[0];
   const activeMosque = mosques.find((m) => m.id === selectedMosqueId) || mosques[0];
 
   // Load and populate template based on category & language
   const applyTemplate = (category: MessageCategory, lang: 'en' | 'om' | 'ar') => {
-    let template = gatewayTemplates.find((t) => t.category === category);
-    if (!template) template = gatewayTemplates[0];
+    const template = gatewayTemplates.find((t) => t.id === selectedTemplateId && t.category === category)
+      || gatewayTemplates.find((t) => t.category === category);
+    setSelectedChannel(telegramOnly ? 'telegram' : template?.defaultChannel || 'telegram');
 
-    setSelectedChannel(telegramOnly ? 'telegram' : template.defaultChannel);
+    let raw = template?.languages[lang] || '';
 
-    let raw = template.languages[lang];
-
-    if (category === 'sabaq_alert' && activeStudent) {
-      const sabaqText = activeStudent.hifzStatus?.sabaq || activeStudent.sabaqSurah || 'Surah Maryam: 1-40';
-      const sabqiText = activeStudent.hifzStatus?.sabqi || (activeStudent.sabaqiJuz ? `Juz ${activeStudent.sabaqiJuz}` : 'Juz 18');
-      const manzilText = activeStudent.hifzStatus?.manzil || activeStudent.manzilJuz || 'Juz 1 to 10';
-      const parent = activeStudent.parentName || activeStudent.guardianName || 'Guardian';
-      const parentPhone = activeStudent.parentPhone || activeStudent.guardianPhone || '+251 91 190 2831';
-
+    if (category === 'sabaq_alert') {
       raw = raw
-        .replace(/{MadrasaName}/g, activeStudent.madrasaName)
-        .replace(/{ParentName}/g, parent)
-        .replace(/{StudentName}/g, activeStudent.name)
-        .replace(/{SabaqLesson}/g, sabaqText)
-        .replace(/{SabqiJuz}/g, sabqiText)
-        .replace(/{ManzilJuz}/g, manzilText)
-        .replace(/{TajweedRating}/g, activeStudent.tajweedRating)
-        .replace(/{AttendanceStatus}/g, activeStudent.dailyAttendance || 'Present (On Time)')
-        .replace(/{TeacherPhone}/g, '+251 91 123 4567')
-        .replace(/{Date}/g, new Date().toLocaleDateString());
+        .replace(/{MadrasaName}/g, '[madrasa name]')
+        .replace(/{ParentName}/g, '[guardian name]')
+        .replace(/{StudentName}/g, '[student name]')
+        .replace(/{SabaqLesson}/g, '[sabaq lesson]')
+        .replace(/{SabqiJuz}/g, '[sabqi progress]')
+        .replace(/{ManzilJuz}/g, '[manzil progress]')
+        .replace(/{TajweedRating}/g, '[tajweed rating]')
+        .replace(/{AttendanceStatus}/g, '[attendance status]')
+        .replace(/{TeacherPhone}/g, '[teacher contact]')
+        .replace(/{Date}/g, '[date]');
 
       setSenderId('HIFZ-ACADEMY');
-      setMessageTitle(`Sabaq Progress: ${activeStudent.name}`);
-      setRecipientTarget(`${parent} (${parentPhone})`);
+      setMessageTitle('Student progress / attendance template');
+      setRecipientTarget('Private guardian message — SMS unavailable');
       setRecipientCount(1);
     } else if (category === 'janazah_broadcast') {
       raw = raw
-        .replace(/{DeceasedName}/g, deceasedName)
-        .replace(/{Age}/g, deceasedAge)
-        .replace(/{Kebele}/g, activeMosque ? activeMosque.district : 'Jimma City')
-        .replace(/{Woreda}/g, activeMosque ? activeMosque.district : 'Jimma City')
-        .replace(/{JanazahTime}/g, janazahTime)
-        .replace(/{MosqueName}/g, activeMosque ? activeMosque.name : 'Grand Anwar Mosque')
-        .replace(/{Cemetery}/g, cemeteryName)
-        .replace(/{FamilyContact}/g, familyContact);
+        .replace(/{DeceasedName}/g, deceasedName || '[deceased name]')
+        .replace(/{Age}/g, deceasedAge || '[age]')
+        .replace(/{Kebele}/g, activeMosque?.district || '[district]')
+        .replace(/{Woreda}/g, activeMosque?.district || '[district]')
+        .replace(/{JanazahTime}/g, janazahTime || '[prayer time]')
+        .replace(/{MosqueName}/g, activeMosque?.name || '[mosque name]')
+        .replace(/{Cemetery}/g, cemeteryName || '[burial location]')
+        .replace(/{FamilyContact}/g, '');
 
       setSenderId('JIMMA-ISLAM');
-      setMessageTitle(`Emergency Janazah: ${deceasedName}`);
-      setRecipientTarget(`Zonal Emergency Janazah Broadcast List & Channel (${gatewayStats.telegramSubscribers.toLocaleString()} subscribers)`);
-      setRecipientCount(gatewayStats.telegramSubscribers + 5400);
+      setMessageTitle(deceasedName ? `Emergency Janazah: ${deceasedName}` : 'Emergency Janazah Announcement');
+      setRecipientTarget(telegramStatus?.channelId || 'Configured Telegram channel');
+      setRecipientCount(1);
     } else if (category === 'moon_sighting') {
       raw = raw
-        .replace(/{Occasion}/g, moonOccasion)
-        .replace(/{HijriDate}/g, '1 Shawwal 1447 AH')
-        .replace(/{Location}/g, eidLocation)
-        .replace(/{ImamKhateeb}/g, 'Sheikh Dr. Nuruddin Kedir (Zonal Mufti)');
+        .replace(/{Occasion}/g, moonOccasion || '[occasion]')
+        .replace(/{HijriDate}/g, '[Hijri date]')
+        .replace(/{Location}/g, eidLocation || '[location]')
+        .replace(/{PrayerTime}/g, '[prayer time]')
+        .replace(/{ImamKhateeb}/g, '[imam / khateeb]')
+        .replace(/{CouncilMessage}/g, '[council message]');
 
       setSenderId('JIMMA-ISLAM');
-      setMessageTitle(`Moon Sighting Communique: ${moonOccasion}`);
-      setRecipientTarget(`All 18 Kebeles Broadcast (${gatewayStats.telegramSubscribers.toLocaleString()} Subscribers + 142 Imams)`);
-      setRecipientCount(gatewayStats.telegramSubscribers + 142);
+      setMessageTitle(moonOccasion ? `Moon Sighting Communique: ${moonOccasion}` : 'Moon Sighting / Eid Announcement');
+      setRecipientTarget(telegramStatus?.channelId || 'Configured Telegram channel');
+      setRecipientCount(1);
     } else if (category === 'khutbah_advisory') {
       raw = raw
-        .replace(/{Date}/g, 'This Friday')
-        .replace(/{KhutbahTheme}/g, khutbahTheme)
-        .replace(/{KeyFocus}/g, 'Islamic charity, moral tarbiyah of youth, and safeguarding mosque waqf property.')
-        .replace(/{Directives}/g, 'Encourage parents to enroll youth in certified evening Hifz halaqas.');
+        .replace(/{Date}/g, '[date]')
+        .replace(/{KhutbahTheme}/g, khutbahTheme || '[khutbah theme]')
+        .replace(/{KeyFocus}/g, '[key focus]')
+        .replace(/{Directives}/g, '[community guidance]')
+        .replace(/{CouncilMessage}/g, '[council message]');
 
-      setSenderId('@JimmaIslamicCouncilBot');
-      setMessageTitle(`Unified Khutbah: ${khutbahTheme.slice(0, 30)}...`);
-      setRecipientTarget('Jimma City Imams & Ulema League (142 Imams across 18 Kebeles)');
-      setRecipientCount(142);
+      setSenderId('JIMMA-ISLAM');
+      setMessageTitle(khutbahTheme ? `Unified Khutbah: ${khutbahTheme.slice(0, 30)}` : 'Unified Khutbah Advisory');
+      setRecipientTarget(telegramStatus?.channelId || 'Configured Telegram channel');
+      setRecipientCount(1);
     } else {
       setMessageTitle('Official Council Announcement');
       setRecipientTarget('Custom Recipient List');
       setRecipientCount(1);
     }
 
-    if (telegramOnly) {
-      setRecipientTarget(telegramStatus?.channelId || '@riho_information');
+    if (telegramOnly && category !== 'sabaq_alert') {
+      setRecipientTarget(telegramStatus?.channelId || 'Channel unavailable');
       setRecipientCount(1);
     }
     setMessageContent(raw);
   };
 
-  // Trigger when category, language, or active student/mosque changes
+  // Keep the selected template populated from current form values.
   useEffect(() => {
     applyTemplate(selectedCategory, selectedLanguage);
-  }, [selectedCategory, selectedLanguage, selectedStudentId, selectedMosqueId, telegramStatus?.channelId]);
-
-  // Update message content when form fields change (for live preview)
-  useEffect(() => {
-    if (selectedCategory === 'janazah_broadcast') {
-      // Get current template
-      const template = gatewayTemplates.find((t) => t.category === 'janazah_broadcast');
-      if (template) {
-        let raw = template.languages[selectedLanguage];
-
-        // Replace placeholders with current form values
-        raw = raw
-          .replace(/{DeceasedName}/g, deceasedName)
-          .replace(/{Age}/g, deceasedAge)
-          .replace(/{Kebele}/g, activeMosque ? activeMosque.district : 'Jimma City')
-          .replace(/{Woreda}/g, activeMosque ? activeMosque.district : 'Jimma City')
-          .replace(/{JanazahTime}/g, janazahTime)
-          .replace(/{MosqueName}/g, activeMosque ? activeMosque.name : 'Grand Anwar Mosque')
-          .replace(/{Cemetery}/g, cemeteryName)
-          .replace(/{FamilyContact}/g, familyContact);
-
-        setMessageContent(raw);
-        setMessageTitle(`Emergency Janazah: ${deceasedName}`);
-        setRecipientTarget(`Zonal Emergency Janazah Broadcast List & Channel (${gatewayStats.telegramSubscribers.toLocaleString()} subscribers)`);
-      }
-    } else if (selectedCategory === 'sabaq_alert' && activeStudent) {
-      const template = gatewayTemplates.find((t) => t.category === 'sabaq_alert');
-      if (template) {
-        let raw = template.languages[selectedLanguage];
-
-        const sabaqText = activeStudent.hifzStatus?.sabaq || activeStudent.sabaqSurah || 'Surah Maryam: 1-40';
-        const sabqiText = activeStudent.hifzStatus?.sabqi || (activeStudent.sabaqiJuz ? `Juz ${activeStudent.sabaqiJuz}` : 'Juz 18');
-        const manzilText = activeStudent.hifzStatus?.manzil || activeStudent.manzilJuz || 'Juz 1 to 10';
-        const parent = activeStudent.parentName || activeStudent.guardianName || 'Guardian';
-        const parentPhone = activeStudent.parentPhone || activeStudent.guardianPhone || '+251 91 190 2831';
-
-        raw = raw
-          .replace(/{MadrasaName}/g, activeStudent.madrasaName)
-          .replace(/{ParentName}/g, parent)
-          .replace(/{StudentName}/g, activeStudent.name)
-          .replace(/{SabaqLesson}/g, sabaqText)
-          .replace(/{SabqiJuz}/g, sabqiText)
-          .replace(/{ManzilJuz}/g, manzilText)
-          .replace(/{TajweedRating}/g, activeStudent.tajweedRating)
-          .replace(/{AttendanceStatus}/g, activeStudent.dailyAttendance || 'Present (On Time)')
-          .replace(/{TeacherPhone}/g, '+251 91 123 4567')
-          .replace(/{Date}/g, new Date().toLocaleDateString());
-
-        setMessageContent(raw);
-        setMessageTitle(`Sabaq Progress: ${activeStudent.name}`);
-        setRecipientTarget(`${parent} (${parentPhone})`);
-      }
-    } else if (selectedCategory === 'moon_sighting') {
-      const template = gatewayTemplates.find((t) => t.category === 'moon_sighting');
-      if (template) {
-        let raw = template.languages[selectedLanguage];
-
-        raw = raw
-          .replace(/{Occasion}/g, moonOccasion)
-          .replace(/{HijriDate}/g, '1 Shawwal 1447 AH')
-          .replace(/{Location}/g, eidLocation)
-          .replace(/{ImamKhateeb}/g, 'Sheikh Dr. Nuruddin Kedir (Zonal Mufti)');
-
-        setMessageContent(raw);
-        setMessageTitle(`Moon Sighting Communique: ${moonOccasion}`);
-        setRecipientTarget(`All 18 Kebeles Broadcast (${gatewayStats.telegramSubscribers.toLocaleString()} Subscribers + 142 Imams)`);
-      }
-    } else if (selectedCategory === 'khutbah_advisory') {
-      const template = gatewayTemplates.find((t) => t.category === 'khutbah_advisory');
-      if (template) {
-        let raw = template.languages[selectedLanguage];
-
-        raw = raw
-          .replace(/{Date}/g, 'This Friday')
-          .replace(/{KhutbahTheme}/g, khutbahTheme)
-          .replace(/{KeyFocus}/g, 'Islamic charity, moral tarbiyah of youth, and safeguarding mosque waqf property.')
-          .replace(/{Directives}/g, 'Encourage parents to enroll youth in certified evening Hifz halaqas.');
-
-        setMessageContent(raw);
-        setMessageTitle(`Unified Khutbah: ${khutbahTheme.slice(0, 30)}...`);
-        setRecipientTarget('Jimma City Imams & Ulema League (142 Imams across 18 Kebeles)');
-      }
-    }
-  }, [deceasedName, deceasedAge, janazahTime, cemeteryName, familyContact, selectedMosqueId, selectedCategory, selectedLanguage, activeStudent, khutbahTheme, moonOccasion, eidLocation, gatewayStats.telegramSubscribers]);
+  }, [
+    selectedCategory,
+    selectedTemplateId,
+    selectedLanguage,
+    selectedStudentId,
+    selectedMosqueId,
+    deceasedName,
+    deceasedAge,
+    janazahTime,
+    cemeteryName,
+    khutbahTheme,
+    moonOccasion,
+    eidLocation,
+    telegramStatus?.channelId,
+  ]);
 
   // Handle Dispatch Action with realistic stage simulation
   const handleDispatch = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (selectedCategory === 'sabaq_alert') {
+      addToast(
+        'Private guardian messages unavailable',
+        'Telegram sends to a public channel. SMS is disabled, so guardian-specific student reports cannot be sent.',
+        'warning'
+      );
+      return;
+    }
     if (!messageContent.trim()) {
       addToast('Cannot Send Empty Message', 'Please enter message content first.', 'warning');
       return;
     }
 
     if (telegramOnly) {
-      if (selectedCategory === 'sabaq_alert') {
-        addToast(
-          'Private Sabaq Alerts Unavailable',
-          'Telegram sends to a public channel. SMS is disabled, so guardian-specific student reports cannot be sent.',
-          'warning'
-        );
-        return;
-      }
       if (!telegramStatus?.enabled) {
         addToast(
           'Telegram Gateway Unavailable',
@@ -297,27 +220,11 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
           messageContent,
           selectedCategory
         );
-        await dispatchMessage({
-          title: messageTitle || 'Jimma ICS announcement',
-          category: selectedCategory,
-          channel: 'telegram',
-          senderId,
-          recipientTarget: result.channelId,
-          recipientCount: 1,
-          content: messageContent,
-          costETB: 0,
-          confirmation: {
-            title: 'Telegram Post Accepted',
-            message: `Telegram accepted this post for ${result.channelId}. Message ID: ${result.messageId}.`,
-          },
-          metadata: {
-            deceasedName: selectedCategory === 'janazah_broadcast' ? deceasedName : undefined,
-            janazahTime: selectedCategory === 'janazah_broadcast' ? janazahTime : undefined,
-            cemetery: selectedCategory === 'janazah_broadcast' ? cemeteryName : undefined,
-            mosqueName: activeMosque?.name,
-            telegramMessageId: result.messageId,
-          },
-        });
+        addToast(
+          'Telegram post accepted',
+          `Telegram accepted this post for ${result.channelId}. Message ID: ${result.messageId}.`,
+          'success'
+        );
         onSuccess?.();
       } catch (error) {
         addToast(
@@ -331,53 +238,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
       return;
     }
 
-    // Cost estimate
-    const isUnicode = /[^\u0000-\u00ff]/.test(messageContent);
-    const limitPerSegment = isUnicode ? 70 : 160;
-    const segmentCount = Math.max(1, Math.ceil(messageContent.length / limitPerSegment));
-    const cost = selectedChannel === 'telegram' ? 0 : segmentCount * recipientCount * 0.25;
-
-    // Check balance if SMS
-    if ((selectedChannel === 'sms' || selectedChannel === 'hybrid') && cost > gatewayStats.smsBalanceETB && recipientCount <= 50) {
-      addToast('Insufficient SMS Balance', `Please refill your Ethio Telecom credit balance to send this dispatch.`, 'warning');
-      return;
-    }
-
-    setIsDispatching(true);
-    setDispatchStage(1); // Connecting
-
-    setTimeout(() => {
-      setDispatchStage(2); // Handshaking SMPP / Bot API
-      setTimeout(() => {
-        setDispatchStage(3); // Delivering
-        setTimeout(async () => {
-          setDispatchStage(4); // Delivered
-          await dispatchMessage({
-            title: messageTitle || 'Gateway Broadcast',
-            category: selectedCategory,
-            channel: selectedChannel,
-            senderId,
-            recipientTarget,
-            recipientCount,
-            content: messageContent,
-            costETB: cost,
-            metadata: {
-              studentId: selectedCategory === 'sabaq_alert' ? activeStudent?.id : undefined,
-              studentName: selectedCategory === 'sabaq_alert' ? activeStudent?.name : undefined,
-              parentPhone: selectedCategory === 'sabaq_alert' ? activeStudent?.parentPhone : undefined,
-              madrasaName: activeStudent?.madrasaName,
-              deceasedName: selectedCategory === 'janazah_broadcast' ? deceasedName : undefined,
-              janazahTime: selectedCategory === 'janazah_broadcast' ? janazahTime : undefined,
-              cemetery: selectedCategory === 'janazah_broadcast' ? cemeteryName : undefined,
-              mosqueName: activeMosque?.name,
-            },
-          });
-          setIsDispatching(false);
-          setDispatchStage(0);
-          if (onSuccess) onSuccess();
-        }, 600);
-      }, 700);
-    }, 700);
+    addToast('SMS dispatch unavailable', 'Only real Telegram channel posts are enabled.', 'warning');
   };
 
   return (
@@ -394,7 +255,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
             </h3>
             {telegramOnly && (
               <p className="text-xs text-stone-500 mt-1">
-                Messages post publicly to {telegramStatus?.channelId || '@riho_information'}. SMS is disabled; student-specific guardian alerts are not sent here.
+                Messages post publicly to {telegramStatus?.channelId || 'the configured Telegram channel'}. SMS is disabled; student-specific guardian alerts are not sent here.
               </p>
             )}
           </div>
@@ -425,41 +286,40 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
             {
               id: 'sabaq_alert' as MessageCategory,
               label: 'Student Sabaq & Attendance',
-              desc: 'SMS alert to parent with daily Juz progress',
+              desc: 'Private guardian reports unavailable without SMS',
               icon: <User className="w-4 h-4 text-emerald-600" />,
             },
             {
               id: 'janazah_broadcast' as MessageCategory,
               label: 'Emergency Janazah',
-              desc: 'Urgent funeral prayer time & cemetery blast',
+              desc: 'Public Telegram post; verify details before sending',
               icon: <AlertTriangle className="w-4 h-4 text-rose-600" />,
             },
             {
               id: 'moon_sighting' as MessageCategory,
               label: 'Moon Sighting / Eid',
-              desc: 'Ramadan/Shawwal Hilal declaration & grounds',
+              desc: 'Compose manually and verify all facts before sending',
               icon: <Sparkles className="w-4 h-4 text-amber-600" />,
             },
             {
               id: 'khutbah_advisory' as MessageCategory,
               label: 'Friday Khutbah Guidance',
-              desc: 'Unified theme advisory to 18 Kebeles',
+              desc: 'Compose manually and verify all facts before sending',
               icon: <FileText className="w-4 h-4 text-blue-600" />,
             },
             {
               id: 'general_bulletin' as MessageCategory,
               label: 'Custom Direct Dispatch',
-              desc: 'Custom payload to custom recipients',
+              desc: 'Compose an announcement for the configured public channel',
               icon: <Zap className="w-4 h-4 text-purple-600" />,
             },
           ].map((cat) => (
             <button
               key={cat.id}
               type="button"
-              disabled={telegramOnly && cat.id === 'sabaq_alert'}
               onClick={() => {
                 setSelectedCategory(cat.id);
-                applyTemplate(cat.id, selectedLanguage);
+                setSelectedTemplateId(gatewayTemplates.find((template) => template.category === cat.id)?.id || '');
               }}
               className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between disabled:opacity-40 disabled:cursor-not-allowed ${
                 selectedCategory === cat.id
@@ -471,6 +331,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
                 <div className="p-1.5 rounded-lg bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700">
                   {cat.icon}
                 </div>
+
                 {selectedCategory === cat.id && (
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 )}
@@ -482,13 +343,34 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
                 <div className="text-[10px] text-stone-500 line-clamp-2 mt-0.5">
                   {telegramOnly
                     ? cat.id === 'sabaq_alert'
-                      ? 'Unavailable: private guardian messages cannot be posted publicly'
+                      ? 'Template preview only; private guardian messages cannot be posted publicly'
                       : 'Public post to the configured Telegram channel'
                     : cat.desc}
                 </div>
               </div>
             </button>
           ))}
+        </div>
+        <div className="max-w-xl">
+          <label htmlFor="gateway-message-template" className="mb-1 block text-xs font-semibold text-stone-700 dark:text-stone-300">
+            Message template
+          </label>
+          <select
+            id="gateway-message-template"
+            value={selectedTemplateId}
+            onChange={(event) => {
+              const template = gatewayTemplates.find((item) => item.id === event.target.value);
+              if (!template) return;
+              setSelectedTemplateId(template.id);
+              setSelectedCategory(template.category);
+            }}
+            className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs dark:border-stone-700 dark:bg-stone-800"
+          >
+            <option value="">Choose a message template</option>
+            {gatewayTemplates.map((template) => (
+              <option key={template.id} value={template.id}>{template.name}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -502,12 +384,12 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-2">
                 Transmission Route & Gateway Channel
               </label>
-              <div className={`grid ${telegramOnly ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
-                {(telegramOnly ? [
+              <div className="grid grid-cols-2 gap-2">
+                {[
                   {
                     id: 'telegram' as MessageChannel,
                     label: 'Telegram Bot API',
-                    sub: `Channel: ${telegramStatus?.channelId || '@riho_information'}`,
+                    sub: `Channel: ${telegramStatus?.channelId || 'Unavailable'}`,
                     badge: telegramStatus?.enabled ? 'Ready' : 'Not configured',
                   },
                   {
@@ -516,31 +398,12 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
                     sub: 'Gateway credentials unavailable',
                     badge: 'Unavailable',
                   },
-                ] : [
-                    {
-                      id: 'hybrid' as MessageChannel,
-                      label: 'Dual Hybrid Broadcast',
-                      sub: 'SMS + Telegram Channel',
-                      badge: 'Recommended',
-                    },
-                    {
-                      id: 'sms' as MessageChannel,
-                      label: 'Ethio Telecom SMS',
-                      sub: 'Shortcode: JIMMA-ISLAM',
-                      badge: 'Direct to Parent',
-                    },
-                    {
-                      id: 'telegram' as MessageChannel,
-                      label: 'Telegram Bot API',
-                      sub: 'Channel: @JimmaMuslimsOfficial',
-                      badge: '24.8k Reach',
-                    },
-                  ]).map((ch) => (
+                ].map((ch) => (
                   <button
                     key={ch.id}
                     type="button"
                     onClick={() => setSelectedChannel(ch.id)}
-                    disabled={telegramOnly && ch.id !== 'telegram'}
+                    disabled={ch.id !== 'telegram'}
                     className={`p-3 rounded-xl border text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                       selectedChannel === ch.id
                         ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200'
@@ -552,16 +415,22 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
                       {selectedChannel === ch.id && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
                     </div>
                     <span className="text-[10px] text-stone-500 block mt-0.5">{ch.sub}</span>
+                    <span className="text-[10px] font-semibold text-stone-500">{ch.badge}</span>
                   </button>
                 ))}
               </div>
             </div>
-            {telegramOnly && telegramStatusError && (
+            {telegramStatusError && (
                 <p role="alert" className="mt-2 text-xs text-rose-600">{telegramStatusError}</p>
             )}
 
             {/* Dynamic Scenario Form Inputs */}
-            {selectedCategory === 'sabaq_alert' && (
+            {telegramOnly && selectedCategory === 'sabaq_alert' && (
+              <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+                This private-message template is available to edit or copy, but cannot be sent through the public Telegram channel. SMS is disabled.
+              </div>
+            )}
+            {selectedCategory === 'sabaq_alert' && !telegramOnly && (
               <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/80 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
@@ -722,7 +591,7 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
                   >
                     <option value="JIMMA-ISLAM">JIMMA-ISLAM (Ethio Telecom Shortcode)</option>
                     <option value="HIFZ-ACADEMY">HIFZ-ACADEMY (Madrasa Direct)</option>
-                    <option value="@JimmaIslamicCouncilBot">@JimmaIslamicCouncilBot (Telegram)</option>
+                    <option value="telegram">Configured Telegram bot</option>
                     <option value="ETH-MAJILIS">ETH-MAJILIS (National Integration)</option>
                   </select>
                 </div>
@@ -770,65 +639,31 @@ export const SmsTelegramComposer: React.FC<SmsTelegramComposerProps> = ({
 
             {/* Dispatch Action Button */}
             <div className="flex items-center justify-between pt-2">
-              {!telegramOnly && (
-                <div className="text-[11px] text-stone-400">
-                  EthioTel Balance: <strong className="text-emerald-600">{gatewayStats.smsBalanceETB} ETB</strong>
-                </div>
-              )}
-
               <Button
                 variant="primary"
                 type="submit"
                 size="md"
-                disabled={isDispatching || (telegramOnly && !telegramStatus?.enabled)}
+                disabled={isDispatching || (telegramOnly && (!telegramStatus?.enabled || selectedCategory === 'sabaq_alert'))}
                 icon={isDispatching ? <Zap className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               >
                 {isDispatching
                   ? 'Sending to Telegram...'
                   : telegramOnly
-                    ? 'Send Telegram Broadcast'
+                    ? selectedCategory === 'sabaq_alert'
+                      ? 'Private template cannot be sent'
+                      : 'Send Telegram Broadcast'
                     : `Dispatch to ${recipientCount.toLocaleString()} Endpoint(s)`}
               </Button>
             </div>
           </form>
 
-          {/* Animated Transmission Progress Drawer when sending */}
+          {/* Show the real request's pending state; Telegram history records the final API result. */}
           {isDispatching && (
             <div className="p-4 bg-emerald-950 text-emerald-100 rounded-2xl border border-emerald-700 shadow-xl space-y-3 animate-in fade-in slide-in-from-top-2">
-              {telegramOnly ? (
-                <p className="flex items-center gap-2 text-xs font-bold text-amber-300" role="status">
-                  <Radio className="w-4 h-4 animate-pulse" />
-                  Sending to Telegram and waiting for the Bot API response...
-                </p>
-              ) : (
-                <>
-                  <div className="flex items-center justify-between text-xs font-bold text-amber-300">
-                    <span className="flex items-center gap-2">
-                      <Radio className="w-4 h-4 animate-pulse" />
-                      Ethio Telecom SMPP & Telegram Bot Gateway Pipeline
-                    </span>
-                    <span>Stage {dispatchStage} of 4</span>
-                  </div>
-                  <div className="space-y-1 text-xs">
-                    <div className={`flex items-center gap-2 ${dispatchStage >= 1 ? 'text-emerald-300' : 'text-stone-500'}`}>
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>1. Establishing SSL Tunnel to Telecom SMS Gateway / Telegram API</span>
-                    </div>
-                    <div className={`flex items-center gap-2 ${dispatchStage >= 2 ? 'text-emerald-300' : 'text-stone-500'}`}>
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>2. Validating MSISDN Routing & GSM-7 Segment Serialization</span>
-                    </div>
-                    <div className={`flex items-center gap-2 ${dispatchStage >= 3 ? 'text-emerald-300' : 'text-stone-500'}`}>
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>3. Transmitting to Jimma BTS Mobile Towers & Subscribers</span>
-                    </div>
-                    <div className={`flex items-center gap-2 ${dispatchStage >= 4 ? 'text-amber-300 font-bold' : 'text-stone-500'}`}>
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>4. Carrier Delivery Receipt & Status 200 Acknowledged</span>
-                    </div>
-                  </div>
-                </>
-              )}
+              <p className="flex items-center gap-2 text-xs font-bold text-amber-300" role="status">
+                <Radio className="w-4 h-4 animate-pulse" />
+                Sending to Telegram and waiting for the Bot API response...
+              </p>
             </div>
           )}
         </div>

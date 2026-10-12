@@ -60,7 +60,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
     { label: 'Students & Hifz Desk (/admin/students)', path: '/admin/students' },
     { label: 'Financial Control Center (/admin/finance)', path: '/admin/finance' },
     { label: 'Service Requests Desk (/admin/services)', path: '/admin/services' },
-    { label: 'SMS & Telegram Gateway (/admin/gateway)', path: '/admin/gateway' },
+    { label: 'Communications Gateway (/admin/gateway)', path: '/admin/gateway' },
     { label: 'Events & Programs (/admin/events)', path: '/admin/events' },
   ];
 

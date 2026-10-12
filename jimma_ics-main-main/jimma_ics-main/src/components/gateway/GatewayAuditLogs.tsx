@@ -50,8 +50,6 @@ function toDispatchLogItem(record: TelegramGatewayHistoryRecord): DispatchLogIte
     gatewayResponseCode: record.status === 'SENT'
       ? 'Accepted by Telegram'
       : record.errorMessage || record.status,
-    costETB: 0,
-    deliveryRate: record.status === 'SENT' ? 100 : 0,
     metadata: {
       telegramMessageId: record.messageId || undefined,
       telegramErrorMessage: record.errorMessage || undefined,
@@ -59,11 +57,10 @@ function toDispatchLogItem(record: TelegramGatewayHistoryRecord): DispatchLogIte
   };
 }
 
-export const GatewayAuditLogs: React.FC<{ liveGatewayOnly?: boolean }> = ({ liveGatewayOnly = false }) => {
-  const { dispatchHistory, clearDispatchHistory, addToast } = useApp();
+export const GatewayAuditLogs: React.FC<{ liveGatewayOnly: true }> = ({ liveGatewayOnly }) => {
+  const { addToast } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
-  const [channelFilter, setChannelFilter] = useState<string>('All');
   const [selectedLog, setSelectedLog] = useState<DispatchLogItem | null>(null);
   const [historyPage, setHistoryPage] = useState(1);
   const [historyStatus, setHistoryStatus] = useState<'All' | TelegramGatewayHistoryRecord['status']>('All');
@@ -123,7 +120,7 @@ export const GatewayAuditLogs: React.FC<{ liveGatewayOnly?: boolean }> = ({ live
       .finally(() => setHistoryLoading(false));
   };
 
-  const visibleLogs = liveGatewayOnly ? historyItems : dispatchHistory;
+  const visibleLogs = historyItems;
 
   const filteredLogs = visibleLogs.filter((log) => {
     const s = (searchTerm || '').toLowerCase();
@@ -132,22 +129,19 @@ export const GatewayAuditLogs: React.FC<{ liveGatewayOnly?: boolean }> = ({ live
       (log.recipientTarget || '').toLowerCase().includes(s) ||
       (log.content || '').toLowerCase().includes(s);
     const matchCategory = categoryFilter === 'All' || log.category === categoryFilter;
-    const matchChannel = channelFilter === 'All' || log.channel === channelFilter;
-    return matchSearch && matchCategory && matchChannel;
+    return matchSearch && matchCategory;
   });
 
   const handleExportCsv = () => {
-    const headers = ['ID', 'Timestamp', 'Title', 'Category', 'Channel', 'Recipients', 'Status', 'Gateway Code', 'Cost ETB'];
+    const headers = ['ID', 'Timestamp', 'Title', 'Category', 'Channel', 'Status', 'Telegram Response'];
     const rows = filteredLogs.map((l) => [
       l.id,
       `"${l.timestamp}"`,
       `"${l.title.replace(/"/g, '""')}"`,
       l.category,
       l.channel,
-      l.recipientCount,
       l.status,
       `"${l.gatewayResponseCode}"`,
-      l.costETB,
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
@@ -203,16 +197,6 @@ export const GatewayAuditLogs: React.FC<{ liveGatewayOnly?: boolean }> = ({ live
           >
             Export CSV
           </Button>
-          {!liveGatewayOnly && (
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={<Trash2 className="w-4 h-4 text-stone-400" />}
-              onClick={clearDispatchHistory}
-            >
-              Clear History
-            </Button>
-          )}
         </div>
       </div>
       {liveGatewayOnly && historyError && (
@@ -239,7 +223,7 @@ export const GatewayAuditLogs: React.FC<{ liveGatewayOnly?: boolean }> = ({ live
           onChange={(e) => setCategoryFilter(e.target.value)}
           className="px-3 py-2 text-xs rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700"
         >
-          <option value="All">All Categories ({liveGatewayOnly ? historyMeta.totalItems : dispatchHistory.length})</option>
+          <option value="All">All Categories ({historyMeta.totalItems})</option>
           <option value="sabaq_alert">Sabaq & Attendance Alerts</option>
           <option value="janazah_broadcast">Emergency Janazah Broadcasts</option>
           <option value="moon_sighting">Moon Sighting & Eid Alerts</option>
@@ -247,33 +231,20 @@ export const GatewayAuditLogs: React.FC<{ liveGatewayOnly?: boolean }> = ({ live
           <option value="general_bulletin">General Bulletins</option>
         </select>
 
-        {liveGatewayOnly ? (
-          <select
-            value={historyStatus}
-            onChange={(e) => {
-              setHistoryStatus(e.target.value as typeof historyStatus);
-              setHistoryPage(1);
-            }}
-            className="px-3 py-2 text-xs rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700"
-          >
-            <option value="All">All delivery statuses</option>
-            <option value="SENT">Sent</option>
-            <option value="FAILED">Failed</option>
-            <option value="QUEUED">Queued</option>
-            <option value="CANCELLED">Cancelled</option>
-          </select>
-        ) : (
-          <select
-            value={channelFilter}
-            onChange={(e) => setChannelFilter(e.target.value)}
-            className="px-3 py-2 text-xs rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700"
-          >
-            <option value="All">All Channels</option>
-            <option value="sms">Ethio Telecom SMS Gateway</option>
-            <option value="telegram">Telegram Bot / Channel</option>
-            <option value="hybrid">Dual Hybrid Broadcast</option>
-          </select>
-        )}
+        <select
+          value={historyStatus}
+          onChange={(e) => {
+            setHistoryStatus(e.target.value as typeof historyStatus);
+            setHistoryPage(1);
+          }}
+          className="px-3 py-2 text-xs rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700"
+        >
+          <option value="All">All delivery statuses</option>
+          <option value="SENT">Sent</option>
+          <option value="FAILED">Failed</option>
+          <option value="QUEUED">Queued</option>
+          <option value="CANCELLED">Cancelled</option>
+        </select>
       </div>
 
       {/* Table */}
@@ -284,8 +255,8 @@ export const GatewayAuditLogs: React.FC<{ liveGatewayOnly?: boolean }> = ({ live
               <th className="p-3.5">Time / Channel</th>
               <th className="p-3.5">Campaign & Category</th>
               <th className="p-3.5">Target Audience</th>
-              <th className="p-3.5">Recipients</th>
-              <th className="p-3.5">{liveGatewayOnly ? 'Telegram Response' : 'Carrier Response'}</th>
+              <th className="p-3.5">Destination type</th>
+              <th className="p-3.5">Telegram response</th>
               <th className="p-3.5 text-right">Actions</th>
             </tr>
           </thead>
@@ -330,18 +301,12 @@ export const GatewayAuditLogs: React.FC<{ liveGatewayOnly?: boolean }> = ({ live
 
                   <td className="p-3.5 max-w-[240px]">
                     <div className="truncate text-stone-700 dark:text-stone-300">{log.recipientTarget}</div>
-                    {log.metadata?.studentName && (
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
-                        Student: {log.metadata.studentName}
-                      </span>
-                    )}
                   </td>
 
                   <td className="p-3.5">
                     <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
-                      {log.recipientCount.toLocaleString()}
+                      Telegram channel
                     </span>
-                    <span className="text-[10px] text-stone-400 block">{log.costETB > 0 ? `${log.costETB} ETB` : 'Free'}</span>
                   </td>
 
                   <td className="p-3.5">
@@ -356,25 +321,21 @@ export const GatewayAuditLogs: React.FC<{ liveGatewayOnly?: boolean }> = ({ live
                           log.status === 'failed' ? 'text-rose-700 dark:text-rose-400' :
                             'text-amber-700 dark:text-amber-400'
                       }`}>
-                        {liveGatewayOnly
-                          ? log.status === 'delivered'
-                            ? 'Accepted by Telegram'
-                            : log.status === 'failed'
-                              ? 'Telegram send failed'
-                              : log.status === 'transmitting'
-                                ? 'Sending to Telegram'
-                                : log.status === 'cancelled'
-                                  ? 'Cancelled'
-                                  : 'Telegram send queued'
-                          : log.gatewayResponseCode}
+                        {log.status === 'delivered'
+                          ? 'Accepted by Telegram'
+                          : log.status === 'failed'
+                            ? 'Telegram send failed'
+                            : log.status === 'transmitting'
+                              ? 'Sending to Telegram'
+                              : log.status === 'cancelled'
+                                ? 'Cancelled'
+                                : 'Telegram send queued'}
                       </span>
                     </div>
                     <span className="text-[10px] text-stone-400 block">
-                      {liveGatewayOnly
-                        ? log.metadata?.telegramMessageId
-                          ? `Message ID: ${log.metadata.telegramMessageId}`
-                          : log.metadata?.telegramErrorMessage || log.status
-                        : `${log.deliveryRate}% delivered`}
+                      {log.metadata?.telegramMessageId
+                        ? `Message ID: ${log.metadata.telegramMessageId}`
+                        : log.metadata?.telegramErrorMessage || log.status}
                     </span>
                   </td>
 
@@ -431,19 +392,11 @@ export const GatewayAuditLogs: React.FC<{ liveGatewayOnly?: boolean }> = ({ live
                 <span className="text-[9px] uppercase font-bold text-stone-400 block">Sender ID</span>
                 <span className="font-bold font-mono text-emerald-700 dark:text-emerald-400">{selectedLog.senderId}</span>
               </div>
-              <div>
-                <span className="text-[9px] uppercase font-bold text-stone-400 block">Recipients</span>
-                <span className="font-bold font-mono text-stone-800 dark:text-stone-200">{selectedLog.recipientCount.toLocaleString()}</span>
-              </div>
-              <div>
-                <span className="text-[9px] uppercase font-bold text-stone-400 block">Total Tariff</span>
-                <span className="font-bold font-mono text-amber-700 dark:text-amber-400">{selectedLog.costETB} ETB</span>
-              </div>
             </div>
 
             <div>
               <label className="block text-stone-500 font-semibold mb-1">
-                {liveGatewayOnly ? 'Posted Message Text:' : 'Delivered Payload Text:'}
+                Posted Telegram Message:
               </label>
               <div className="p-3.5 rounded-2xl bg-stone-900 text-stone-100 font-sans whitespace-pre-line leading-relaxed border border-stone-700 text-xs">
                 {selectedLog.content}
@@ -455,7 +408,7 @@ export const GatewayAuditLogs: React.FC<{ liveGatewayOnly?: boolean }> = ({ live
                 <span className="font-bold text-rose-900 dark:text-rose-200 block">Telegram delivery failed</span>
                 <span className="text-xs text-rose-700 dark:text-rose-300">{selectedLog.metadata.telegramErrorMessage}</span>
               </div>
-            ) : liveGatewayOnly && selectedLog.status !== 'delivered' ? (
+            ) : selectedLog.status !== 'delivered' ? (
               <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800/80">
                 <span className="font-bold text-amber-900 dark:text-amber-200 block">
                   {selectedLog.status === 'transmitting' ? 'Sending to Telegram' : selectedLog.status}
@@ -466,22 +419,20 @@ export const GatewayAuditLogs: React.FC<{ liveGatewayOnly?: boolean }> = ({ live
             <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800/80 flex items-center justify-between">
               <div>
                 <span className="font-bold text-emerald-900 dark:text-emerald-200 block">
-                  {liveGatewayOnly ? 'Telegram acceptance' : 'Carrier Delivery Signature'}
+                  Telegram API response
                 </span>
                 <span className="text-[10px] font-mono text-stone-500">
-                  {liveGatewayOnly
-                    ? `Message ID: ${selectedLog.metadata?.telegramMessageId}`
-                    : `${selectedLog.gatewayResponseCode} • 100% Handset Acknowledgment`}
+                  {selectedLog.metadata?.telegramMessageId
+                    ? `Message ID: ${selectedLog.metadata.telegramMessageId}`
+                    : selectedLog.gatewayResponseCode}
                 </span>
               </div>
               <Badge variant="emerald">
-                {liveGatewayOnly
-                  ? selectedLog.status === 'delivered'
-                    ? 'Accepted by Telegram'
-                    : selectedLog.status === 'queued'
-                      ? 'Queued'
-                      : selectedLog.status
-                  : 'Delivered (SLA Verified)'}
+                {selectedLog.status === 'delivered'
+                  ? 'Accepted by Telegram'
+                  : selectedLog.status === 'queued'
+                    ? 'Queued'
+                    : selectedLog.status}
               </Badge>
             </div>
             )}

@@ -19,9 +19,6 @@ import {
   ShieldCheck,
   User,
   Phone,
-  Send,
-  Radio,
-  Smartphone,
   Users,
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
@@ -31,9 +28,9 @@ import { Modal } from '../../components/ui/Modal';
 import { QuranProgressGrid } from '../../components/charts/QuranProgressGrid';
 import { StudentGrowthCharts } from '../../components/charts/StudentGrowthCharts';
 import { IslamicPattern } from '../../components/common/IslamicPattern';
-import { QuickSabaqModal } from '../../components/gateway/QuickSabaqModal';
 import { CourseCertificateModal } from '../../components/certificates/CourseCertificateModal';
 import { StudentGraduationModal } from '../../components/admin/students/StudentGraduationModal';
+import { QuickSabaqModal } from '../../components/gateway/QuickSabaqModal';
 
 export const StudentProgressPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -45,7 +42,6 @@ export const StudentProgressPage: React.FC = () => {
     isLoggedIn,
     updateStudent,
     updateStudentProgress,
-    dispatchMessage,
     addToast,
   } = useApp();
   const navigate = useNavigate();
@@ -54,8 +50,8 @@ export const StudentProgressPage: React.FC = () => {
 
   // Modal states
   const [isLogSabaqModalOpen, setIsLogSabaqModalOpen] = useState(false);
+  const [isGuardianTemplateOpen, setIsGuardianTemplateOpen] = useState(false);
   const [isCertificateModalOpen, setIsCertificateModalOpen] = useState(false);
-  const [isSmsModalOpen, setIsSmsModalOpen] = useState(false);
   const [isGraduationModalOpen, setIsGraduationModalOpen] = useState(false);
 
   // Form states for logging Sabaq
@@ -67,7 +63,6 @@ export const StudentProgressPage: React.FC = () => {
   const [tajweedRating, setTajweedRating] = useState<'Excellent' | 'Good' | 'Needs Practice' | 'Very Good' | 'Needs Revision'>('Very Good');
   const [attendance, setAttendance] = useState<'Present' | 'Absent' | 'Late' | 'Excused'>('Present');
   const [completedJuz, setCompletedJuz] = useState(0);
-  const [sendSmsNotification, setSendSmsNotification] = useState(true);
 
   // Sync state if active student changes
   useEffect(() => {
@@ -100,27 +95,6 @@ export const StudentProgressPage: React.FC = () => {
       quranJuzCompleted: Number(completedJuz),
     });
     if (!saved) return;
-
-    if (sendSmsNotification) {
-      const parent = student.parentName || student.guardianName || 'Guardian';
-      const phone = student.parentPhone || student.guardianPhone || '+251 91 190 2831';
-      await dispatchMessage({
-        title: `Daily Sabaq Alert: ${student.name}`,
-        category: 'sabaq_alert',
-        channel: 'sms',
-        senderId: 'HIFZ-ACADEMY',
-        recipientTarget: `${parent} (${phone})`,
-        recipientCount: 1,
-        content: `Jimma Islamic Supreme Council - ${student.madrasaName}\n\nAssalamu Alaykum ${parent},\nDaily Hifz Report for ${student.name}:\n📖 Sabaq: ${sabaqSurah} (${ayahStart}-${ayahEnd})\n🔄 Sabqi: Juz ${sabaqiJuz}\n✨ Tajweed: ${tajweedRating}\n📍 Attendance: ${attendance}\n\nJazakallahu Khayran.`,
-        costETB: 0.25,
-        metadata: {
-          studentId: student.id,
-          studentName: student.name,
-          parentPhone: phone,
-          madrasaName: student.madrasaName,
-        },
-      });
-    }
 
     setIsLogSabaqModalOpen(false);
     addToast('Daily Sabaq Recorded', `Updated Quran recitation records for ${student.name}.`, 'success');
@@ -196,10 +170,9 @@ export const StudentProgressPage: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            icon={<Smartphone className="w-4 h-4 text-emerald-600" />}
-            onClick={() => setIsSmsModalOpen(true)}
+            onClick={() => setIsGuardianTemplateOpen(true)}
           >
-            Dispatch Sabaq SMS
+            Guardian message template
           </Button>
           <Button
             variant="gold"
@@ -508,22 +481,6 @@ export const StudentProgressPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="sendSmsNotification"
-                checked={sendSmsNotification}
-                onChange={(e) => setSendSmsNotification(e.target.checked)}
-                className="w-4 h-4 text-emerald-600 rounded-sm"
-              />
-              <label htmlFor="sendSmsNotification" className="font-semibold text-emerald-900 dark:text-emerald-200 cursor-pointer">
-                Automatically dispatch instant SMS alert to guardian ({student.parentPhone || student.guardianPhone || '+251 91 190 2831'})
-              </label>
-            </div>
-            <Badge variant="emerald">EthioTel Shortcode 8345</Badge>
-          </div>
-
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-100 dark:border-stone-800">
             <Button variant="ghost" type="button" onClick={() => setIsLogSabaqModalOpen(false)}>
               Cancel
@@ -535,17 +492,16 @@ export const StudentProgressPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Modal: Quick Sabaq SMS Dispatch Modal */}
-      <QuickSabaqModal
-        isOpen={isSmsModalOpen}
-        onClose={() => setIsSmsModalOpen(false)}
-        student={student}
-      />
-
       {/* Modal 2: Official Course Completion & Sanad Certificate Generator (Canvas/PDF) */}
       <CourseCertificateModal
         isOpen={isCertificateModalOpen}
         onClose={() => setIsCertificateModalOpen(false)}
+        student={student}
+      />
+
+      <QuickSabaqModal
+        isOpen={isGuardianTemplateOpen}
+        onClose={() => setIsGuardianTemplateOpen(false)}
         student={student}
       />
 

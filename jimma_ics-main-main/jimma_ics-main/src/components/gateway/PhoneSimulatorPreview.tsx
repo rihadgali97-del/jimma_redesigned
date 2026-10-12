@@ -4,7 +4,6 @@ import {
   Smartphone,
   Send,
   Check,
-  CheckCheck,
   ShieldCheck,
   Phone,
   Video,
@@ -16,7 +15,6 @@ import {
   Copy,
   CheckCircle2,
 } from 'lucide-react';
-import { Badge } from '../ui/Badge';
 
 interface PhoneSimulatorPreviewProps {
   channel: MessageChannel;
@@ -46,12 +44,7 @@ export const PhoneSimulatorPreview: React.FC<PhoneSimulatorPreviewProps> = ({
     else if (channel === 'sms') setActiveTab('sms');
   }, [channel]);
 
-  // Character calculation
   const charLength = content.length;
-  const isUnicode = /[^\u0000-\u00ff]/.test(content); // contains non-latin (Arabic, Amharic, etc.)
-  const limitPerSegment = isUnicode ? 70 : 160;
-  const segmentCount = Math.max(1, Math.ceil(charLength / limitPerSegment));
-  const estimatedCost = (segmentCount * 0.25).toFixed(2);
   const categoryLabel = category
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -147,7 +140,7 @@ export const PhoneSimulatorPreview: React.FC<PhoneSimulatorPreviewProps> = ({
                     <ShieldCheck className="w-3 h-3 text-emerald-400" />
                   </div>
                   <span className="text-[9px] text-stone-500 font-mono">
-                    Verified Shortcode (Ethio Telecom)
+                    SMS provider unavailable
                   </span>
                 </div>
 
@@ -160,8 +153,7 @@ export const PhoneSimulatorPreview: React.FC<PhoneSimulatorPreviewProps> = ({
                     {content || 'Enter message payload to preview live output on device screen...'}
                   </div>
                   <div className="flex items-center justify-end gap-1 text-[9px] text-stone-400 px-1">
-                    <span>Delivered via SMS Gateway</span>
-                    <CheckCheck className="w-3 h-3 text-emerald-400" />
+                    <span>Not sent — SMS is disabled</span>
                   </div>
                 </div>
 
@@ -189,7 +181,7 @@ export const PhoneSimulatorPreview: React.FC<PhoneSimulatorPreviewProps> = ({
                         <ShieldCheck className="w-3 h-3 text-[#2481cc]" />
                       </div>
                       <span className="text-[9px] text-stone-400 block truncate">
-                        24,850 subscribers • channel
+                        {recipientTarget || 'Telegram channel'} • preview only
                       </span>
                     </div>
                   </div>
@@ -208,10 +200,9 @@ export const PhoneSimulatorPreview: React.FC<PhoneSimulatorPreviewProps> = ({
                       </div>
                     )}
                     <div className="flex items-center justify-between pt-1 text-[9px] text-stone-400 border-t border-stone-800/60">
-                      <span>24.8k views</span>
+                      <span>Preview only</span>
                       <div className="flex items-center gap-1">
                         <span>{currentTime}</span>
-                        <CheckCheck className="w-3 h-3 text-[#2481cc]" />
                       </div>
                     </div>
                   </div>
@@ -235,25 +226,15 @@ export const PhoneSimulatorPreview: React.FC<PhoneSimulatorPreviewProps> = ({
         </div>
       </div>
 
-      {/* Gateway Cost & Encoding Breakdown */}
+      {/* Telegram preview metadata */}
       <div className="pt-3 border-t border-stone-800 space-y-1 text-xs">
         <div className="flex items-center justify-between text-stone-400">
-          <span>Payload Length:</span>
-          <span className="font-mono font-bold text-stone-200">
-            {charLength} chars ({segmentCount} {segmentCount === 1 ? 'part' : 'parts'})
-          </span>
+          <span>Message length:</span>
+          <span className="font-mono font-bold text-stone-200">{charLength} characters</span>
         </div>
         <div className="flex items-center justify-between text-stone-400">
-          <span>Encoding Standard:</span>
-          <Badge variant={isUnicode ? 'amber' : 'emerald'} className="text-[10px]">
-            {isUnicode ? 'Unicode (UCS-2 / 70 chars)' : 'GSM-7 Standard (160 chars)'}
-          </Badge>
-        </div>
-        <div className="flex items-center justify-between text-stone-400">
-          <span>Carrier Cost Rate:</span>
-          <span className="font-mono font-bold text-emerald-400">
-            {activeTab === 'sms' ? `${estimatedCost} ETB / recipient` : '0.00 ETB (Free Bot API)'}
-          </span>
+          <span>Delivery status:</span>
+          <span className="font-semibold text-stone-300">Preview only — not sent</span>
         </div>
       </div>
     </div>

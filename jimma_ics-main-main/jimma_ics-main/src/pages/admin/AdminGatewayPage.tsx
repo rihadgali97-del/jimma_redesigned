@@ -150,14 +150,18 @@ export const AdminGatewayPage: React.FC = () => {
               </div>
               <div>
                 <span className="text-stone-500 block mb-1">Broadcast target</span>
-                <a
-                  href={`https://t.me/${(telegramStatus?.channelId || '@riho_information').replace(/^@/, '')}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-mono text-blue-700 dark:text-blue-400 underline"
-                >
-                  {telegramStatus?.channelId || '@riho_information'}
-                </a>
+                {telegramStatus?.channelId ? (
+                  <a
+                    href={`https://t.me/${telegramStatus.channelId.replace(/^@/, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-blue-700 dark:text-blue-400 underline"
+                  >
+                    {telegramStatus.channelId}
+                  </a>
+                ) : (
+                  <span className="font-mono text-stone-500">Channel unavailable</span>
+                )}
               </div>
               <p className="text-stone-500">
                 The bot token remains on the backend and is never returned to the browser. The bot must have permission

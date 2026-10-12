@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../../context/AppContext';
 import { User } from '../../../types';
 import {
@@ -23,6 +23,7 @@ import {
 import { Button } from '../../ui/Button';
 import { Badge } from '../../ui/Badge';
 import { StaffAvatar } from './StaffAvatar';
+import { requestStaffPasswordReset } from '../../../services/authApi';
 
 interface StaffDetailDrawerProps {
   staff: User | null;
@@ -47,6 +48,7 @@ export const StaffDetailDrawer: React.FC<StaffDetailDrawerProps> = ({
     toggleStaffStatus,
     addToast,
   } = useApp();
+  const [isSendingResetLink, setIsSendingResetLink] = useState(false);
 
   if (!isOpen || !staff) return null;
 
@@ -65,12 +67,24 @@ export const StaffDetailDrawer: React.FC<StaffDetailDrawerProps> = ({
     onClose();
   };
 
-  const handleSendResetLink = () => {
-    addToast(
-      'Security Credential Dispatched',
-      `Secure password reset SMS/Email link dispatched to ${staff.phone}.`,
-      'success'
-    );
+  const handleSendResetLink = async () => {
+    setIsSendingResetLink(true);
+    try {
+      await requestStaffPasswordReset(staff.email);
+      addToast(
+        'Password reset requested',
+        `If an account exists for ${staff.email}, a reset link will be sent to its registered email address.`,
+        'success'
+      );
+    } catch (error) {
+      addToast(
+        'Password reset request failed',
+        error instanceof Error ? error.message : 'Could not request a password reset.',
+        'error'
+      );
+    } finally {
+      setIsSendingResetLink(false);
+    }
   };
 
   return (
@@ -259,9 +273,10 @@ export const StaffDetailDrawer: React.FC<StaffDetailDrawerProps> = ({
                 <span className="text-stone-500">Password Reset Dispatch</span>
                 <button
                   onClick={handleSendResetLink}
+                  disabled={isSendingResetLink}
                   className="text-xs text-amber-600 dark:text-amber-400 font-semibold hover:underline"
                 >
-                  Send OTP Reset Link
+                  {isSendingResetLink ? 'Requesting reset link…' : 'Email password reset link'}
                 </button>
               </div>
             </div>

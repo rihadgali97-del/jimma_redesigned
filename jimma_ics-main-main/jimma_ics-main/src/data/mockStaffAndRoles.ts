@@ -27,7 +27,7 @@ export const permissionCategories: PermissionCategory[] = [
       { id: 'student.manage', name: 'Enroll & Manage Students', description: 'Register students, modify biodata, and transfer classes.', module: 'education_tahfeez', risk: 'Medium' },
       { id: 'hifz.record_progress', name: 'Record Daily Sabaq & Hifz', description: 'Update juz completed, sabqi retention, and exam scores.', module: 'education_tahfeez', risk: 'Low' },
       { id: 'teacher.manage', name: 'Manage Teachers & Muallims', description: 'Assign qualifications, salaries, and class allocations.', module: 'education_tahfeez', risk: 'Medium' },
-      { id: 'attendance.submit', name: 'Submit Daily Attendance Roster', description: 'Mark presence/absence and trigger parent SMS alerts.', module: 'education_tahfeez', risk: 'Low' },
+      { id: 'attendance.submit', name: 'Submit Daily Attendance Roster', description: 'Mark and maintain student attendance records.', module: 'education_tahfeez', risk: 'Low' },
     ],
   },
   {
@@ -78,10 +78,10 @@ export const permissionCategories: PermissionCategory[] = [
     iconName: 'Radio',
     permissions: [
       { id: 'gateway.view_logs', name: 'View Dispatch Telemetry', description: 'Inspect transmission history, delivery rates, and costs.', module: 'gateway_broadcast', risk: 'Low' },
-      { id: 'gateway.send_sabaq', name: 'Send Madrasa Attendance Alerts', description: 'Dispatch daily sabaq and absence SMS to parents.', module: 'gateway_broadcast', risk: 'Medium' },
-      { id: 'gateway.send_janazah', name: 'Broadcast Janazah Emergency', description: 'Send high-priority SMS and Telegram funeral notices.', module: 'gateway_broadcast', risk: 'High' },
+      { id: 'gateway.send_sabaq', name: 'Send Madrasa Attendance Alerts', description: 'Private guardian alerts are unavailable until an SMS provider is configured.', module: 'gateway_broadcast', risk: 'Medium' },
+      { id: 'gateway.send_janazah', name: 'Broadcast Janazah Emergency', description: 'Post public Telegram funeral notices; SMS is unavailable.', module: 'gateway_broadcast', risk: 'High' },
       { id: 'gateway.mass_broadcast', name: 'Zone-Wide Mass Communique', description: 'Send broadcasts to 10,000+ registered community phones.', module: 'gateway_broadcast', risk: 'Critical' },
-      { id: 'gateway.topup', name: 'Top-Up Ethio Telecom Balance', description: 'Allocate birr credits to SMS transmission balance.', module: 'gateway_broadcast', risk: 'High' },
+      { id: 'gateway.topup', name: 'Manage SMS Provider', description: 'Reserved for future SMS provider integration; SMS is currently disabled.', module: 'gateway_broadcast', risk: 'High' },
     ],
   },
   {
@@ -130,7 +130,7 @@ export const mockRoles: RoleDefinition[] = [
     name: 'IT & Media Officer',
     arabicName: 'مسؤول تقنية المعلومات والإعلام',
     department: 'IT & Media Communications',
-    description: 'Manages council IT infrastructure, Ethio Telecom SMS gateway, Telegram channels, digital gate pass issuance, livestream broadcasts, and press releases.',
+    description: 'Manages council IT infrastructure, Telegram channels, digital gate pass issuance, livestream broadcasts, and press releases. SMS is not configured.',
     isSystemRole: true,
     privilegeLevel: 'High',
     defaultDashboard: '/admin',

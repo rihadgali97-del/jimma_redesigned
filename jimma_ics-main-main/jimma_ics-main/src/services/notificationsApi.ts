@@ -43,18 +43,19 @@ export type TelegramBroadcastCategory = Exclude<MessageCategory, 'sabaq_alert'>;
 export function fetchTelegramGatewayHistory(
   page: number,
   pageSize: number,
-  status?: TelegramGatewayHistoryRecord['status']
+  status?: TelegramGatewayHistoryRecord['status'],
+  signal?: AbortSignal
 ) {
   const query = new URLSearchParams({
     page: String(page),
     pageSize: String(pageSize),
   });
   if (status) query.set('status', status);
-  return apiRequest<TelegramGatewayHistoryPage>(`/admin/notifications/telegram/history?${query.toString()}`);
+  return apiRequest<TelegramGatewayHistoryPage>(`/admin/notifications/telegram/history?${query.toString()}`, { signal });
 }
 
-export function fetchTelegramGatewayStatus() {
-  return apiRequest<TelegramGatewayStatus>('/admin/notifications/telegram/status');
+export function fetchTelegramGatewayStatus(signal?: AbortSignal) {
+  return apiRequest<TelegramGatewayStatus>('/admin/notifications/telegram/status', { signal });
 }
 
 export function sendTelegramGatewayMessage(title: string, content: string, category: TelegramBroadcastCategory) {
