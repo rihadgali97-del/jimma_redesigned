@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../../common/middlewares/authenticate.js';
-import { authorize } from '../../common/middlewares/authorize.js';
+import { authorize, authorizeAny } from '../../common/middlewares/authorize.js';
 import { validate } from '../../common/middlewares/validate.js';
 import { asyncHandler } from '../../common/utils/asyncHandler.js';
 import { sendCreated, sendNoContent, sendSuccess } from '../../common/utils/apiResponse.js';
@@ -59,9 +59,9 @@ async function getRole(id) {
   return role;
 }
 
-rolesRouter.use(authenticate, authorize('roles.manage'));
+rolesRouter.use(authenticate);
 
-rolesRouter.get('/', asyncHandler(async (req, res) => {
+rolesRouter.get('/', authorizeAny('roles.manage', 'users.manage'), asyncHandler(async (req, res) => {
   const roles = await prisma.role.findMany({
     orderBy: { id: 'asc' },
     include: {
@@ -71,6 +71,8 @@ rolesRouter.get('/', asyncHandler(async (req, res) => {
   });
   sendSuccess(res, { data: roles.map(toPublicRole) });
 }));
+
+rolesRouter.use(authorize('roles.manage'));
 
 rolesRouter.post('/', validate(z.object({ body: roleBody })), asyncHandler(async (req, res) => {
   const { name, description, metadata = {} } = req.body;

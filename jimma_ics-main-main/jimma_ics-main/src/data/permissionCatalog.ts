@@ -15,3 +15,13 @@ export function normalizeKnownPermissions(permissions: string[]): string[] {
       : legacyPermissionAliases[permission] || []
   )))];
 }
+
+export function hasAnyPermission(
+  grantedPermissions: string[],
+  requiredPermissions: string[],
+  authRole?: string
+): boolean {
+  if (authRole === 'super_admin') return true;
+  const permissions = new Set([...grantedPermissions, ...normalizeKnownPermissions(grantedPermissions)]);
+  return requiredPermissions.some((permission) => permissions.has(permission));
+}

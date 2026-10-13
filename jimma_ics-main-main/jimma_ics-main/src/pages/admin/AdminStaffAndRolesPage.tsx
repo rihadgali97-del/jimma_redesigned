@@ -43,6 +43,7 @@ import { StaffDetailDrawer } from '../../components/admin/staff/StaffDetailDrawe
 import { StaffBadgeModal } from '../../components/admin/staff/StaffBadgeModal';
 import { AccountAccessPanel } from '../../components/admin/staff/AccountAccessPanel';
 import { StaffAvatar } from '../../components/admin/staff/StaffAvatar';
+import { hasAnyPermission } from '../../data/permissionCatalog';
 
 function hasRolePermission(role: RoleDefinition, permissionId: string): boolean {
   const normalizedRoleName = role.name.toLowerCase().replace(/[^a-z]/g, '');
@@ -67,13 +68,25 @@ export const AdminStaffAndRolesPage: React.FC = () => {
     deleteRole,
     addToast,
   } = useApp();
+  const canManageStaff = hasAnyPermission(currentUser.permissions, ['users.manage'], currentUser.authRole);
+  const canManageRoles = hasAnyPermission(currentUser.permissions, ['roles.manage'], currentUser.authRole);
+  const canManageAccountAccess = canManageStaff;
 
   useEffect(() => {
     void refreshStaffAndRoles().catch(() => undefined);
   }, []);
 
   // Active Top-level Tab
-  const [activeTab, setActiveTab] = useState<'staff' | 'roles' | 'matrix' | 'audit'>('staff');
+  const [activeTab, setActiveTab] = useState<'staff' | 'roles' | 'matrix' | 'audit'>(() => (
+    canManageStaff ? 'staff' : 'roles'
+  ));
+  useEffect(() => {
+    if ((activeTab === 'staff' || activeTab === 'audit') && !canManageStaff) {
+      setActiveTab(canManageRoles ? 'roles' : 'staff');
+    } else if ((activeTab === 'roles' || activeTab === 'matrix') && !canManageRoles) {
+      setActiveTab(canManageStaff ? 'staff' : 'roles');
+    }
+  }, [activeTab, canManageStaff, canManageRoles]);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -259,33 +272,37 @@ export const AdminStaffAndRolesPage: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-3 shrink-0 flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleOpenAddRole}
-            icon={<Layers className="w-4 h-4 text-amber-400" />}
-            className="text-xs bg-stone-800 text-stone-200 border-stone-700 hover:bg-stone-700"
-          >
-            New Role Definition
-          </Button>
+          {canManageRoles && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenAddRole}
+              icon={<Layers className="w-4 h-4 text-amber-400" />}
+              className="text-xs bg-stone-800 text-stone-200 border-stone-700 hover:bg-stone-700"
+            >
+              New Role Definition
+            </Button>
+          )}
 
-          <Button
-            variant="gold"
-            size="sm"
-            onClick={handleOpenAddStaff}
-            icon={<UserPlus className="w-4 h-4" />}
-            className="text-xs"
-          >
-            Enroll Council Personnel
-          </Button>
+          {canManageStaff && (
+            <Button
+              variant="gold"
+              size="sm"
+              onClick={handleOpenAddStaff}
+              icon={<UserPlus className="w-4 h-4" />}
+              className="text-xs"
+            >
+              Enroll Council Personnel
+            </Button>
+          )}
         </div>
       </div>
 
-      {currentUser.permissions.includes('users.manage') && <AccountAccessPanel />}
+      {canManageAccountAccess && <AccountAccessPanel />}
 
       {/* Metric Cards Banner */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs">
+        {canManageStaff && <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-stone-500">Total Enrolled Personnel</span>
             <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
@@ -301,9 +318,9 @@ export const AdminStaffAndRolesPage: React.FC = () => {
             </span>
           </div>
           <p className="text-[11px] text-stone-400 mt-1">Across 7 council directorates</p>
-        </div>
+        </div>}
 
-        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs">
+        {canManageRoles && <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-stone-500">Role Profiles</span>
             <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
@@ -321,9 +338,9 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           <p className="text-[11px] text-stone-400 mt-1">
             {rolesListLoaded ? rolesList.filter((r) => !r.isSystemRole).length : '—'} custom configured roles
           </p>
-        </div>
+        </div>}
 
-        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs">
+        {canManageStaff && <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-stone-500">Suspended Accounts</span>
             <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
@@ -339,9 +356,9 @@ export const AdminStaffAndRolesPage: React.FC = () => {
             </span>
           </div>
           <p className="text-[11px] text-stone-400 mt-1">Suspended staff cannot sign in.</p>
-        </div>
+        </div>}
 
-        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs">
+        {canManageStaff && <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-stone-500">Audit Trail Entries</span>
             <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -355,13 +372,13 @@ export const AdminStaffAndRolesPage: React.FC = () => {
             <span className="text-xs text-emerald-600 font-semibold">Real-time</span>
           </div>
           <p className="text-[11px] text-stone-400 mt-1">100% cryptographic trace</p>
-        </div>
+        </div>}
       </div>
 
       {/* Main Navigation Tabs */}
       <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 overflow-x-auto pb-px">
         <div className="flex items-center gap-2">
-          <button
+          {canManageStaff && <button
             onClick={() => setActiveTab('staff')}
             className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'staff'
@@ -371,9 +388,9 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           >
             <Users className="w-4 h-4" />
             <span>Staff Directory ({staffListLoaded ? staffList.length : '—'})</span>
-          </button>
+          </button>}
 
-          <button
+          {canManageRoles && <button
             onClick={() => setActiveTab('roles')}
             className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'roles'
@@ -383,9 +400,9 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           >
             <Shield className="w-4 h-4" />
             <span>Role Profiles ({rolesListLoaded ? rolesList.length : '—'})</span>
-          </button>
+          </button>}
 
-          <button
+          {canManageRoles && <button
             onClick={() => setActiveTab('matrix')}
             className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'matrix'
@@ -395,9 +412,9 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           >
             <SlidersHorizontal className="w-4 h-4" />
             <span>Permission Matrix (Cross-Table)</span>
-          </button>
+          </button>}
 
-          <button
+          {canManageStaff && <button
             onClick={() => setActiveTab('audit')}
             className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'audit'
@@ -407,7 +424,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           >
             <History className="w-4 h-4" />
             <span>Security & Audit Log</span>
-          </button>
+          </button>}
         </div>
       </div>
 
@@ -497,7 +514,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
               </div>
 
               {/* CSV Export */}
-              <Button
+              {canManageStaff && <Button
                 variant="outline"
                 size="sm"
                 onClick={handleExportStaffCSV}
@@ -505,7 +522,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                 className="text-xs py-2"
               >
                 Export CSV
-              </Button>
+              </Button>}
             </div>
           </div>
 
@@ -661,15 +678,15 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                                 <Eye className="w-4 h-4" />
                               </button>
 
-                              <button
+                              {canManageStaff && <button
                                 onClick={() => handleOpenEditStaff(staff)}
                                 title="Edit Profile"
                                 className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
                               >
                                 <Edit className="w-4 h-4" />
-                              </button>
+                              </button>}
 
-                              <button
+                              {canManageStaff && <button
                                 onClick={() => {
                                   if (confirm(`Are you sure you want to remove ${staff.name} from council personnel?`)) {
                                     deleteStaff(staff.id);
@@ -679,7 +696,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                                 className="p-1.5 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-stone-800 transition-colors"
                               >
                                 <Trash2 className="w-4 h-4" />
-                              </button>
+                              </button>}
                             </div>
                           </td>
                         </tr>
@@ -770,14 +787,14 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <button
+                      {canManageStaff && <button
                         onClick={() => handleOpenEditStaff(staff)}
                         className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800"
                         title="Edit"
                       >
                         <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      <button
+                      </button>}
+                      {canManageStaff && <button
                         onClick={() => {
                           if (confirm(`Remove ${staff.name}?`)) deleteStaff(staff.id);
                         }}
@@ -785,7 +802,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                         title="Delete"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      </button>}
                     </div>
                   </div>
                 </div>
@@ -810,7 +827,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
               </p>
             </div>
 
-            <Button
+            {canManageRoles && <Button
               variant="gold"
               size="sm"
               onClick={handleOpenAddRole}
@@ -818,7 +835,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
               className="text-xs"
             >
               Add Custom Role
-            </Button>
+            </Button>}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -883,7 +900,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-stone-500">Assigned Personnel:</span>
                         <span className="font-bold text-amber-600 dark:text-amber-400">
-                          {assignedStaff.length} Officers
+                          {staffListLoaded ? `${assignedStaff.length} Officers` : 'Unavailable'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -897,7 +914,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
 
                   {/* Card Footer Actions */}
                   <div className="px-5 py-3.5 bg-stone-50 dark:bg-stone-800/40 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between">
-                    <Button
+                    {canManageRoles && <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleOpenEditRole(role)}
@@ -911,9 +928,9 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                       className="text-xs py-1"
                     >
                       {role.isSystemRole && role.name !== 'super_admin' ? 'Manage Permissions' : 'Edit Role Matrix'}
-                    </Button>
+                    </Button>}
 
-                    {!role.isSystemRole ? (
+                    {canManageRoles && (!role.isSystemRole ? (
                       <button
                         onClick={() => {
                           if (confirm(`Delete custom role ${role.name}?`)) deleteRole(role.id);
@@ -927,7 +944,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                       <span className="text-[10px] text-stone-400 font-mono flex items-center gap-1">
                         <Lock className="w-3 h-3" /> {role.name === 'super_admin' ? 'Full Access Policy' : 'System Role'}
                       </span>
-                    )}
+                    ))}
                   </div>
                 </div>
               );
@@ -1063,7 +1080,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                 <option value="System_Config">System Config</option>
               </select>
 
-              <Button
+              {canManageStaff && <Button
                 variant="outline"
                 size="sm"
                 onClick={handleExportAuditCSV}
@@ -1071,7 +1088,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                 className="text-xs py-2"
               >
                 Export Audit CSV
-              </Button>
+              </Button>}
             </div>
           </div>
 
@@ -1174,32 +1191,32 @@ export const AdminStaffAndRolesPage: React.FC = () => {
       )}
 
       {/* Modals & Drawers */}
-      <StaffFormModal
+      {canManageStaff && <StaffFormModal
         isOpen={isStaffModalOpen}
         onClose={() => setIsStaffModalOpen(false)}
         initialStaff={editingStaff}
-      />
+      />}
 
-      <RoleFormModal
+      {canManageRoles && <RoleFormModal
         isOpen={isRoleModalOpen}
         onClose={() => setIsRoleModalOpen(false)}
         initialRole={editingRole}
         permissionsOnly={Boolean(editingRole?.isSystemRole && editingRole.name !== 'super_admin')}
-      />
+      />}
 
-      <StaffDetailDrawer
+      {canManageStaff && <StaffDetailDrawer
         isOpen={!!selectedStaffForDetail}
         staff={selectedStaffForDetail}
         onClose={() => setSelectedStaffForDetail(null)}
         onEdit={(staff) => handleOpenEditStaff(staff)}
         onOpenBadge={(staff) => setSelectedStaffForBadge(staff)}
-      />
+      />}
 
-      <StaffBadgeModal
+      {canManageStaff && <StaffBadgeModal
         isOpen={!!selectedStaffForBadge}
         staff={selectedStaffForBadge}
         onClose={() => setSelectedStaffForBadge(null)}
-      />
+      />}
     </div>
   );
 };

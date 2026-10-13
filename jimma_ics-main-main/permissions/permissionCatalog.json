@@ -13,7 +13,7 @@
           "description": "View, create, update, and deactivate staff accounts and review security audit events.",
           "module": "staff_access",
           "risk": "Critical",
-          "endpoints": ["/admin/users/*", "/admin/audit-logs/*"]
+          "endpoints": ["/admin/users/*", "/admin/audit-logs/*", "/admin/roles"]
         },
         {
           "id": "roles.manage",

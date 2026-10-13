@@ -1,5 +1,5 @@
 import { User, UserRole } from '../types';
-import { normalizeKnownPermissions } from '../data/permissionCatalog';
+import { hasAnyPermission } from '../data/permissionCatalog';
 
 export type UserRoleCategory = 'Admin' | 'Teacher' | 'Staff';
 
@@ -25,12 +25,6 @@ export interface RouteAccessResult {
   authorizedDashboardTitle: string;
   denialReason?: string;
   suggestedAction?: string;
-}
-
-function hasPermission(user: User, keys: string[]) {
-  const grantedPermissions = user.permissions || [];
-  const permissions = new Set([...grantedPermissions, ...normalizeKnownPermissions(grantedPermissions)]);
-  return keys.some((key) => permissions.has(key));
 }
 
 const authorizedRouteCandidates = [
@@ -449,8 +443,8 @@ export function checkRoutePermission(user: User | null | undefined, pathname: st
       { prefix: '/admin/woredas', keys: ['woredas.write'] },
       { prefix: '/admin/audit', keys: ['users.manage'] },
       { prefix: '/admin/compliance', keys: ['users.manage'] },
-      { prefix: '/admin/users', keys: ['users.manage'] },
-      { prefix: '/admin/staff', keys: ['users.manage'] },
+      { prefix: '/admin/users', keys: ['users.manage', 'roles.manage'] },
+      { prefix: '/admin/staff', keys: ['users.manage', 'roles.manage'] },
       { prefix: '/admin/roles', keys: ['roles.manage'] },
       { prefix: '/admin/finance', keys: ['finance.write'] },
       { prefix: '/admin/mosques', keys: ['mosques.write'] },
@@ -474,7 +468,7 @@ export function checkRoutePermission(user: User | null | undefined, pathname: st
     ];
     const rule = permissionRules.find(({ prefix }) => cleanPath === prefix || cleanPath.startsWith(`${prefix}/`));
     const isAuthorized = Boolean(rule && (
-      rule.roleName ? user.authRole === rule.roleName : rule.keys && hasPermission(user, rule.keys)
+      rule.roleName ? user.authRole === rule.roleName : rule.keys && hasAnyPermission(user.permissions || [], rule.keys, user.authRole)
     ));
     return {
       isAuthorized,
@@ -506,18 +500,21 @@ export function checkRoutePermission(user: User | null | undefined, pathname: st
     };
   }
 
-  // 2. STRICT RESTRICTION: /admin/users and /admin/staff (Staff RBAC & User Management)
-  // This is strictly restricted to Admin tier.
+  // These routes share a page, so either capability grants entry; the page
+  // still gates staff and role sections independently.
   if (cleanPath === '/admin/users' || cleanPath === '/admin/staff') {
+    const isAuthorized = hasAnyPermission(user.permissions || [], ['users.manage', 'roles.manage']);
     return {
-      isAuthorized: false,
+      isAuthorized,
       category,
       currentRole: user.role,
       attemptedPath: cleanPath,
       authorizedDashboard: config.dashboardPath,
       authorizedDashboardTitle: config.dashboardTitle,
-      denialReason: 'Access Denied: Staff & Role Access Administration (RBAC) is strictly reserved for Executive Administrators.',
-      suggestedAction: `Return to your authorized ${category} dashboard (${config.dashboardTitle}).`,
+      ...(!isAuthorized ? {
+        denialReason: 'Your assigned permissions do not grant staff or role administration access.',
+        suggestedAction: `Return to your authorized ${category} dashboard (${config.dashboardTitle}).`,
+      } : {}),
     };
   }
 

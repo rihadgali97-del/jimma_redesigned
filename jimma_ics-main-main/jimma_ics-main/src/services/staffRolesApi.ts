@@ -240,11 +240,22 @@ function toRoleMetadata(value: Partial<RoleDefinition>): Metadata {
   };
 }
 
-export async function fetchStaffAndRoles() {
+export interface StaffAccessDataPermissions {
+  manageStaff: boolean;
+  readRoles: boolean;
+}
+
+export async function fetchStaffAndRoles(access: StaffAccessDataPermissions) {
   const [usersResult, rolesResult, logsResult] = await Promise.allSettled([
-    apiRequest<ApiUser[]>('/admin/users?page=1&pageSize=100'),
-    apiRequest<ApiRole[]>('/admin/roles'),
-    apiRequest<ApiAuditLog[]>('/admin/audit-logs?page=1&pageSize=100'),
+    access.manageStaff
+      ? apiRequest<ApiUser[]>('/admin/users?page=1&pageSize=100')
+      : Promise.resolve(undefined),
+    access.readRoles
+      ? apiRequest<ApiRole[]>('/admin/roles')
+      : Promise.resolve(undefined),
+    access.manageStaff
+      ? apiRequest<ApiAuditLog[]>('/admin/audit-logs?page=1&pageSize=100')
+      : Promise.resolve(undefined),
   ]);
 
   const rejectionMessage = (reason: unknown) =>
@@ -256,9 +267,9 @@ export async function fetchStaffAndRoles() {
   ];
 
   return {
-    ...(usersResult.status === 'fulfilled' ? { staff: usersResult.value.map(toStaff) } : {}),
-    ...(rolesResult.status === 'fulfilled' ? { roles: rolesResult.value.map(toRole) } : {}),
-    ...(logsResult.status === 'fulfilled' ? { logs: logsResult.value.map(toAuditLog) } : {}),
+    ...(usersResult.status === 'fulfilled' && usersResult.value ? { staff: usersResult.value.map(toStaff) } : {}),
+    ...(rolesResult.status === 'fulfilled' && rolesResult.value ? { roles: rolesResult.value.map(toRole) } : {}),
+    ...(logsResult.status === 'fulfilled' && logsResult.value ? { logs: logsResult.value.map(toAuditLog) } : {}),
     errors,
   };
 }

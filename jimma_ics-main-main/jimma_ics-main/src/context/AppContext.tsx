@@ -41,6 +41,7 @@ import { mockAuditDirectives, mockAuditChecklist, mockLedgerBlocks } from '../da
 import { mockZakatCalculations } from '../data/mockZakatHistory';
 import { apiRequest, AuthUser, loginWithPassword, logoutFromServer, registerAccount, restoreAuthUser } from '../services/authApi';
 import { fetchDirectoryMadrasas, fetchDirectoryMosques } from '../services/directoryApi';
+import { hasAnyPermission } from '../data/permissionCatalog';
 import {
   createStudentRecord,
   fetchAdminStudents,
@@ -746,22 +747,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const refreshStaffAndRoles = async () => {
     const requestId = ++staffAccessRefreshRequest.current;
+    const canManageStaff = hasAnyPermission(currentUser.permissions, ['users.manage'], currentUser.authRole);
+    const canManageRoles = hasAnyPermission(currentUser.permissions, ['roles.manage'], currentUser.authRole);
     setStaffAccessLoading(true);
     setStaffAccessError('');
     try {
-      const data = await fetchStaffAndRoles();
+      const data = await fetchStaffAndRoles({
+        manageStaff: canManageStaff,
+        readRoles: canManageRoles || canManageStaff,
+      });
       if (requestId !== staffAccessRefreshRequest.current) return;
       if (data.staff) {
         setStaffList(data.staff);
         setStaffListLoaded(true);
+      } else if (!canManageStaff) {
+        setStaffList([]);
+        setStaffListLoaded(false);
       }
       if (data.roles) {
         setRolesList(data.roles);
         setRolesListLoaded(true);
+      } else if (!canManageRoles) {
+        setRolesList([]);
+        setRolesListLoaded(false);
       }
       if (data.logs) {
         setSecurityLogs(data.logs);
         setSecurityLogsLoaded(true);
+      } else if (!canManageStaff) {
+        setSecurityLogs([]);
+        setSecurityLogsLoaded(false);
       }
       if (data.errors.length > 0) throw new Error(data.errors.join(' '));
     } catch (error) {
