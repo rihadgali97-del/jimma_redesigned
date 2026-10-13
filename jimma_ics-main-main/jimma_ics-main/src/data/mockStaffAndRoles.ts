@@ -376,7 +376,6 @@ export const initialStaffMembers: User[] = [
     status: 'Active',
     joinedDate: '2024-01-15',
     lastLogin: 'Today at 08:45 AM',
-    twoFactorEnabled: true,
     accessLevel: 'Level 1 (Full System Root)',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
     permissions: [
@@ -403,7 +402,6 @@ export const initialStaffMembers: User[] = [
     status: 'Active',
     joinedDate: '2023-11-01',
     lastLogin: 'Today at 09:12 AM',
-    twoFactorEnabled: true,
     accessLevel: 'Level 1 (Executive Directorate)',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
     permissions: [
@@ -430,7 +428,6 @@ export const initialStaffMembers: User[] = [
     status: 'Active',
     joinedDate: '2024-01-10',
     lastLogin: 'Today at 08:30 AM',
-    twoFactorEnabled: true,
     accessLevel: 'Level 2 (IT Infrastructure & Media Broadcast)',
     avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
     permissions: [
@@ -456,7 +453,6 @@ export const initialStaffMembers: User[] = [
     status: 'Active',
     joinedDate: '2024-03-01',
     lastLogin: 'Yesterday at 04:30 PM',
-    twoFactorEnabled: true,
     accessLevel: 'Level 2 (Finance & Audit)',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80',
     permissions: [
@@ -480,7 +476,6 @@ export const initialStaffMembers: User[] = [
     status: 'Active',
     joinedDate: '2024-02-15',
     lastLogin: 'Today at 07:15 AM',
-    twoFactorEnabled: true,
     accessLevel: 'Level 2 (Education & Madrasa)',
     avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80',
     permissions: [
@@ -504,7 +499,6 @@ export const initialStaffMembers: User[] = [
     status: 'Active',
     joinedDate: '2024-05-10',
     lastLogin: '2 days ago',
-    twoFactorEnabled: false,
     accessLevel: 'Level 3 (Mosque Directorate)',
     avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80',
     permissions: [
@@ -528,7 +522,6 @@ export const initialStaffMembers: User[] = [
     status: 'Active',
     joinedDate: '2024-04-01',
     lastLogin: 'Today at 10:00 AM',
-    twoFactorEnabled: true,
     accessLevel: 'Level 2 (Shariah Board)',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80',
     permissions: [
@@ -552,7 +545,6 @@ export const initialStaffMembers: User[] = [
     status: 'Active',
     joinedDate: '2024-08-01',
     lastLogin: '3 hours ago',
-    twoFactorEnabled: false,
     accessLevel: 'Level 3 (Social Welfare)',
     avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80',
     permissions: [
@@ -575,7 +567,6 @@ export const initialStaffMembers: User[] = [
     status: 'Active',
     joinedDate: '2025-01-10',
     lastLogin: 'Active Now',
-    twoFactorEnabled: true,
     accessLevel: 'Level 3 (Broadcast & Media)',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
     permissions: [
@@ -597,7 +588,6 @@ export const initialStaffMembers: User[] = [
     status: 'Active',
     joinedDate: '2024-01-20',
     lastLogin: 'Today at 06:30 AM',
-    twoFactorEnabled: false,
     accessLevel: 'Level 4 (Madrasa Field)',
     avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80',
     permissions: [
@@ -619,7 +609,6 @@ export const initialStaffMembers: User[] = [
     status: 'Active',
     joinedDate: '2023-09-01',
     lastLogin: 'Yesterday at 08:10 PM',
-    twoFactorEnabled: true,
     accessLevel: 'Level 4 (Mosque Field)',
     avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80',
     permissions: [
@@ -641,7 +630,6 @@ export const initialStaffMembers: User[] = [
     status: 'Active',
     joinedDate: '2024-06-01',
     lastLogin: '3 days ago',
-    twoFactorEnabled: true,
     accessLevel: 'Level 5 (Read-Only Independent Audit)',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
     permissions: [
@@ -664,7 +652,6 @@ export const initialStaffMembers: User[] = [
     status: 'Pending Invitation',
     joinedDate: '2026-08-25',
     lastLogin: 'Never logged in',
-    twoFactorEnabled: false,
     accessLevel: 'Level 4 (Madrasa Field)',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
     permissions: ['student.manage', 'hifz.record_progress', 'attendance.submit'],

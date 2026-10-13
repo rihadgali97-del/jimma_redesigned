@@ -40,7 +40,6 @@ export interface User {
   status?: StaffStatus;
   joinedDate?: string;
   lastLogin?: string;
-  twoFactorEnabled?: boolean;
   accessLevel?: string;
   permissions: string[];
   customPermissions?: string[];

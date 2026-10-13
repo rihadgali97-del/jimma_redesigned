@@ -112,7 +112,6 @@ function toStaff(user: ApiUser): User {
     status: user.isActive ? 'Active' : status === 'On Leave' || status === 'Pending Invitation' ? status : 'Suspended',
     joinedDate: user.createdAt.slice(0, 10),
     lastLogin: user.lastLoginAt || 'Never logged in',
-    twoFactorEnabled: metadata?.twoFactorEnabled === true,
     accessLevel: readMetadata(metadata, 'accessLevel') || undefined,
     permissions: Array.from(new Set([...user.role.permissions, ...customPermissions])),
     customPermissions,
@@ -129,7 +128,6 @@ function humanizeAuditKey(key: string): string {
     lastLoginAt: 'Last login',
     createdAt: 'Created',
     customPermissions: 'Additional permissions',
-    twoFactorEnabled: 'Two-factor authentication',
     avatar: 'Profile photo',
   };
   return labels[key] || key
@@ -152,9 +150,6 @@ function formatAuditValue(value: unknown, key: string, depth = 0): string[] {
 
   if (key === 'isActive' && typeof value === 'boolean') {
     return [`${indent}${humanizeAuditKey(key)}: ${value ? 'Active' : 'Inactive'}`];
-  }
-  if (key === 'twoFactorEnabled' && typeof value === 'boolean') {
-    return [`${indent}${humanizeAuditKey(key)}: ${value ? 'Enabled' : 'Disabled'}`];
   }
   if ((key === 'createdAt' || key === 'lastLoginAt') && typeof value === 'string') {
     const date = new Date(value);
@@ -229,7 +224,6 @@ function toApiMetadata(value: Partial<User>): Metadata {
     ...(value.district !== undefined ? { district: value.district } : {}),
     ...(value.status !== undefined ? { status: value.status } : {}),
     ...(value.accessLevel !== undefined ? { accessLevel: value.accessLevel } : {}),
-    ...(value.twoFactorEnabled !== undefined ? { twoFactorEnabled: value.twoFactorEnabled } : {}),
     ...(value.avatar !== undefined ? { avatar: value.avatar } : {}),
     ...(value.notes !== undefined ? { notes: value.notes } : {}),
     ...(value.customPermissions !== undefined ? { customPermissions: value.customPermissions } : {}),

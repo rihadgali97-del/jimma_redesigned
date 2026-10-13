@@ -10,7 +10,6 @@ import {
   Phone,
   Mail,
   MapPin,
-  Lock,
   Sparkles,
   Camera,
   CheckSquare,
@@ -46,7 +45,6 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     district: KEBELE_NAMES[0],
     status: 'Active' as StaffStatus,
     accessLevel: 'Level 3 (Departmental Officer)',
-    twoFactorEnabled: true,
     avatar: '',
     notes: '',
     customPermissions: [] as string[],
@@ -92,7 +90,6 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
         district: initialStaff.district || KEBELE_NAMES[0],
         status: initialStaff.status || 'Active',
         accessLevel: initialStaff.accessLevel || 'Level 3 (Departmental Officer)',
-        twoFactorEnabled: initialStaff.twoFactorEnabled ?? true,
         avatar: initialStaff.avatar || '',
         notes: initialStaff.notes || '',
         customPermissions: initialStaff.customPermissions || [],
@@ -111,7 +108,6 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
         district: KEBELE_NAMES[0],
         status: 'Active',
         accessLevel: 'Level 4 (Field & Mosque Staff)',
-        twoFactorEnabled: true,
         avatar: '',
         notes: '',
         customPermissions: [],
@@ -458,33 +454,6 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
               </div>
             </div>
 
-            {/* 2FA Toggle */}
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700">
-              <div className="flex items-center gap-2.5">
-                <Lock className="w-4 h-4 text-emerald-500" />
-                <div>
-                  <p className="text-xs font-semibold text-stone-900 dark:text-stone-100">
-                    Two-Factor Authentication (2FA OTP)
-                  </p>
-                  <p className="text-[11px] text-stone-500">
-                    Enforce SMS OTP code verification on every council administrative login.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, twoFactorEnabled: !formData.twoFactorEnabled })}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-                  formData.twoFactorEnabled ? 'bg-emerald-600' : 'bg-stone-300 dark:bg-stone-700'
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                    formData.twoFactorEnabled ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
           </div>
 
           <hr className="border-stone-200 dark:border-stone-800" />

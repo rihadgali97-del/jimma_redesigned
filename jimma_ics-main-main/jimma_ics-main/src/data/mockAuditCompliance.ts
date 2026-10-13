@@ -255,14 +255,14 @@ export const mockAuditChecklist: AuditChecklistItem[] = [
   },
   {
     id: 'CHK-GV-02',
-    title: 'Two-Factor Authentication (2FA) & Role-Based Access Enforcement',
+    title: 'Role-Based Access Control Review',
     pillar: 'Governance',
-    description: 'Mandatory 2FA enforcement on all admin, executive, and financial operator accounts in the council portal.',
-    status: 'Compliant',
+    description: 'Review staff role assignments, permission grants, and backend access enforcement.',
+    status: 'Pending Review',
     lastVerified: '2026-09-01',
     verifiedBy: 'Amina Kedir',
     standardReference: 'Cybersecurity Directive ISO/IEC 27001 Baseline',
-    evidenceNote: '100% of executive and financial personnel have 2FA hardware/app tokens active.',
+    evidenceNote: 'Review evidence has not yet been recorded.',
     frequency: 'Continuous',
   },
   {

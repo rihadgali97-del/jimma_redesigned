@@ -100,8 +100,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
   // Derived Stats
   const totalStaffCount = staffList.length;
   const activeStaffCount = staffList.filter((s) => s.status === 'Active').length;
-  const twoFactorEnforcedCount = staffList.filter((s) => s.twoFactorEnabled).length;
-  const twoFactorPercentage = Math.round((twoFactorEnforcedCount / (totalStaffCount || 1)) * 100);
+  const suspendedStaffCount = staffList.filter((s) => s.status === 'Suspended').length;
 
   // Departments List
   const departments: StaffDepartment[] = [
@@ -326,20 +325,20 @@ export const AdminStaffAndRolesPage: React.FC = () => {
 
         <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500">2FA OTP Enforcement</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <Lock className="w-4 h-4" />
+            <span className="text-xs font-semibold text-stone-500">Suspended Accounts</span>
+            <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+              <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100">
-              {staffListLoaded ? `${twoFactorPercentage}%` : '—'}
+              {staffListLoaded ? suspendedStaffCount : '—'}
             </span>
-            <span className="text-xs text-emerald-600 font-semibold">
-              {staffListLoaded ? `${twoFactorEnforcedCount} Staff` : 'Unavailable'}
+            <span className="text-xs text-stone-500 font-semibold">
+              {staffListLoaded ? 'Access disabled' : 'Unavailable'}
             </span>
           </div>
-          <p className="text-[11px] text-stone-400 mt-1">Mandatory on finance & admin</p>
+          <p className="text-[11px] text-stone-400 mt-1">Suspended staff cannot sign in.</p>
         </div>
 
         <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs">
@@ -545,7 +544,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                       <th className="py-3 px-4">Role & Access Tier</th>
                       <th className="py-3 px-4">Directorate</th>
                       <th className="py-3 px-4">Kebele</th>
-                      <th className="py-3 px-4">Security / 2FA</th>
+                      <th className="py-3 px-4">Last Sign-In</th>
                       <th className="py-3 px-4">Status</th>
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
@@ -623,19 +622,9 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                             {staff.district || 'Jimma Central'}
                           </td>
 
-                          {/* Security */}
-                          <td className="py-3.5 px-4">
-                            <div className="flex items-center gap-1.5 text-[11px]">
-                              {staff.twoFactorEnabled ? (
-                                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-mono">
-                                  <Lock className="w-3 h-3" /> 2FA On
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 text-stone-400 font-mono">
-                                  2FA Off
-                                </span>
-                              )}
-                            </div>
+                          {/* Last sign-in */}
+                          <td className="py-3.5 px-4 text-[11px] text-stone-500">
+                            {staff.lastLogin || 'Never logged in'}
                           </td>
 
                           {/* Status */}

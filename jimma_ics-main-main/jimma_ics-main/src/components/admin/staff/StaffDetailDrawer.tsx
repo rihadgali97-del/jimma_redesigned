@@ -9,7 +9,6 @@ import {
   Phone,
   Mail,
   MapPin,
-  Lock,
   CheckCircle2,
   AlertTriangle,
   LogIn,
@@ -118,11 +117,6 @@ export const StaffDetailDrawer: React.FC<StaffDetailDrawerProps> = ({
                 >
                   {staff.status || 'Active'}
                 </Badge>
-                {staff.twoFactorEnabled && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    <Lock className="w-2.5 h-2.5" /> 2FA Active
-                  </span>
-                )}
               </div>
 
               <h2 className="font-serif font-bold text-xl text-white mt-1 leading-snug truncate">
