@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   Mosque,
   Madrasa,
@@ -420,6 +420,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [publicServiceAvailability, setPublicServiceAvailability] = useState<Record<string, boolean>>(
     () => Object.fromEntries(CIVIC_PUBLIC_SERVICE_IDS.map((serviceId) => [serviceId, true]))
   );
+  const canManageJanazah = isLoggedIn && (
+    currentUser.authRole === 'super_admin'
+    || currentUser.permissions.includes('janazah.manage')
+    || currentUser.permissions.includes('services.process')
+  );
+  const janazahRefreshInFlight = useRef<Promise<number> | null>(null);
 
   const upsertServiceRequest = (request: ServiceRequest) => {
     setServiceRequests((prev) => {
@@ -431,49 +437,58 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const refreshJanazahRequests = async () => {
-    try {
-      const requests = await fetchJanazahRequests();
-      const mapped = requests.map((request): ServiceRequest => ({
-        id: String(request.id),
-        trackingNo: request.referenceNumber,
-        serviceType: 'Janazah Support',
-        applicantName: request.contactName,
-        applicantPhone: request.contactPhone,
-        applicantDistrict: request.woreda ? `Kebele ${request.woreda.code}` : 'Jimma City',
-        submissionDate: new Date(request.createdAt).toLocaleDateString(),
-        status: request.status === 'SUBMITTED' ? 'Submitted'
-          : request.status === 'UNDER_REVIEW' ? 'Under Review'
-          : request.status === 'APPROVED' ? 'Approved'
-          : request.status === 'REJECTED' ? 'Rejected'
-          : request.status === 'COMPLETED' ? 'Completed'
-          : 'Rejected',
-        assignedOfficer: request.assignedOfficer?.fullName || 'On-call Janazah desk',
-        notes: [
-          `Deceased: ${request.deceasedName}`,
-          request.needsGhusl ? 'Ghusl requested' : null,
-          request.needsTransport ? 'Transport requested' : null,
-          request.needsCemeteryPlot ? 'Cemetery plot requested' : null,
-          request.locationNote || null,
-        ].filter(Boolean).join(' • '),
-        documentsCount: 0,
-        priority: 'Urgent',
-      }));
+  const refreshJanazahRequests = useCallback((): Promise<number> => {
+    if (!canManageJanazah) return Promise.resolve(0);
+    if (janazahRefreshInFlight.current) return janazahRefreshInFlight.current;
 
-      setServiceRequests((prev) => {
-        const janazahIds = new Set(mapped.map((request) => request.trackingNo));
-        const others = prev.filter((request) => request.serviceType !== 'Janazah Support' && !janazahIds.has(request.trackingNo));
-        return [...mapped, ...others];
-      });
+    const refresh = (async () => {
+      try {
+        const requests = await fetchJanazahRequests();
+        const mapped = requests.map((request): ServiceRequest => ({
+          id: String(request.id),
+          trackingNo: request.referenceNumber,
+          serviceType: 'Janazah Support',
+          applicantName: request.contactName,
+          applicantPhone: request.contactPhone,
+          applicantDistrict: request.woreda ? `Kebele ${request.woreda.code}` : 'Jimma City',
+          submissionDate: new Date(request.createdAt).toLocaleDateString(),
+          status: request.status === 'SUBMITTED' ? 'Submitted'
+            : request.status === 'UNDER_REVIEW' ? 'Under Review'
+            : request.status === 'APPROVED' ? 'Approved'
+            : request.status === 'REJECTED' ? 'Rejected'
+            : request.status === 'COMPLETED' ? 'Completed'
+            : 'Rejected',
+          assignedOfficer: request.assignedOfficer?.fullName || 'On-call Janazah desk',
+          notes: [
+            `Deceased: ${request.deceasedName}`,
+            request.needsGhusl ? 'Ghusl requested' : null,
+            request.needsTransport ? 'Transport requested' : null,
+            request.needsCemeteryPlot ? 'Cemetery plot requested' : null,
+            request.locationNote || null,
+          ].filter(Boolean).join(' • '),
+          documentsCount: 0,
+          priority: 'Urgent',
+        }));
 
-      return mapped.length;
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.warn('[API] Janazah request list refresh failed.', error);
+        setServiceRequests((prev) => {
+          const janazahIds = new Set(mapped.map((request) => request.trackingNo));
+          const others = prev.filter((request) => request.serviceType !== 'Janazah Support' && !janazahIds.has(request.trackingNo));
+          return [...mapped, ...others];
+        });
+
+        return mapped.length;
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.warn('[API] Janazah request list refresh failed.', error);
+        }
+        return 0;
+      } finally {
+        janazahRefreshInFlight.current = null;
       }
-      return 0;
-    }
-  };
+    })();
+    janazahRefreshInFlight.current = refresh;
+    return refresh;
+  }, [canManageJanazah]);
 
   const refreshJanazahAvailability = async () => {
     try {
@@ -563,9 +578,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     void refreshDirectoryData();
     void refreshJanazahAvailability();
     void refreshPublicServiceAvailability();
-    void refreshJanazahRequests().catch((error) => {
-      if (import.meta.env.DEV) console.warn('[API] Janazah request list refresh failed.', error);
-    });
     void refreshTeachers().catch((error) => {
       if (import.meta.env.DEV) console.warn('[API] Public teacher directory refresh failed.', error);
     });
@@ -577,7 +589,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         void refreshDirectoryData();
         void refreshJanazahAvailability();
         void refreshPublicServiceAvailability();
-        void refreshJanazahRequests();
       }
     };
     window.addEventListener('focus', refreshWhenAvailable);
@@ -587,6 +598,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       window.removeEventListener('online', refreshWhenAvailable);
     };
   }, []);
+
+  useEffect(() => {
+    if (!authReady || !canManageJanazah) return;
+
+    const refreshWhenAvailable = () => {
+      if (document.visibilityState === 'visible') void refreshJanazahRequests();
+    };
+    void refreshJanazahRequests();
+    window.addEventListener('focus', refreshWhenAvailable);
+    window.addEventListener('online', refreshWhenAvailable);
+    return () => {
+      window.removeEventListener('focus', refreshWhenAvailable);
+      window.removeEventListener('online', refreshWhenAvailable);
+    };
+  }, [authReady, canManageJanazah, refreshJanazahRequests]);
 
   // Initial Attendance Map initialized to "Present" for all students
   const [attendanceMap, setAttendanceMap] = useState<Record<string, 'Present' | 'Absent' | 'Late' | 'Excused'>>(() => {
