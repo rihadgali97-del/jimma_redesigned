@@ -615,8 +615,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 4500);
   };
 
+  const canManageStudents = currentUser.authRole === 'super_admin'
+    || currentUser.permissions.includes('madrasas.write');
+
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!isLoggedIn || !canManageStudents) {
       setStudentsLoading(false);
       setStudentsError('');
       return;
@@ -650,7 +653,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => {
       active = false;
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, canManageStudents]);
 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
