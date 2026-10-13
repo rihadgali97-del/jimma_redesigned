@@ -242,6 +242,11 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
     addToast('CSV Exported', `Downloaded list of ${eventAttendees.length} attendees.`, 'success');
   };
 
+  const handlePrintAttendees = () => {
+    if (isLoadingAttendees) return;
+    window.print();
+  };
+
   const handleOpenReceipt = async (registrationId: string) => {
     try {
       const blob = await fetchEventPaymentReceipt(registrationId);
@@ -287,33 +292,43 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-1">
             <Button
               variant="outline"
-              size="sm"
+              size="xs"
               disabled={isLoadingAttendees}
               onClick={() => setShowQrScanner((visible) => !visible)}
-              icon={<QrCode className="w-3.5 h-3.5 text-emerald-500" />}
-              className="text-xs"
+              icon={<QrCode className="w-3 h-3 text-emerald-500" />}
+              className="whitespace-nowrap text-[11px]"
             >
               {showQrScanner ? 'Close Scanner' : 'Scan Pass'}
             </Button>
             <Button
               variant="outline"
-              size="sm"
+              size="xs"
               onClick={handleExportCsv}
-              icon={<Download className="w-3.5 h-3.5" />}
-              className="hidden sm:inline-flex text-xs"
+              icon={<Download className="w-3 h-3" />}
+              className="whitespace-nowrap text-[11px]"
             >
               Export CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="xs"
+              disabled={isLoadingAttendees || eventAttendees.length === 0}
+              onClick={handlePrintAttendees}
+              icon={<Printer className="w-3 h-3" />}
+              className="whitespace-nowrap text-[11px]"
+            >
+              Print List
             </Button>
             {!event.isPaid && (
               <Button
                 variant="gold"
-                size="sm"
+                size="xs"
                 onClick={() => setShowAddWalkIn(!showAddWalkIn)}
-                icon={<UserPlus className="w-3.5 h-3.5" />}
-                className="text-xs"
+                icon={<UserPlus className="w-3 h-3" />}
+                className="whitespace-nowrap text-[11px]"
               >
                 Add Walk-In
               </Button>
@@ -326,6 +341,49 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
             </button>
           </div>
         </div>
+
+        <section className="event-attendee-print" aria-label="Printable event registration list">
+          <header>
+            <h1>Jimma Islamic Council</h1>
+            <h2>Event Registration List</h2>
+            <p>{event.title}</p>
+            <p>
+              {event.date ? new Date(event.date).toLocaleDateString() : ''}
+              {' · '}{eventAttendees.length} {eventAttendees.length === 1 ? 'registration' : 'registrations'}
+              {' · Printed '}{new Date().toLocaleDateString()}
+            </p>
+          </header>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Pass number</th>
+                <th>Attendee</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Kebele / Organization</th>
+                <th>Seats</th>
+                <th>Status</th>
+                <th>Registered</th>
+              </tr>
+            </thead>
+            <tbody>
+              {eventAttendees.map((attendee, index) => (
+                <tr key={attendee.id}>
+                  <td>{index + 1}</td>
+                  <td>{attendee.passNumber || 'Pending'}</td>
+                  <td>{attendee.fullName}</td>
+                  <td>{attendee.phone || '—'}</td>
+                  <td>{attendee.email || '—'}</td>
+                  <td>{attendee.organizationOrMadrasa || attendee.district || '—'}</td>
+                  <td>{attendee.attendeesCount || 1}</td>
+                  <td>{attendee.status}</td>
+                  <td>{attendee.createdAt ? new Date(attendee.createdAt).toLocaleDateString() : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
 
         {showQrScanner && (
           <div className="p-4 border-b border-stone-200 dark:border-stone-800 bg-emerald-50 dark:bg-emerald-950/20">
@@ -408,7 +466,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
                   <option key={n} value={n}>{n} Seat(s)</option>
                 ))}
               </select>
-              <Button type="submit" variant="gold" size="sm" className="justify-center">
+              <Button type="submit" variant="gold" size="xs" className="justify-center whitespace-nowrap">
                 Admit & Check In
               </Button>
             </form>
@@ -512,14 +570,14 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
                         </span>
                       </td>
                       <td className="p-3 text-right">
-                        <div className="inline-flex items-center gap-1.5">
+                        <div className="inline-flex items-center gap-1">
                           {att.status !== 'Checked-In' && att.passNumber && (
                             <Button
                               variant="primary"
-                              size="sm"
+                              size="xs"
                               icon={<CheckCircle2 className="w-3 h-3" />}
                               onClick={() => void checkInAttendee(att.id).catch(() => {})}
-                              className="text-[11px] py-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                              className="whitespace-nowrap text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white"
                             >
                               Check In
                             </Button>
@@ -527,10 +585,10 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
                           {att.hasPaymentReceipt && (
                             <Button
                               variant="ghost"
-                              size="sm"
-                              icon={<Download className="w-3.5 h-3.5" />}
+                              size="xs"
+                              icon={<Download className="w-3 h-3" />}
                               onClick={() => void handleOpenReceipt(att.id)}
-                              className="text-[11px] py-1"
+                              className="whitespace-nowrap text-[10px]"
                             >
                               Receipt
                             </Button>
@@ -539,19 +597,19 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
                             <>
                               <Button
                                 variant="primary"
-                                size="sm"
+                                size="xs"
                                 disabled={reviewingRegistrationId === att.id}
                                 onClick={() => void handlePaymentReview(att.id, 'APPROVED')}
-                                className="text-[11px] py-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                                className="whitespace-nowrap text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white"
                               >
                                 Approve
                               </Button>
                               <Button
                                 variant="ghost"
-                                size="sm"
+                                size="xs"
                                 disabled={reviewingRegistrationId === att.id}
                                 onClick={() => void handlePaymentReview(att.id, 'REJECTED')}
-                                className="text-[11px] py-1 text-rose-600"
+                                className="whitespace-nowrap text-[10px] text-rose-600"
                               >
                                 Reject
                               </Button>
@@ -560,10 +618,10 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
                           {att.passNumber && (
                             <Button
                               variant="ghost"
-                              size="sm"
-                              icon={<QrCode className="w-3.5 h-3.5" />}
+                              size="xs"
+                              icon={<QrCode className="w-3 h-3" />}
                               onClick={() => onOpenPass(att)}
-                              className="text-[11px] py-1"
+                              className="whitespace-nowrap text-[10px]"
                               title="View Digital Pass"
                             >
                               Pass
@@ -592,7 +650,7 @@ export const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
           <div>
             Total Registrations: <strong>{eventAttendees.length}</strong> | Reserved Seats: <strong>{totalSeats}</strong>
           </div>
-          <Button variant="outline" size="sm" onClick={onClose} className="text-xs">
+          <Button variant="outline" size="xs" onClick={onClose} className="text-[11px]">
             Done
           </Button>
         </div>

@@ -204,27 +204,27 @@ export const AdminEventsPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+        <div className="flex w-full flex-wrap items-center gap-1 sm:w-auto">
           <Button
             variant="outline"
-            size="sm"
+            size="xs"
             onClick={handleExportAllRegistrations}
             disabled={isExporting}
-            icon={<Download className="w-4 h-4" />}
-            className="text-xs flex-1 sm:flex-none"
+            icon={<Download className="w-3.5 h-3.5" />}
+            className="whitespace-nowrap text-[11px]"
           >
             {isExporting ? 'Preparing Export…' : 'Export All Registrations'}
           </Button>
 
           <Button
             variant="gold"
-            size="sm"
+            size="xs"
             onClick={() => {
               setEditingEvent(undefined);
               setIsCreateOpen(true);
             }}
-            icon={<Plus className="w-4 h-4" />}
-            className="text-xs flex-1 sm:flex-none"
+            icon={<Plus className="w-3.5 h-3.5" />}
+            className="whitespace-nowrap text-[11px]"
           >
             Schedule New Program
           </Button>
@@ -387,11 +387,11 @@ export const AdminEventsPage: React.FC = () => {
                 <p>{event.attendeesCount || 0} / {event.maxCapacity || '—'} attendees</p>
                 <p>RSVP {event.registrationOpen ? 'Open' : 'Paused'}</p>
               </div>
-              <div className="flex flex-wrap gap-2 border-t border-stone-100 pt-3 dark:border-stone-800">
-                <Button variant="primary" size="sm" icon={<Users className="h-3.5 w-3.5" />} onClick={() => setAttendeesEvent(event)}>Attendees</Button>
-                <Button variant="outline" size="sm" onClick={() => void handleToggleRegistration(event)}>{event.registrationOpen ? 'Pause RSVP' : 'Open RSVP'}</Button>
-                <Button variant="outline" size="sm" icon={<Edit className="h-3.5 w-3.5" />} onClick={() => { setEditingEvent(event); setIsCreateOpen(true); }}>Edit</Button>
-                <Button variant="ghost" size="sm" icon={<Trash2 className="h-3.5 w-3.5" />} onClick={() => handleDeleteEvent(event.id, event.title)} aria-label={`Delete ${event.title}`} />
+              <div className="flex flex-wrap items-center gap-1 border-t border-stone-100 pt-3 dark:border-stone-800">
+                <Button variant="primary" size="xs" icon={<Users className="h-3 w-3" />} onClick={() => setAttendeesEvent(event)} className="whitespace-nowrap text-[11px]">Attendees</Button>
+                <Button variant="outline" size="xs" onClick={() => void handleToggleRegistration(event)} className="whitespace-nowrap text-[11px]">{event.registrationOpen ? 'Pause RSVP' : 'Open RSVP'}</Button>
+                <Button variant="outline" size="xs" icon={<Edit className="h-3 w-3" />} onClick={() => { setEditingEvent(event); setIsCreateOpen(true); }} className="whitespace-nowrap text-[11px]">Edit</Button>
+                <Button variant="ghost" size="xs" icon={<Trash2 className="h-3 w-3" />} onClick={() => handleDeleteEvent(event.id, event.title)} aria-label={`Delete ${event.title}`} />
               </div>
             </div>
           </article>;
@@ -522,13 +522,13 @@ export const AdminEventsPage: React.FC = () => {
 
                     {/* Actions */}
                     <td className="p-4 text-right">
-                      <div className="inline-flex items-center gap-1.5">
+                      <div className="inline-flex items-center gap-1">
                         <Button
                           variant="primary"
-                          size="sm"
-                          icon={<Users className="w-3.5 h-3.5" />}
+                          size="xs"
+                          icon={<Users className="w-3 h-3" />}
                           onClick={() => setAttendeesEvent(event)}
-                          className="text-[11px] py-1 bg-amber-600 hover:bg-amber-700 text-white"
+                          className="whitespace-nowrap text-[10px] bg-amber-600 hover:bg-amber-700 text-white"
                         >
                           Check-In
                         </Button>
@@ -538,18 +538,18 @@ export const AdminEventsPage: React.FC = () => {
                             setEditingEvent(event);
                             setIsCreateOpen(true);
                           }}
-                          className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                          className="p-1 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
                           title="Edit Event Logistics"
                         >
-                          <Edit className="w-3.5 h-3.5" />
+                          <Edit className="w-3 h-3" />
                         </button>
 
                         <button
                           onClick={() => handleDeleteEvent(event.id, event.title)}
-                          className="p-1.5 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                          className="p-1 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
                           title="Delete Gathering"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-3 h-3" />
                         </button>
                       </div>
                     </td>

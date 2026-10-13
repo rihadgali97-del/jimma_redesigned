@@ -190,6 +190,10 @@
   display: none;
 }
 
+.event-attendee-print {
+  display: none;
+}
+
 @media print {
   @page {
     size: landscape;
@@ -268,6 +272,77 @@
   }
 
   .mosque-registry-print tr {
+    break-inside: avoid;
+  }
+
+  .event-attendee-print,
+  .event-attendee-print * {
+    visibility: visible !important;
+  }
+
+  .event-attendee-print {
+    position: fixed;
+    inset: 0;
+    display: block;
+    overflow: visible;
+    padding: 0;
+    background: #fff;
+    color: #111;
+    font-family: Arial, sans-serif;
+    font-size: 9pt;
+  }
+
+  .event-attendee-print header {
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .event-attendee-print h1,
+  .event-attendee-print h2,
+  .event-attendee-print p {
+    margin: 0;
+  }
+
+  .event-attendee-print h1 {
+    font-size: 16pt;
+  }
+
+  .event-attendee-print h2 {
+    margin-top: 2px;
+    font-size: 13pt;
+  }
+
+  .event-attendee-print header p {
+    margin-top: 4px;
+    color: #444;
+  }
+
+  .event-attendee-print table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .event-attendee-print th,
+  .event-attendee-print td {
+    padding: 5px 6px;
+    border: 1px solid #999;
+    text-align: left;
+    overflow-wrap: anywhere;
+    vertical-align: top;
+  }
+
+  .event-attendee-print th {
+    background: #eee !important;
+    color: #111;
+    font-size: 8pt;
+  }
+
+  .event-attendee-print thead {
+    display: table-header-group;
+  }
+
+  .event-attendee-print tr {
     break-inside: avoid;
   }
 }
