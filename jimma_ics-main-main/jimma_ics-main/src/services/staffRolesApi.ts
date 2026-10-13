@@ -70,20 +70,14 @@ function readMetadata(metadata: Metadata | null, key: string): string {
 
 function toRole(role: ApiRole): RoleDefinition {
   const metadata = role.metadata;
-  const department = readMetadata(metadata, 'department') || 'Education Directorate';
-  const privilegeLevel = readMetadata(metadata, 'privilegeLevel');
   return {
     id: String(role.id),
     name: role.name,
     arabicName: readMetadata(metadata, 'arabicName') || undefined,
-    department,
     description: role.description || '',
     isSystemRole: role.isSystemRole,
-    privilegeLevel: ['Critical', 'High', 'Medium', 'Standard'].includes(privilegeLevel)
-      ? (privilegeLevel as RoleDefinition['privilegeLevel'])
-      : role.isSystemRole ? 'High' : 'Standard',
-    defaultDashboard: readMetadata(metadata, 'defaultDashboard') || '/admin',
     color: readMetadata(metadata, 'color') || '#059669',
+    department: readMetadata(metadata, 'department'),
     assignedUsersCount: role.assignedUsersCount,
     permissions: role.permissions,
     createdAt: role.createdAt.slice(0, 10),
@@ -112,7 +106,6 @@ function toStaff(user: ApiUser): User {
     status: user.isActive ? 'Active' : status === 'On Leave' || status === 'Pending Invitation' ? status : 'Suspended',
     joinedDate: user.createdAt.slice(0, 10),
     lastLogin: user.lastLoginAt || 'Never logged in',
-    accessLevel: readMetadata(metadata, 'accessLevel') || undefined,
     permissions: Array.from(new Set([...user.role.permissions, ...customPermissions])),
     customPermissions,
     notes: readMetadata(metadata, 'notes') || undefined,
@@ -223,7 +216,6 @@ function toApiMetadata(value: Partial<User>): Metadata {
     ...(value.department !== undefined ? { department: value.department } : {}),
     ...(value.district !== undefined ? { district: value.district } : {}),
     ...(value.status !== undefined ? { status: value.status } : {}),
-    ...(value.accessLevel !== undefined ? { accessLevel: value.accessLevel } : {}),
     ...(value.avatar !== undefined ? { avatar: value.avatar } : {}),
     ...(value.notes !== undefined ? { notes: value.notes } : {}),
     ...(value.customPermissions !== undefined ? { customPermissions: value.customPermissions } : {}),
@@ -234,8 +226,6 @@ function toRoleMetadata(value: Partial<RoleDefinition>): Metadata {
   return {
     ...(value.arabicName !== undefined ? { arabicName: value.arabicName } : {}),
     ...(value.department !== undefined ? { department: value.department } : {}),
-    ...(value.privilegeLevel !== undefined ? { privilegeLevel: value.privilegeLevel } : {}),
-    ...(value.defaultDashboard !== undefined ? { defaultDashboard: value.defaultDashboard } : {}),
     ...(value.color !== undefined ? { color: value.color } : {}),
   };
 }
@@ -453,8 +443,6 @@ export async function updateRoleRecord(id: string, value: Partial<RoleDefinition
   const hasMetadataChanges = [
     value.arabicName,
     value.department,
-    value.privilegeLevel,
-    value.defaultDashboard,
     value.color,
   ].some((field) => field !== undefined);
   const role = await apiRequest<ApiRole>(`/admin/roles/${encodeURIComponent(id)}`, {

@@ -40,7 +40,6 @@ export interface User {
   status?: StaffStatus;
   joinedDate?: string;
   lastLogin?: string;
-  accessLevel?: string;
   permissions: string[];
   customPermissions?: string[];
   notes?: string;
@@ -70,8 +69,6 @@ export interface RoleDefinition {
   department: StaffDepartment | string;
   description: string;
   isSystemRole: boolean;
-  privilegeLevel: 'Critical' | 'High' | 'Medium' | 'Standard';
-  defaultDashboard: string;
   color: string;
   assignedUsersCount?: number;
   permissions: string[];

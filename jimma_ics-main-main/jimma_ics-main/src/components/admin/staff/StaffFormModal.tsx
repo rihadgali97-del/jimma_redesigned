@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../../context/AppContext';
-import { User, UserRole, StaffDepartment, StaffStatus } from '../../../types';
+import { User, StaffDepartment, StaffStatus } from '../../../types';
 import { DirectoryWoreda, fetchDirectoryWoredas } from '../../../services/directoryApi';
 import { fetchAllRoleProfiles } from '../../../services/staffRolesApi';
 import {
@@ -46,13 +46,12 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     arabicName: '',
     email: '',
     password: '',
-    role: 'Teacher' as UserRole,
+    role: '',
     title: '',
-    department: 'Education Directorate' as StaffDepartment,
+    department: '' as StaffDepartment | '',
     phone: '',
     district: '',
     status: 'Active' as StaffStatus,
-    accessLevel: 'Level 3 (Departmental Officer)',
     avatar: '',
     notes: '',
     customPermissions: [] as string[],
@@ -72,14 +71,6 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     'IT & Media Communications',
   ];
 
-  const accessLevels = [
-    'Level 1 (Full System Root)',
-    'Level 2 (Executive Directorate)',
-    'Level 3 (Departmental Officer)',
-    'Level 4 (Field & Mosque Staff)',
-    'Level 5 (Read-Only Independent Audit)',
-  ];
-
   useEffect(() => {
     setProfilePhoto(null);
     if (initialStaff) {
@@ -89,13 +80,12 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
         arabicName: initialStaff.arabicName || '',
         email: initialStaff.email || '',
         password: '',
-        role: initialStaff.role || 'Teacher',
+        role: initialStaff.role || '',
         title: initialStaff.title || '',
-        department: (initialStaff.department as StaffDepartment) || 'Education Directorate',
+        department: (initialStaff.department as StaffDepartment) || '',
         phone: initialStaff.phone || '',
         district: initialStaff.district || '',
         status: initialStaff.status || 'Active',
-        accessLevel: initialStaff.accessLevel || 'Level 3 (Departmental Officer)',
         avatar: initialStaff.avatar || '',
         notes: initialStaff.notes || '',
         customPermissions: initialStaff.customPermissions || [],
@@ -107,13 +97,12 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
         arabicName: '',
         email: '',
         password: '',
-        role: 'Teacher',
+        role: '',
         title: '',
-        department: 'Education Directorate',
-        phone: '+251 9',
+        department: '',
+        phone: '',
         district: '',
         status: 'Active',
-        accessLevel: 'Level 4 (Field & Mosque Staff)',
         avatar: '',
         notes: '',
         customPermissions: [],
@@ -199,6 +188,10 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.email.trim()) return;
+    if (!staffRoleOptions.some((role) => role.name === formData.role)) {
+      addToast('Role Required', 'Select a role profile loaded from the backend before saving this staff account.', 'warning');
+      return;
+    }
     if (!initialStaff && !kebeles.some((kebele) => kebele.name === formData.district)) {
       addToast('Kebele Required', 'Select a kebele from the active kebele registry before enrolling staff.', 'warning');
       return;
@@ -441,9 +434,10 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
                 </label>
                 <select
                   value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value as StaffDepartment })}
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value as StaffDepartment | '' })}
                   className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500"
                 >
+                  <option value="">Select a directorate</option>
                   {departments.map((dep) => (
                     <option key={dep} value={dep}>
                       {dep}
@@ -459,7 +453,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
                 <select
                   value={formData.role}
                   onChange={(e) => {
-                    const nextRole = e.target.value as UserRole;
+                    const nextRole = e.target.value;
                     const rDef = staffRoleOptions.find((r) => r.name === nextRole);
                     setFormData({
                       ...formData,
@@ -470,9 +464,10 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
                   disabled={rolesLoading || staffRoleOptions.length === 0}
                   className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500 font-semibold text-amber-700 dark:text-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
                 >
+                  <option value="">Select a backend role</option>
                   {staffRoleOptions.map((r) => (
                     <option key={r.id} value={r.name}>
-                      {r.name} ({r.privilegeLevel})
+                      {r.name}
                     </option>
                   ))}
                 </select>
@@ -498,23 +493,6 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
-                  Access Level Tier
-                </label>
-                <select
-                  value={formData.accessLevel}
-                  onChange={(e) => setFormData({ ...formData, accessLevel: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500"
-                >
-                  {accessLevels.map((lvl) => (
-                    <option key={lvl} value={lvl}>
-                      {lvl}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div>
                 <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
                   Account Status

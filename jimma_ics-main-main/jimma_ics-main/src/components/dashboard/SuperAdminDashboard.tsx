@@ -37,6 +37,7 @@ export const SuperAdminDashboard: React.FC = () => {
     donations,
     zakatDistributions,
     securityLogs,
+    securityLogsLoaded,
     currentUser,
   } = useApp();
 
@@ -212,7 +213,7 @@ export const SuperAdminDashboard: React.FC = () => {
           <Card className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100">
-                Real-Time Security & Audit Feed
+                Security & Audit Feed
               </h3>
               <Link to="/admin/staff">
                 <Button variant="ghost" size="sm" className="text-xs">
@@ -222,7 +223,11 @@ export const SuperAdminDashboard: React.FC = () => {
             </div>
 
             <div className="space-y-2 text-xs">
-              {securityLogs.slice(0, 4).map((log) => (
+              {!securityLogsLoaded ? (
+                <p className="py-3 text-center text-stone-400">Loading server audit records…</p>
+              ) : securityLogs.length === 0 ? (
+                <p className="py-3 text-center text-stone-400">No server audit activity recorded.</p>
+              ) : securityLogs.slice(0, 4).map((log) => (
                 <div
                   key={log.id}
                   className="p-2.5 rounded-xl bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800 space-y-1"

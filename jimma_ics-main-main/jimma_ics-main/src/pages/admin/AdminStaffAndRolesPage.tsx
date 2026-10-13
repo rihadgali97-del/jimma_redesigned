@@ -277,7 +277,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
         department: selectedDepartment !== 'All' ? selectedDepartment : undefined,
         status: selectedStatus !== 'All' ? selectedStatus : undefined,
       });
-    const headers = ['ID', 'Name', 'Arabic Name', 'Role', 'Department', 'Email', 'Phone', 'Kebele', 'Status', 'Access Level'];
+    const headers = ['ID', 'Name', 'Arabic Name', 'Role', 'Department', 'Email', 'Phone', 'Kebele', 'Status'];
       const csvCell = (value: string | undefined) => `"${(value || '').replace(/"/g, '""')}"`;
       const rows = exportRows.map((s) => [
         csvCell(s.id),
@@ -289,7 +289,6 @@ export const AdminStaffAndRolesPage: React.FC = () => {
         csvCell(s.phone),
         csvCell(s.district),
         csvCell(s.status || 'Active'),
-        csvCell(s.accessLevel),
       ]);
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
@@ -411,7 +410,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
               {staffListLoaded ? `${activeStaffCount} Active on this page` : 'Unavailable'}
             </span>
           </div>
-          <p className="text-[11px] text-stone-400 mt-1">Across 7 council directorates</p>
+          <p className="text-[11px] text-stone-400 mt-1">Records from the staff registry</p>
         </div>}
 
         {canManageRoles && <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs">
@@ -690,7 +689,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                   <thead className="bg-stone-50 dark:bg-stone-800/80 text-stone-500 border-b border-stone-200 dark:border-stone-800 uppercase tracking-wider font-mono">
                     <tr>
                       <th className="py-3 px-4">Officer & Identity</th>
-                      <th className="py-3 px-4">Role & Access Tier</th>
+                      <th className="py-3 px-4">Role</th>
                       <th className="py-3 px-4">Directorate</th>
                       <th className="py-3 px-4">Kebele</th>
                       <th className="py-3 px-4">Last Sign-In</th>
@@ -751,24 +750,19 @@ export const AdminStaffAndRolesPage: React.FC = () => {
 
                           {/* Role */}
                           <td className="py-3.5 px-4">
-                            <div className="space-y-0.5">
-                              <Badge variant="gold" className="text-[10px]">
-                                {staff.role}
-                              </Badge>
-                              <span className="text-[10px] text-stone-400 block font-mono">
-                                {staff.accessLevel ? staff.accessLevel.split(' ')[0] : 'Level 3'}
-                              </span>
-                            </div>
+                            <Badge variant="gold" className="text-[10px]">
+                              {staff.role}
+                            </Badge>
                           </td>
 
                           {/* Department */}
                           <td className="py-3.5 px-4 font-medium text-stone-700 dark:text-stone-300">
-                            {staff.department || 'Executive Secretariat'}
+                            {staff.department || 'Not assigned'}
                           </td>
 
                           {/* Kebele */}
                           <td className="py-3.5 px-4 text-stone-600 dark:text-stone-400">
-                            {staff.district || 'Jimma Central'}
+                            {staff.district || 'Not assigned'}
                           </td>
 
                           {/* Last sign-in */}
@@ -882,11 +876,11 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                   <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-100 dark:border-stone-800 text-[11px] space-y-1.5">
                     <div className="flex items-center justify-between text-stone-600 dark:text-stone-300">
                       <span className="text-stone-400">Department:</span>
-                      <span className="font-semibold">{staff.department || 'Executive Secretariat'}</span>
+                      <span className="font-semibold">{staff.department || 'Not assigned'}</span>
                     </div>
                     <div className="flex items-center justify-between text-stone-600 dark:text-stone-300">
                       <span className="text-stone-400">Jurisdiction:</span>
-                      <span>{staff.district || 'Jimma Central'}</span>
+                      <span>{staff.district || 'Not assigned'}</span>
                     </div>
                     <div className="flex items-center justify-between text-stone-600 dark:text-stone-300">
                       <span className="text-stone-400">Permissions:</span>
@@ -1023,16 +1017,8 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                         )}
                       </div>
 
-                      <Badge
-                        variant={
-                          role.privilegeLevel === 'Critical'
-                            ? 'rose'
-                            : role.privilegeLevel === 'High'
-                            ? 'amber'
-                            : 'emerald'
-                        }
-                      >
-                        {role.privilegeLevel} Risk
+                      <Badge variant={role.isSystemRole ? 'amber' : 'emerald'}>
+                        {role.isSystemRole ? 'System role' : 'Custom role'}
                       </Badge>
                     </div>
 
@@ -1044,7 +1030,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-stone-500">Directorate Scope:</span>
                         <span className="font-semibold text-stone-800 dark:text-stone-200">
-                          {role.department}
+                          {role.department || 'Not assigned'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -1182,7 +1168,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                         {role.name}
                       </div>
                       <div className="text-[9px] text-stone-400 normal-case font-mono mt-0.5">
-                        {role.privilegeLevel}
+                        {role.permissions.length} permissions
                       </div>
                     </th>
                   ))}
@@ -1390,10 +1376,12 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 dark:divide-stone-800 text-stone-800 dark:text-stone-200">
-                  {filteredAuditLogs.length === 0 ? (
+                  {!securityLogsLoaded || filteredAuditLogs.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-8 text-center text-stone-400 italic">
-                        No audit records found matching the filter.
+                        {!securityLogsLoaded
+                          ? 'Loading server audit records…'
+                          : 'No server audit records found matching the filter.'}
                       </td>
                     </tr>
                   ) : (

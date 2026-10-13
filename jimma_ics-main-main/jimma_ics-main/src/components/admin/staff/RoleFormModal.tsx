@@ -35,10 +35,8 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
   const [formData, setFormData] = useState({
     name: '',
     arabicName: '',
-    department: 'Education Directorate' as StaffDepartment,
+    department: '' as StaffDepartment | '',
     description: '',
-    privilegeLevel: 'Standard' as 'Critical' | 'High' | 'Medium' | 'Standard',
-    defaultDashboard: '/admin',
     color: '#059669',
     permissions: [] as string[],
   });
@@ -51,17 +49,6 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
     'Mosque & Waqf Affairs',
     'Social Services & Zakat',
     'IT & Media Communications',
-  ];
-
-  const dashboardRoutes = [
-    { label: 'Executive Overview (/admin)', path: '/admin' },
-    { label: 'Mosques Registry (/admin/mosques)', path: '/admin/mosques' },
-    { label: 'Madrasas & Education (/admin/madrasas)', path: '/admin/madrasas' },
-    { label: 'Students & Hifz Desk (/admin/students)', path: '/admin/students' },
-    { label: 'Financial Control Center (/admin/finance)', path: '/admin/finance' },
-    { label: 'Service Requests Desk (/admin/services)', path: '/admin/services' },
-    { label: 'Communications Gateway (/admin/gateway)', path: '/admin/gateway' },
-    { label: 'Events & Programs (/admin/events)', path: '/admin/events' },
   ];
 
   const colorPalette = [
@@ -80,10 +67,8 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
       setFormData({
         name: initialRole.name,
         arabicName: initialRole.arabicName || '',
-        department: (initialRole.department as StaffDepartment) || 'Education Directorate',
+        department: (initialRole.department as StaffDepartment) || '',
         description: initialRole.description,
-        privilegeLevel: initialRole.privilegeLevel,
-        defaultDashboard: initialRole.defaultDashboard || '/admin',
         color: initialRole.color || '#059669',
         permissions: [...initialRole.permissions],
       });
@@ -91,12 +76,10 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
       setFormData({
         name: '',
         arabicName: '',
-        department: 'Education Directorate',
+        department: '',
         description: '',
-        privilegeLevel: 'Standard',
-        defaultDashboard: '/admin',
         color: '#059669',
-        permissions: ['dashboard.view'],
+        permissions: [],
       });
     }
   }, [initialRole, isOpen]);
@@ -238,56 +221,22 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
-                  Assigned Directorate
-                </label>
-                <select
-                  value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value as StaffDepartment })}
-                  className="w-full px-3 py-2 rounded-xl text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500"
-                >
-                  {departments.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
-                  Privilege / Security Tier
-                </label>
-                <select
-                  value={formData.privilegeLevel}
-                  onChange={(e) => setFormData({ ...formData, privilegeLevel: e.target.value as any })}
-                  className="w-full px-3 py-2 rounded-xl text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500 font-bold"
-                >
-                  <option value="Standard">Standard (Field / Instructor)</option>
-                  <option value="Medium">Medium (Department Officer)</option>
-                  <option value="High">High (Directorate Chair)</option>
-                  <option value="Critical">Critical (Executive Root)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
-                  Default Landing Desk
-                </label>
-                <select
-                  value={formData.defaultDashboard}
-                  onChange={(e) => setFormData({ ...formData, defaultDashboard: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500"
-                >
-                  {dashboardRoutes.map((r) => (
-                    <option key={r.path} value={r.path}>
-                      {r.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
+                Assigned Directorate
+              </label>
+              <select
+                value={formData.department}
+                onChange={(e) => setFormData({ ...formData, department: e.target.value as StaffDepartment | '' })}
+                className="w-full px-3 py-2 rounded-xl text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500"
+              >
+                <option value="">Select a directorate</option>
+                {departments.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>

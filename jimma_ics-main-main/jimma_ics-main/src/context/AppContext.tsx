@@ -35,13 +35,12 @@ import { mockFunds, mockTransactions, mockDonations, mockExpenseApprovals } from
 import { mockPublicServices, mockServiceRequests, ServiceItem } from '../data/mockServices';
 import { mockEvents, mockAnnouncements } from '../data/mockEventsAndDocs';
 import { initialCouncilResources } from '../data/mockResources';
-import { initialStaffMembers, permissionCategories as defaultPermissionCategories } from '../data/mockStaffAndRoles';
 import { initialAttendanceSessions, initialStaffAttendance } from '../data/mockAttendance';
 import { mockAuditDirectives, mockAuditChecklist, mockLedgerBlocks } from '../data/mockAuditCompliance';
 import { mockZakatCalculations } from '../data/mockZakatHistory';
 import { apiRequest, AuthUser, loginWithPassword, logoutFromServer, PaginationMeta, registerAccount, restoreAuthUser } from '../services/authApi';
 import { fetchDirectoryMadrasas, fetchDirectoryMosques } from '../services/directoryApi';
-import { hasAnyPermission } from '../data/permissionCatalog';
+import { hasAnyPermission, permissionCategories as defaultPermissionCategories } from '../data/permissionCatalog';
 import {
   createStudentRecord,
   fetchAdminStudents,
@@ -157,7 +156,6 @@ interface AppContextType {
   deleteRole: (id: string) => Promise<boolean>;
   permissionCategories: PermissionCategory[];
   securityLogs: SecurityAuditLog[];
-  addSecurityLog: (log: Omit<SecurityAuditLog, 'id' | 'timestamp'>) => void;
 
   // Entities
   mosques: Mosque[];
@@ -291,6 +289,15 @@ const roleLabels: Record<string, string> = {
   pending_staff: 'Pending Staff',
 };
 
+const emptyUser: User = {
+  id: '',
+  name: '',
+  email: '',
+  role: '',
+  phone: '',
+  permissions: [],
+};
+
 function toFrontendUser(apiUser: AuthUser): User {
   return {
     id: String(apiUser.id),
@@ -305,7 +312,7 @@ function toFrontendUser(apiUser: AuthUser): User {
 }
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User>(initialStaffMembers[0]);
+  const [currentUser, setCurrentUser] = useState<User>(emptyUser);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authReady, setAuthReady] = useState(false);
 
@@ -745,15 +752,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, []);
 
-  const addSecurityLog = (log: Omit<SecurityAuditLog, 'id' | 'timestamp'>) => {
-    const newLog: SecurityAuditLog = {
-      ...log,
-      id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    setSecurityLogs((prev) => [newLog, ...prev]);
-  };
-
   const refreshStaffAndRoles = async (query?: StaffRolesQuery) => {
     if (query) staffAccessQuery.current = query;
     const currentQuery = staffAccessQuery.current;
@@ -803,6 +801,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  useEffect(() => {
+    if (!isLoggedIn) {
+      staffAccessRefreshRequest.current += 1;
+      setStaffList([]);
+      setStaffListLoaded(false);
+      setStaffListMeta(null);
+      setRolesList([]);
+      setRolesListLoaded(false);
+      setRolesListMeta(null);
+      setSecurityLogs([]);
+      setSecurityLogsLoaded(false);
+      setStaffAccessError('');
+      setStaffAccessLoading(false);
+      return;
+    }
+
+    void refreshStaffAndRoles().catch(() => undefined);
+  }, [isLoggedIn, currentUser.id]);
+
   const refreshAfterStaffMutation = async () => {
     try {
       await refreshStaffAndRoles();
@@ -834,17 +851,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addToast('Zakat distributions unavailable', error instanceof Error ? error.message : 'Could not load disbursement records.', 'warning');
       }
     }
-    addSecurityLog({
-      actorName: user.name,
-      actorEmail: user.email,
-      actorRole: user.role,
-      action: 'Staff Authentication Success',
-      target: `${user.role} Dashboard`,
-      category: 'Auth',
-      status: 'Success',
-      ipAddress: 'Recorded by server',
-      details: `Authenticated by backend as ${user.authRole}.`,
-    });
     addToast(`Signed In as ${user.name}`, `Backend verified your ${user.role} account.`, 'success');
     return user;
   };
@@ -855,18 +861,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logout = async () => {
     setIsLoggedIn(false);
+    setCurrentUser(emptyUser);
     void logoutFromServer();
-    addSecurityLog({
-      actorName: currentUser.name,
-      actorEmail: currentUser.email,
-      actorRole: currentUser.role,
-      action: 'Staff Sign Out',
-      target: 'Public Portal',
-      category: 'Auth',
-      status: 'Success',
-      ipAddress: 'Session',
-      details: 'Session terminated through the staff portal.',
-    });
     addToast('Signed Out', 'You have been signed out from the council staff portal.', 'info');
   };
 
@@ -1817,17 +1813,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdDate: today,
     };
     setAuditDirectives((prev) => [newDirective, ...prev]);
-    addSecurityLog({
-      action: 'Create Audit Inquiry Flag',
-      actorName: currentUser.name,
-      actorEmail: currentUser.email,
-      actorRole: currentUser.role,
-      target: newId,
-      details: `Opened audit inquiry [${newDirective.severity}] for ${newDirective.targetEntity}: "${newDirective.title}"`,
-      category: 'Finance_Security',
-      status: 'Success',
-      ipAddress: '192.168.1.1',
-    });
     addToast(
       'Audit Directive Attached',
       `Audit inquiry ${newId} assigned to ${newDirective.assignedAuditor}.`,
@@ -1857,17 +1842,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           : d
       )
     );
-    addSecurityLog({
-      action: 'Resolve Audit Directive',
-      actorName: currentUser.name,
-      actorEmail: currentUser.email,
-      actorRole: currentUser.role,
-      target: id,
-      details: `Auditor cleared inquiry ${id}. Resolution Note: "${resolutionNote}"`,
-      category: 'Finance_Security',
-      status: 'Success',
-      ipAddress: '192.168.1.1',
-    });
     addToast('Audit Finding Resolved', `Audit directive ${id} marked as resolved and sealed.`, 'success');
   };
 
@@ -1875,17 +1849,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAuditDirectives((prev) =>
       prev.map((d) => (d.id === id ? { ...d, status: 'Escalated to Shura' } : d))
     );
-    addSecurityLog({
-      action: 'Escalate Audit to Shura Council',
-      actorName: currentUser.name,
-      actorEmail: currentUser.email,
-      actorRole: currentUser.role,
-      target: id,
-      details: `Escalated compliance discrepancy ${id} to Executive Shura Council for emergency ruling.`,
-      category: 'Finance_Security',
-      status: 'Warning',
-      ipAddress: '192.168.1.1',
-    });
     addToast(
       'Escalated to Shura Council',
       `Audit inquiry ${id} formally submitted to the Supreme Executive Shura.`,
@@ -1926,17 +1889,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setTimeout(() => {
         const totalTxCount = transactions.length + 1378;
         const digest = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
-        addSecurityLog({
-          action: 'Cryptographic Ledger Reconciliation',
-          actorName: currentUser.name,
-          actorEmail: currentUser.email,
-          actorRole: currentUser.role,
-          target: 'Global General Ledger & Zakat Sub-Ledger',
-          details: `Reconciled ${ledgerBlocks.length} cryptographic blocks (${totalTxCount} transactions). Variance: 0.00 ETB. Digest SHA-256 match 100%.`,
-          category: 'Finance_Security',
-          status: 'Success',
-          ipAddress: '192.168.1.1',
-        });
         resolve({
           verifiedBlocks: ledgerBlocks.length,
           verifiedTxs: totalTxCount,
@@ -1980,7 +1932,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deleteRole,
         permissionCategories,
         securityLogs,
-        addSecurityLog,
         mosques,
         refreshDirectoryData,
         addMosque,

@@ -6,8 +6,6 @@ import {
   Download,
   Shield,
   Landmark,
-  QrCode,
-  CheckCircle2,
   Lock,
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
@@ -41,7 +39,7 @@ export const StaffBadgeModal: React.FC<StaffBadgeModalProps> = ({
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-amber-400" />
             <h3 className="font-serif font-bold text-sm text-white">
-              Official Council Staff Credential
+              Staff Directory Card
             </h3>
           </div>
           <button
@@ -91,9 +89,6 @@ export const StaffBadgeModal: React.FC<StaffBadgeModalProps> = ({
                   name={staff.name}
                   className="w-24 h-24 rounded-2xl border-4 border-amber-400/80 shadow-md"
                 />
-                <div className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-md">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                </div>
               </div>
 
               <div>
@@ -109,56 +104,40 @@ export const StaffBadgeModal: React.FC<StaffBadgeModalProps> = ({
                   {staff.role}
                 </span>
                 <p className="text-[10px] text-stone-500 font-medium mt-1">
-                  {staff.department || 'Council Directorate'}
+                  {staff.department || 'Not assigned'}
                 </p>
               </div>
 
               {/* ID Data Table */}
               <div className="staff-id-print-details w-full bg-stone-50 rounded-xl p-2.5 border border-stone-200 text-left text-[10px] space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-stone-500 font-semibold">Staff ID No:</span>
+                  <span className="text-stone-500 font-semibold">Account ID:</span>
                   <span className="font-mono font-bold text-stone-800">
-                    JIC-STF-{staff.id.replace('user-', '').toUpperCase().slice(0, 6)}
+                    {staff.id}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-stone-500 font-semibold">Jurisdiction:</span>
-                  <span className="font-semibold text-stone-800">{staff.district || 'Jimma Central'}</span>
+                  <span className="font-semibold text-stone-800">{staff.district || 'Not assigned'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-stone-500 font-semibold">Access Clearance:</span>
+                  <span className="text-stone-500 font-semibold">Assigned Role:</span>
                   <span className="font-semibold text-emerald-700">
-                    {staff.accessLevel ? staff.accessLevel.split(' ')[0] : 'Level 3'}
+                    {staff.role}
                   </span>
                 </div>
               </div>
 
-              {/* Security Barcode & QR code */}
-              <div className="w-full pt-2 flex items-center justify-between border-t border-stone-200">
-                <div className="flex flex-col items-start">
-                  <span className="text-[8px] font-mono tracking-widest text-stone-400 uppercase">
-                    AUTHENTICATED CREDENTIAL
-                  </span>
-                  <div className="h-6 flex items-center gap-0.5 mt-0.5">
-                    {[16, 24, 12, 20, 8, 28, 14, 22, 10, 26, 18, 12, 24, 16, 20].map((h, i) => (
-                      <div
-                        key={i}
-                        className="bg-stone-800 w-[2px] rounded-xs"
-                        style={{ height: `${h}px` }}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div className="w-12 h-12 bg-white p-1 rounded-lg border border-stone-300 flex items-center justify-center">
-                  <QrCode className="w-10 h-10 text-stone-900" />
-                </div>
+              <div className="w-full pt-2 border-t border-stone-200">
+                <p className="text-[9px] text-stone-500">
+                  Directory card only; system access is controlled by the assigned role permissions.
+                </p>
               </div>
             </div>
 
             {/* Bottom Footer Ribbon */}
             <div className="staff-id-print-footer px-3 py-1.5 bg-stone-900 text-[8px] text-amber-300 font-mono text-center tracking-wider uppercase">
-              Official Property of Jimma Islamic Affairs Council
+              Staff Directory Card Preview
             </div>
           </div>
         </div>

@@ -1,6 +1,5 @@
 import { DailyAttendanceSession, StaffAttendanceEntry } from '../types';
 import { mockStudents } from './mockStudents';
-import { initialStaffMembers } from './mockStaffAndRoles';
 
 export const initialAttendanceSessions: DailyAttendanceSession[] = [
   {

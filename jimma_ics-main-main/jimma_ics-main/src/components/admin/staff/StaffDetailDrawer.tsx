@@ -11,7 +11,6 @@ import {
   MapPin,
   CheckCircle2,
   AlertTriangle,
-  LogIn,
   IdCard,
   Edit,
   Key,
@@ -43,7 +42,6 @@ export const StaffDetailDrawer: React.FC<StaffDetailDrawerProps> = ({
     rolesList,
     permissionCategories,
     securityLogs,
-    setCurrentUser,
     toggleStaffStatus,
     addToast,
   } = useApp();
@@ -55,16 +53,6 @@ export const StaffDetailDrawer: React.FC<StaffDetailDrawerProps> = ({
   const userLogs = securityLogs.filter(
     (l) => l.actorEmail === staff.email || l.target.includes(staff.name)
   );
-
-  const handleSimulateLogin = () => {
-    setCurrentUser(staff);
-    addToast(
-      'Session Switched (Demo)',
-      `Now logged in as ${staff.name} (${staff.role}).`,
-      'info'
-    );
-    onClose();
-  };
 
   const handleSendResetLink = async () => {
     setIsSendingResetLink(true);
@@ -132,16 +120,6 @@ export const StaffDetailDrawer: React.FC<StaffDetailDrawerProps> = ({
           {/* Quick Actions Row */}
           <div className="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-stone-700/60">
             <Button
-              variant="gold"
-              size="sm"
-              icon={<LogIn className="w-3.5 h-3.5" />}
-              onClick={handleSimulateLogin}
-              className="text-xs py-1.5"
-            >
-              Impersonate / Act As
-            </Button>
-
-            <Button
               variant="outline"
               size="sm"
               icon={<IdCard className="w-3.5 h-3.5 text-amber-400" />}
@@ -179,7 +157,7 @@ export const StaffDetailDrawer: React.FC<StaffDetailDrawerProps> = ({
                 <Building className="w-4 h-4 text-emerald-500 shrink-0" />
                 <div className="min-w-0">
                   <span className="text-[10px] text-stone-400 block">Directorate</span>
-                  <span className="font-semibold truncate">{staff.department || 'Executive Secretariat'}</span>
+                  <span className="font-semibold truncate">{staff.department || 'Not assigned'}</span>
                 </div>
               </div>
 
@@ -211,7 +189,7 @@ export const StaffDetailDrawer: React.FC<StaffDetailDrawerProps> = ({
                 <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
                 <div className="min-w-0">
                   <span className="text-[10px] text-stone-400 block">Kebele</span>
-                  <span className="font-semibold">{staff.district || 'Jimma Central'}</span>
+                  <span className="font-semibold">{staff.district || 'Not assigned'}</span>
                 </div>
               </div>
 
@@ -252,15 +230,9 @@ export const StaffDetailDrawer: React.FC<StaffDetailDrawerProps> = ({
 
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between py-1 border-b border-stone-200 dark:border-stone-700">
-                <span className="text-stone-500">Security Clearance</span>
-                <span className="font-semibold text-stone-900 dark:text-stone-100">
-                  {staff.accessLevel || 'Level 3 (Departmental Officer)'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-1 border-b border-stone-200 dark:border-stone-700">
                 <span className="text-stone-500">Last System Login</span>
                 <span className="font-mono text-stone-900 dark:text-stone-100">
-                  {staff.lastLogin || 'Today at 08:45 AM'}
+                  {staff.lastLogin || 'Never logged in'}
                 </span>
               </div>
               <div className="flex items-center justify-between py-1">
