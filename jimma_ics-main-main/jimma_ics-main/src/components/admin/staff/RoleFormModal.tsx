@@ -96,7 +96,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
         privilegeLevel: 'Standard',
         defaultDashboard: '/admin',
         color: '#059669',
-        permissions: ['mosque.view', 'madrasa.view', 'student.manage'],
+        permissions: ['dashboard.view'],
       });
     }
   }, [initialRole, isOpen]);

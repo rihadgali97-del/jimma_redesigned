@@ -1,4 +1,5 @@
 import { User, UserRole } from '../types';
+import { normalizeKnownPermissions } from '../data/permissionCatalog';
 
 export type UserRoleCategory = 'Admin' | 'Teacher' | 'Staff';
 
@@ -26,37 +27,9 @@ export interface RouteAccessResult {
   suggestedAction?: string;
 }
 
-const permissionAliases: Record<string, string[]> = {
-  'mosque.create': ['mosques.write'],
-  'mosque.edit': ['mosques.write'],
-  'mosque.grant_approve': ['mosques.write'],
-  'mosque.delete': ['mosques.write'],
-  'madrasa.accredit': ['madrasas.write'],
-  'student.manage': ['madrasas.write'],
-  'hifz.record_progress': ['madrasas.write'],
-  'teacher.manage': ['madrasas.write'],
-  'attendance.submit': ['madrasas.write'],
-  'ulema.license': ['fatwas.write'],
-  'fatwa.publish': ['fatwas.write'],
-  'finance.record_entry': ['finance.write'],
-  'finance.approve_l1': ['finance.write'],
-  'finance.approve_l2': ['finance.write'],
-  'zakat.disburse': ['zakat.manage'],
-  'services.process': ['janazah.manage', 'zakat.manage'],
-  'events.schedule': ['events.write'],
-  'documents.publish': ['documents.write'],
-  'gateway.send_sabaq': ['broadcast.send'],
-  'gateway.send_janazah': ['broadcast.send'],
-  'gateway.mass_broadcast': ['broadcast.send'],
-  'gateway.topup': ['broadcast.send'],
-};
-
 function hasPermission(user: User, keys: string[]) {
   const grantedPermissions = user.permissions || [];
-  const permissions = new Set(grantedPermissions);
-  for (const permission of grantedPermissions) {
-    for (const alias of permissionAliases[permission] || []) permissions.add(alias);
-  }
+  const permissions = new Set([...grantedPermissions, ...normalizeKnownPermissions(grantedPermissions)]);
   return keys.some((key) => permissions.has(key));
 }
 
