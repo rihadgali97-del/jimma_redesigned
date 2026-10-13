@@ -16,6 +16,7 @@ import {
   Search,
   Edit,
   ExternalLink,
+  Printer,
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
@@ -272,6 +273,15 @@ export const AdminMosquesPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<Printer className="w-4 h-4" />}
+            onClick={() => window.print()}
+            disabled={filtered.length === 0}
+          >
+            Print Registry
+          </Button>
           <RegistryExportButton
             title="Mosque Registry"
             filename="mosque-registry"
@@ -288,6 +298,54 @@ export const AdminMosquesPage: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      <section className="mosque-registry-print" aria-label="Printable mosque registry">
+        <header>
+          <h1>Jimma Islamic Council</h1>
+          <h2>Mosque Registry</h2>
+          <p>
+            {filtered.length} registered {filtered.length === 1 ? 'mosque' : 'mosques'}
+            {' · '}Printed {new Date().toLocaleDateString()}
+          </p>
+        </header>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Mosque name / ID</th>
+              <th>Code</th>
+              <th>Category</th>
+              <th>Kebele / Address</th>
+              <th>Imam</th>
+              <th>Capacity</th>
+              <th>Status</th>
+              <th>Linked madrasa</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((mosque, index) => (
+              <tr key={mosque.id}>
+                <td>{index + 1}</td>
+                <td>
+                  <strong>{mosque.name}</strong>
+                  <br />
+                  <span>{mosque.id}</span>
+                </td>
+                <td>{mosque.code || 'Not listed'}</td>
+                <td>{mosque.category || 'Not listed'}</td>
+                <td>
+                  {mosque.district}
+                  {mosque.address ? <><br />{mosque.address}</> : null}
+                </td>
+                <td>{mosque.imam || 'Not listed'}</td>
+                <td>{mosque.capacity.toLocaleString()}</td>
+                <td>{mosque.status || 'Not listed'}</td>
+                <td>{mosque.madrasaName || 'Not listed'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
 
       {/* Filter & Search */}
       <div className="bg-white dark:bg-stone-900 p-4 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">

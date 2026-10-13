@@ -185,3 +185,89 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+.mosque-registry-print {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 12mm;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .mosque-registry-print,
+  .mosque-registry-print * {
+    visibility: visible !important;
+  }
+
+  .mosque-registry-print {
+    position: fixed;
+    inset: 0;
+    display: block;
+    overflow: visible;
+    padding: 0;
+    background: #fff;
+    color: #111;
+    font-family: Arial, sans-serif;
+    font-size: 9pt;
+  }
+
+  .mosque-registry-print header {
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .mosque-registry-print h1,
+  .mosque-registry-print h2,
+  .mosque-registry-print p {
+    margin: 0;
+  }
+
+  .mosque-registry-print h1 {
+    font-size: 16pt;
+  }
+
+  .mosque-registry-print h2 {
+    margin-top: 2px;
+    font-size: 13pt;
+  }
+
+  .mosque-registry-print header p {
+    margin-top: 4px;
+    color: #444;
+  }
+
+  .mosque-registry-print table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .mosque-registry-print th,
+  .mosque-registry-print td {
+    padding: 5px 6px;
+    border: 1px solid #999;
+    text-align: left;
+    overflow-wrap: anywhere;
+    vertical-align: top;
+  }
+
+  .mosque-registry-print th {
+    background: #eee !important;
+    color: #111;
+    font-size: 8pt;
+  }
+
+  .mosque-registry-print thead {
+    display: table-header-group;
+  }
+
+  .mosque-registry-print tr {
+    break-inside: avoid;
+  }
+}
