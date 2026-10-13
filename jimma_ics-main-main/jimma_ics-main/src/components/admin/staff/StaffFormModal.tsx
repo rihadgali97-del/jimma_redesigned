@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../../context/AppContext';
-import { KEBELE_NAMES } from '../../../constants/kebeles';
 import { User, UserRole, StaffDepartment, StaffStatus } from '../../../types';
+import { DirectoryWoreda, fetchDirectoryWoredas } from '../../../services/directoryApi';
 import {
   X,
   Shield,
@@ -31,7 +31,11 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
   onClose,
   initialStaff,
 }) => {
-  const { rolesList, permissionCategories, addStaff, updateStaff } = useApp();
+  const { rolesList, permissionCategories, addStaff, updateStaff, addToast } = useApp();
+  const [kebeles, setKebeles] = useState<DirectoryWoreda[]>([]);
+  const [kebelesLoading, setKebelesLoading] = useState(false);
+  const [kebelesError, setKebelesError] = useState('');
+  const [kebelesReloadKey, setKebelesReloadKey] = useState(0);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -42,7 +46,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     title: '',
     department: 'Education Directorate' as StaffDepartment,
     phone: '',
-    district: KEBELE_NAMES[0],
+    district: '',
     status: 'Active' as StaffStatus,
     accessLevel: 'Level 3 (Departmental Officer)',
     avatar: '',
@@ -63,8 +67,6 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     'Social Services & Zakat',
     'IT & Media Communications',
   ];
-
-  const districts = KEBELE_NAMES;
 
   const accessLevels = [
     'Level 1 (Full System Root)',
@@ -87,7 +89,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
         title: initialStaff.title || '',
         department: (initialStaff.department as StaffDepartment) || 'Education Directorate',
         phone: initialStaff.phone || '',
-        district: initialStaff.district || KEBELE_NAMES[0],
+        district: initialStaff.district || '',
         status: initialStaff.status || 'Active',
         accessLevel: initialStaff.accessLevel || 'Level 3 (Departmental Officer)',
         avatar: initialStaff.avatar || '',
@@ -105,7 +107,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
         title: '',
         department: 'Education Directorate',
         phone: '+251 9',
-        district: KEBELE_NAMES[0],
+        district: '',
         status: 'Active',
         accessLevel: 'Level 4 (Field & Mosque Staff)',
         avatar: '',
@@ -116,6 +118,29 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
       setOverrideMode(false);
     }
   }, [initialStaff, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let active = true;
+    setKebelesLoading(true);
+    setKebelesError('');
+    fetchDirectoryWoredas()
+      .then((records) => {
+        if (!active) return;
+        setKebeles(records);
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setKebeles([]);
+        setKebelesError(error instanceof Error ? error.message : 'Could not load registered kebeles.');
+      })
+      .finally(() => {
+        if (active) setKebelesLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [isOpen, kebelesReloadKey]);
 
   useEffect(() => () => {
     if (photoPreview.startsWith('blob:')) URL.revokeObjectURL(photoPreview);
@@ -148,6 +173,10 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.email.trim()) return;
+    if (!initialStaff && !kebeles.some((kebele) => kebele.name === formData.district)) {
+      addToast('Kebele Required', 'Select a kebele from the active kebele registry before enrolling staff.', 'warning');
+      return;
+    }
 
     // Base permissions from selected role + custom overrides
     const basePermissions = selectedRoleDef?.permissions || [];
@@ -330,22 +359,42 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
-                  Jurisdiction Kebele
+                  Jurisdiction Kebele{initialStaff ? '' : ' *'}
                 </label>
                 <div className="relative">
                   <MapPin className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <select
+                    required={!initialStaff}
+                    disabled={kebelesLoading || kebeles.length === 0}
                     value={formData.district}
                     onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                     className="w-full pl-9 pr-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500"
                   >
-                    {[...new Set([...districts, ...(districts.includes(formData.district) ? [] : [formData.district])])].map((d) => (
-                      <option key={d} value={d}>
-                        {d}
+                    <option value="">
+                      {kebelesLoading ? 'Loading registered kebeles…' : kebeles.length ? 'Select a kebele' : 'No registered kebeles available'}
+                    </option>
+                    {formData.district && !kebeles.some((kebele) => kebele.name === formData.district) && (
+                      <option value={formData.district}>{formData.district} (previously assigned)</option>
+                    )}
+                    {kebeles.map((kebele) => (
+                      <option key={kebele.id} value={kebele.name}>
+                        {kebele.name}
                       </option>
                     ))}
                   </select>
                 </div>
+                {kebelesError ? (
+                  <div className="mt-1 flex items-center gap-2 text-xs text-rose-700 dark:text-rose-300" role="alert">
+                    <span>Kebele registry unavailable: {kebelesError}</span>
+                    <button type="button" className="font-semibold underline" onClick={() => setKebelesReloadKey((key) => key + 1)}>
+                      Retry
+                    </button>
+                  </div>
+                ) : !kebelesLoading && kebeles.length === 0 && (
+                  <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+                    No active kebeles are registered. Register or activate a kebele before enrolling staff.
+                  </p>
+                )}
               </div>
             </div>
           </div>
