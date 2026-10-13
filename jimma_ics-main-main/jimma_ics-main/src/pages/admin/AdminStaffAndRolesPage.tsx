@@ -44,6 +44,9 @@ import { StaffBadgeModal } from '../../components/admin/staff/StaffBadgeModal';
 import { AccountAccessPanel } from '../../components/admin/staff/AccountAccessPanel';
 import { StaffAvatar } from '../../components/admin/staff/StaffAvatar';
 import { hasAnyPermission } from '../../data/permissionCatalog';
+import { fetchAllMatchingStaff } from '../../services/staffRolesApi';
+
+const REGISTRY_PAGE_SIZE = 20;
 
 function hasRolePermission(role: RoleDefinition, permissionId: string): boolean {
   const normalizedRoleName = role.name.toLowerCase().replace(/[^a-z]/g, '');
@@ -54,8 +57,10 @@ export const AdminStaffAndRolesPage: React.FC = () => {
   const {
     staffList,
     staffListLoaded,
+    staffListMeta,
     rolesList,
     rolesListLoaded,
+    rolesListMeta,
     permissionCategories,
     securityLogs,
     securityLogsLoaded,
@@ -71,10 +76,6 @@ export const AdminStaffAndRolesPage: React.FC = () => {
   const canManageStaff = hasAnyPermission(currentUser.permissions, ['users.manage'], currentUser.authRole);
   const canManageRoles = hasAnyPermission(currentUser.permissions, ['roles.manage'], currentUser.authRole);
   const canManageAccountAccess = canManageStaff;
-
-  useEffect(() => {
-    void refreshStaffAndRoles().catch(() => undefined);
-  }, []);
 
   // Active Top-level Tab
   const [activeTab, setActiveTab] = useState<'staff' | 'roles' | 'matrix' | 'audit'>(() => (
@@ -93,6 +94,9 @@ export const AdminStaffAndRolesPage: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string>('All');
   const [selectedRole, setSelectedRole] = useState<string>('All');
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
+  const [staffPage, setStaffPage] = useState(1);
+  const [roleSearchQuery, setRoleSearchQuery] = useState('');
+  const [rolePage, setRolePage] = useState(1);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   // Modals & Drawers state
@@ -109,9 +113,9 @@ export const AdminStaffAndRolesPage: React.FC = () => {
   const [auditCategory, setAuditCategory] = useState<string>('All');
   const [auditSearch, setAuditSearch] = useState<string>('');
   const [expandedAuditLogId, setExpandedAuditLogId] = useState<string | null>(null);
+  const [isExportingStaff, setIsExportingStaff] = useState(false);
 
   // Derived Stats
-  const totalStaffCount = staffList.length;
   const activeStaffCount = staffList.filter((s) => s.status === 'Active').length;
   const suspendedStaffCount = staffList.filter((s) => s.status === 'Suspended').length;
 
@@ -126,28 +130,51 @@ export const AdminStaffAndRolesPage: React.FC = () => {
     'IT & Media Communications',
   ];
 
-  // Filtered Staff
-  const filteredStaff = useMemo(() => {
-    return staffList.filter((staff) => {
-      const q = searchQuery.toLowerCase().trim();
-      const matchesSearch =
-        !q ||
-        staff.name.toLowerCase().includes(q) ||
-        (staff.arabicName && staff.arabicName.toLowerCase().includes(q)) ||
-        staff.email.toLowerCase().includes(q) ||
-        (staff.phone && staff.phone.includes(q)) ||
-        (staff.title && staff.title.toLowerCase().includes(q)) ||
-        (staff.district && staff.district.toLowerCase().includes(q));
+  const selectedRoleId = selectedRole === 'All' ? undefined : selectedRole;
+  const hasStaffFilters = Boolean(
+    searchQuery.trim() || selectedDepartment !== 'All' || selectedRole !== 'All' || selectedStatus !== 'All'
+  );
 
-      const matchesDept =
-        selectedDepartment === 'All' || staff.department === selectedDepartment;
-      const matchesRole = selectedRole === 'All' || staff.role === selectedRole;
-      const matchesStatus =
-        selectedStatus === 'All' || staff.status === selectedStatus;
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      void refreshStaffAndRoles({
+        staff: {
+          page: staffPage,
+          pageSize: REGISTRY_PAGE_SIZE,
+          search: searchQuery.trim() || undefined,
+          roleId: selectedRoleId ? Number(selectedRoleId) : undefined,
+          department: selectedDepartment !== 'All' ? selectedDepartment : undefined,
+          status: selectedStatus !== 'All' ? selectedStatus : undefined,
+        },
+        roles: {
+          page: rolePage,
+          pageSize: REGISTRY_PAGE_SIZE,
+          search: roleSearchQuery.trim() || undefined,
+        },
+      }).catch(() => undefined);
+    }, searchQuery.trim() || roleSearchQuery.trim() ? 300 : 0);
+    return () => window.clearTimeout(timeout);
+  }, [
+    staffPage,
+    rolePage,
+    searchQuery,
+    selectedDepartment,
+    selectedRoleId,
+    selectedStatus,
+    roleSearchQuery,
+  ]);
 
-      return matchesSearch && matchesDept && matchesRole && matchesStatus;
-    });
-  }, [staffList, searchQuery, selectedDepartment, selectedRole, selectedStatus]);
+  useEffect(() => {
+    if (staffListMeta && staffPage > staffListMeta.totalPages) {
+      setStaffPage(staffListMeta.totalPages);
+    }
+  }, [staffListMeta, staffPage]);
+
+  useEffect(() => {
+    if (rolesListMeta && rolePage > rolesListMeta.totalPages) {
+      setRolePage(rolesListMeta.totalPages);
+    }
+  }, [rolesListMeta, rolePage]);
 
   // Filtered Audit Logs
   const filteredAuditLogs = useMemo(() => {
@@ -188,20 +215,30 @@ export const AdminStaffAndRolesPage: React.FC = () => {
     setIsRoleModalOpen(true);
   };
 
-  const handleExportStaffCSV = () => {
+  const handleExportStaffCSV = async () => {
+    setIsExportingStaff(true);
+    try {
+      const exportRows = await fetchAllMatchingStaff({
+        pageSize: 100,
+        search: searchQuery.trim() || undefined,
+        roleId: selectedRoleId ? Number(selectedRoleId) : undefined,
+        department: selectedDepartment !== 'All' ? selectedDepartment : undefined,
+        status: selectedStatus !== 'All' ? selectedStatus : undefined,
+      });
     const headers = ['ID', 'Name', 'Arabic Name', 'Role', 'Department', 'Email', 'Phone', 'Kebele', 'Status', 'Access Level'];
-    const rows = filteredStaff.map((s) => [
-      s.id,
-      `"${s.name}"`,
-      `"${s.arabicName || ''}"`,
-      s.role,
-      `"${s.department || ''}"`,
-      s.email,
-      s.phone || '',
-      s.district || '',
-      s.status || 'Active',
-      `"${s.accessLevel || ''}"`,
-    ]);
+      const csvCell = (value: string | undefined) => `"${(value || '').replace(/"/g, '""')}"`;
+      const rows = exportRows.map((s) => [
+        csvCell(s.id),
+        csvCell(s.name),
+        csvCell(s.arabicName),
+        csvCell(s.role),
+        csvCell(s.department),
+        csvCell(s.email),
+        csvCell(s.phone),
+        csvCell(s.district),
+        csvCell(s.status || 'Active'),
+        csvCell(s.accessLevel),
+      ]);
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
@@ -210,7 +247,12 @@ export const AdminStaffAndRolesPage: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    addToast('Roster Exported', 'Staff registry successfully exported to CSV.', 'success');
+      addToast('Roster Exported', `${exportRows.length} matching staff records exported to CSV.`, 'success');
+    } catch (error) {
+      addToast('Roster Export Failed', error instanceof Error ? error.message : 'Could not export all matching staff records.', 'error');
+    } finally {
+      setIsExportingStaff(false);
+    }
   };
 
   const handleExportAuditCSV = () => {
@@ -311,10 +353,10 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100">
-              {staffListLoaded ? totalStaffCount : '—'}
+              {staffListMeta ? staffListMeta.totalItems : '—'}
             </span>
             <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-              {staffListLoaded ? `${activeStaffCount} Active` : 'Unavailable'}
+              {staffListLoaded ? `${activeStaffCount} Active on this page` : 'Unavailable'}
             </span>
           </div>
           <p className="text-[11px] text-stone-400 mt-1">Across 7 council directorates</p>
@@ -329,14 +371,14 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100">
-              {rolesListLoaded ? rolesList.length : '—'}
+              {rolesListMeta ? rolesListMeta.totalItems : '—'}
             </span>
             <span className="text-xs text-stone-500 font-medium">
-              {rolesListLoaded ? `${rolesList.filter((r) => r.isSystemRole).length} System Core` : 'Unavailable'}
+              {rolesListLoaded ? `${rolesList.filter((r) => r.isSystemRole).length} on this page` : 'Unavailable'}
             </span>
           </div>
           <p className="text-[11px] text-stone-400 mt-1">
-            {rolesListLoaded ? rolesList.filter((r) => !r.isSystemRole).length : '—'} custom configured roles
+            {rolesListLoaded ? `${rolesList.filter((r) => !r.isSystemRole).length} custom roles on this page` : 'Unavailable'}
           </p>
         </div>}
 
@@ -352,7 +394,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
               {staffListLoaded ? suspendedStaffCount : '—'}
             </span>
             <span className="text-xs text-stone-500 font-semibold">
-              {staffListLoaded ? 'Access disabled' : 'Unavailable'}
+              {staffListLoaded ? 'On this page' : 'Unavailable'}
             </span>
           </div>
           <p className="text-[11px] text-stone-400 mt-1">Suspended staff cannot sign in.</p>
@@ -387,7 +429,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Staff Directory ({staffListLoaded ? staffList.length : '—'})</span>
+            <span>Staff Directory ({staffListMeta?.totalItems ?? '—'})</span>
           </button>}
 
           {canManageRoles && <button
@@ -399,7 +441,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
             }`}
           >
             <Shield className="w-4 h-4" />
-            <span>Role Profiles ({rolesListLoaded ? rolesList.length : '—'})</span>
+            <span>Role Profiles ({rolesListMeta?.totalItems ?? '—'})</span>
           </button>}
 
           {canManageRoles && <button
@@ -442,7 +484,10 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                 type="text"
                 placeholder="Search staff by name, Arabic name, email, phone, title, or kebele..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setStaffPage(1);
+                }}
                 className="w-full pl-9 pr-3.5 py-2 rounded-xl text-xs sm:text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500"
               />
             </div>
@@ -451,7 +496,10 @@ export const AdminStaffAndRolesPage: React.FC = () => {
             <div className="flex items-center gap-2 flex-wrap">
               <select
                 value={selectedDepartment}
-                onChange={(e) => setSelectedDepartment(e.target.value)}
+                onChange={(e) => {
+                  setSelectedDepartment(e.target.value);
+                  setStaffPage(1);
+                }}
                 className="px-3 py-2 rounded-xl text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500"
               >
                 <option value="All">All Directorates</option>
@@ -464,12 +512,15 @@ export const AdminStaffAndRolesPage: React.FC = () => {
 
               <select
                 value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value)}
+                onChange={(e) => {
+                  setSelectedRole(e.target.value);
+                  setStaffPage(1);
+                }}
                 className="px-3 py-2 rounded-xl text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500"
               >
                 <option value="All">All Roles</option>
                 {rolesList.map((r) => (
-                  <option key={r.id} value={r.name}>
+                  <option key={r.id} value={r.id}>
                     {r.name}
                   </option>
                 ))}
@@ -477,7 +528,10 @@ export const AdminStaffAndRolesPage: React.FC = () => {
 
               <select
                 value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
+                onChange={(e) => {
+                  setSelectedStatus(e.target.value);
+                  setStaffPage(1);
+                }}
                 className="px-3 py-2 rounded-xl text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500"
               >
                 <option value="All">All Statuses</option>
@@ -518,10 +572,11 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={handleExportStaffCSV}
+                disabled={isExportingStaff}
                 icon={<FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />}
                 className="text-xs py-2"
               >
-                Export CSV
+                {isExportingStaff ? 'Preparing CSV…' : 'Export CSV'}
               </Button>}
             </div>
           </div>
@@ -530,18 +585,22 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           <div className="flex items-center justify-between text-xs text-stone-500 px-1">
             <span>
               {staffListLoaded
-                ? <>Showing <strong>{filteredStaff.length}</strong> of {totalStaffCount} personnel records</>
+                ? <>
+                    Showing <strong>{staffList.length ? ((staffPage - 1) * REGISTRY_PAGE_SIZE) + 1 : 0}–{((staffPage - 1) * REGISTRY_PAGE_SIZE) + staffList.length}</strong>
+                    {' '}of <strong>{staffListMeta?.totalItems ?? '—'}</strong> matching personnel records
+                  </>
                 : staffAccessLoading
                   ? 'Loading personnel records…'
                   : 'Personnel records unavailable'}
             </span>
-            {(searchQuery || selectedDepartment !== 'All' || selectedRole !== 'All' || selectedStatus !== 'All') && (
+            {hasStaffFilters && (
               <button
                 onClick={() => {
                   setSearchQuery('');
                   setSelectedDepartment('All');
                   setSelectedRole('All');
                   setSelectedStatus('All');
+                  setStaffPage(1);
                 }}
                 className="text-amber-600 dark:text-amber-400 font-semibold hover:underline"
               >
@@ -549,6 +608,27 @@ export const AdminStaffAndRolesPage: React.FC = () => {
               </button>
             )}
           </div>
+          {staffListLoaded && staffListMeta && staffListMeta.totalPages > 1 && (
+            <div className="flex items-center justify-end gap-2 text-xs">
+              <button
+                type="button"
+                disabled={staffPage <= 1 || staffAccessLoading}
+                onClick={() => setStaffPage((page) => Math.max(1, page - 1))}
+                className="rounded-lg border border-stone-200 px-3 py-1.5 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700"
+              >
+                Previous
+              </button>
+              <span className="text-stone-500">Page {staffListMeta.page} of {staffListMeta.totalPages}</span>
+              <button
+                type="button"
+                disabled={staffPage >= staffListMeta.totalPages || staffAccessLoading}
+                onClick={() => setStaffPage((page) => Math.min(staffListMeta.totalPages, page + 1))}
+                className="rounded-lg border border-stone-200 px-3 py-1.5 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700"
+              >
+                Next
+              </button>
+            </div>
+          )}
 
           {/* Table View */}
           {viewMode === 'table' ? (
@@ -567,7 +647,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100 dark:divide-stone-800 text-stone-800 dark:text-stone-200">
-                    {!staffListLoaded || filteredStaff.length === 0 ? (
+                    {!staffListLoaded || staffList.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="py-10 text-center text-stone-400 italic">
                           {staffListLoaded
@@ -578,7 +658,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                         </td>
                       </tr>
                     ) : (
-                      filteredStaff.map((staff) => (
+                      staffList.map((staff) => (
                         <tr
                           key={staff.id}
                           className="hover:bg-amber-50/40 dark:hover:bg-stone-800/50 transition-colors group"
@@ -709,7 +789,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           ) : (
             /* Grid Cards View */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredStaff.map((staff) => (
+              {staffList.map((staff) => (
                 <div
                   key={staff.id}
                   className="p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs hover:border-amber-400/60 transition-all space-y-4 relative"
@@ -838,10 +918,28 @@ export const AdminStaffAndRolesPage: React.FC = () => {
             </Button>}
           </div>
 
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <input
+              type="search"
+              value={roleSearchQuery}
+              onChange={(event) => {
+                setRoleSearchQuery(event.target.value);
+                setRolePage(1);
+              }}
+              placeholder="Search roles by name or description…"
+              aria-label="Search role profiles"
+              className="w-full sm:max-w-sm rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs outline-hidden focus:border-amber-500 dark:border-stone-700 dark:bg-stone-800"
+            />
+            {rolesListLoaded && rolesListMeta && (
+              <span className="text-xs text-stone-500">
+                Showing {rolesList.length ? ((rolePage - 1) * REGISTRY_PAGE_SIZE) + 1 : 0}–{((rolePage - 1) * REGISTRY_PAGE_SIZE) + rolesList.length}
+                {' '}of {rolesListMeta.totalItems} matching roles
+              </span>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {rolesList.map((role) => {
-              const assignedStaff = staffList.filter((s) => s.role === role.name);
-
               return (
                 <div
                   key={role.id}
@@ -900,7 +998,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-stone-500">Assigned Personnel:</span>
                         <span className="font-bold text-amber-600 dark:text-amber-400">
-                          {staffListLoaded ? `${assignedStaff.length} Officers` : 'Unavailable'}
+                          {typeof role.assignedUsersCount === 'number' ? `${role.assignedUsersCount} Officers` : 'Unavailable'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -950,6 +1048,27 @@ export const AdminStaffAndRolesPage: React.FC = () => {
               );
             })}
           </div>
+          {rolesListLoaded && rolesListMeta && rolesListMeta.totalPages > 1 && (
+            <div className="flex items-center justify-end gap-2 text-xs">
+              <button
+                type="button"
+                disabled={rolePage <= 1 || staffAccessLoading}
+                onClick={() => setRolePage((page) => Math.max(1, page - 1))}
+                className="rounded-lg border border-stone-200 px-3 py-1.5 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700"
+              >
+                Previous
+              </button>
+              <span className="text-stone-500">Page {rolesListMeta.page} of {rolesListMeta.totalPages}</span>
+              <button
+                type="button"
+                disabled={rolePage >= rolesListMeta.totalPages || staffAccessLoading}
+                onClick={() => setRolePage((page) => Math.min(rolesListMeta.totalPages, page + 1))}
+                className="rounded-lg border border-stone-200 px-3 py-1.5 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -976,6 +1095,27 @@ export const AdminStaffAndRolesPage: React.FC = () => {
               </span>
             </div>
           </div>
+          {rolesListMeta && rolesListMeta.totalPages > 1 && (
+            <div className="flex items-center justify-end gap-2 text-xs">
+              <button
+                type="button"
+                disabled={rolePage <= 1 || staffAccessLoading}
+                onClick={() => setRolePage((page) => Math.max(1, page - 1))}
+                className="rounded-lg border border-stone-200 px-3 py-1.5 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700"
+              >
+                Previous
+              </button>
+              <span className="text-stone-500">Roles {rolesListMeta.page} of {rolesListMeta.totalPages}</span>
+              <button
+                type="button"
+                disabled={rolePage >= rolesListMeta.totalPages || staffAccessLoading}
+                onClick={() => setRolePage((page) => Math.min(rolesListMeta.totalPages, page + 1))}
+                className="rounded-lg border border-stone-200 px-3 py-1.5 font-semibold disabled:cursor-not-allowed disabled:opacity-40 dark:border-stone-700"
+              >
+                Next
+              </button>
+            </div>
+          )}
 
           <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-xs overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">

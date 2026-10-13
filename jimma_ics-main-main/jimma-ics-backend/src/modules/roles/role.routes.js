@@ -9,6 +9,7 @@ import { writeAuditLog } from '../../common/utils/auditLog.js';
 import { BadRequestError, ConflictError, NotFoundError } from '../../common/errors/httpErrors.js';
 import { prisma } from '../../config/database.js';
 import { getUnknownPermissionKeys, normalizeKnownPermissionKeys, normalizePermissionKeys } from '../../common/utils/permissionCatalog.js';
+import { parsePagination, buildPaginationMeta } from '../../common/utils/pagination.js';
 
 export const rolesRouter = Router();
 const systemRoleNames = new Set([
@@ -61,15 +62,39 @@ async function getRole(id) {
 
 rolesRouter.use(authenticate);
 
-rolesRouter.get('/', authorizeAny('roles.manage', 'users.manage'), asyncHandler(async (req, res) => {
-  const roles = await prisma.role.findMany({
-    orderBy: { id: 'asc' },
-    include: {
-      permissions: { include: { permission: true } },
-      _count: { select: { users: true } },
-    },
+rolesRouter.get('/', authorizeAny('roles.manage', 'users.manage'), validate(z.object({
+  query: z.object({
+    page: z.coerce.number().int().positive().optional(),
+    pageSize: z.coerce.number().int().positive().max(100).optional(),
+    search: z.string().trim().min(1).optional(),
+  }),
+})), asyncHandler(async (req, res) => {
+  const { page, pageSize, skip, take } = parsePagination(req.query);
+  const where = req.query.search
+    ? {
+        OR: [
+          { name: { contains: req.query.search } },
+          { description: { contains: req.query.search } },
+        ],
+      }
+    : {};
+  const [roles, totalItems] = await Promise.all([
+    prisma.role.findMany({
+      where,
+      orderBy: { id: 'asc' },
+      skip,
+      take,
+      include: {
+        permissions: { include: { permission: true } },
+        _count: { select: { users: true } },
+      },
+    }),
+    prisma.role.count({ where }),
+  ]);
+  sendSuccess(res, {
+    data: roles.map(toPublicRole),
+    meta: buildPaginationMeta({ page, pageSize, totalItems }),
   });
-  sendSuccess(res, { data: roles.map(toPublicRole) });
 }));
 
 rolesRouter.use(authorize('roles.manage'));

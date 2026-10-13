@@ -4,7 +4,7 @@ import {
   StaffDepartment,
   User,
 } from '../types';
-import { apiRequest } from './authApi';
+import { apiRequest, apiRequestWithMeta, PaginationMeta } from './authApi';
 import { API_BASE_URL, API_ORIGIN } from './apiConfig';
 
 type Metadata = Record<string, unknown>;
@@ -245,13 +245,45 @@ export interface StaffAccessDataPermissions {
   readRoles: boolean;
 }
 
-export async function fetchStaffAndRoles(access: StaffAccessDataPermissions) {
+export interface StaffRegistryQuery {
+  page: number;
+  pageSize: number;
+  search?: string;
+  roleId?: number;
+  department?: string;
+  district?: string;
+  status?: string;
+}
+
+export interface RoleRegistryQuery {
+  page: number;
+  pageSize: number;
+  search?: string;
+}
+
+export interface StaffRolesQuery {
+  staff: StaffRegistryQuery;
+  roles: RoleRegistryQuery;
+}
+
+export async function fetchStaffAndRoles(access: StaffAccessDataPermissions, query: StaffRolesQuery) {
+  const buildQueryString = (values: object) => {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(values)) {
+      if ((typeof value === 'string' || typeof value === 'number') && value !== '') {
+        params.set(key, String(value));
+      }
+    }
+    return params.toString();
+  };
+  const staffQuery = buildQueryString(query.staff);
+  const rolesQuery = buildQueryString(query.roles);
   const [usersResult, rolesResult, logsResult] = await Promise.allSettled([
     access.manageStaff
-      ? apiRequest<ApiUser[]>('/admin/users?page=1&pageSize=100')
+      ? apiRequestWithMeta<ApiUser[]>(`/admin/users?${staffQuery}`)
       : Promise.resolve(undefined),
     access.readRoles
-      ? apiRequest<ApiRole[]>('/admin/roles')
+      ? apiRequestWithMeta<ApiRole[]>(`/admin/roles?${rolesQuery}`)
       : Promise.resolve(undefined),
     access.manageStaff
       ? apiRequest<ApiAuditLog[]>('/admin/audit-logs?page=1&pageSize=100')
@@ -267,11 +299,53 @@ export async function fetchStaffAndRoles(access: StaffAccessDataPermissions) {
   ];
 
   return {
-    ...(usersResult.status === 'fulfilled' && usersResult.value ? { staff: usersResult.value.map(toStaff) } : {}),
-    ...(rolesResult.status === 'fulfilled' && rolesResult.value ? { roles: rolesResult.value.map(toRole) } : {}),
+    ...(usersResult.status === 'fulfilled' && usersResult.value ? {
+      staff: usersResult.value.data.map(toStaff),
+      staffMeta: usersResult.value.meta,
+    } : {}),
+    ...(rolesResult.status === 'fulfilled' && rolesResult.value ? {
+      roles: rolesResult.value.data.map(toRole),
+      rolesMeta: rolesResult.value.meta,
+    } : {}),
     ...(logsResult.status === 'fulfilled' && logsResult.value ? { logs: logsResult.value.map(toAuditLog) } : {}),
     errors,
   };
+}
+
+export async function fetchAllMatchingStaff(query: Omit<StaffRegistryQuery, 'page'>): Promise<User[]> {
+  const allStaff: User[] = [];
+  let page = 1;
+  let totalPages = 1;
+
+  do {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries({ ...query, page })) {
+      if (value !== undefined && value !== '') params.set(key, String(value));
+    }
+    const result = await apiRequestWithMeta<ApiUser[]>(`/admin/users?${params.toString()}`);
+    if (!result.meta) throw new Error('The staff list response did not include pagination metadata.');
+    allStaff.push(...result.data.map(toStaff));
+    totalPages = result.meta.totalPages;
+    page += 1;
+  } while (page <= totalPages);
+
+  return allStaff;
+}
+
+export async function fetchAllRoleProfiles(): Promise<RoleDefinition[]> {
+  const roles: RoleDefinition[] = [];
+  let page = 1;
+  let totalPages = 1;
+
+  do {
+    const result = await apiRequestWithMeta<ApiRole[]>(`/admin/roles?page=${page}&pageSize=100`);
+    if (!result.meta) throw new Error('The role list response did not include pagination metadata.');
+    roles.push(...result.data.map(toRole));
+    totalPages = result.meta.totalPages;
+    page += 1;
+  } while (page <= totalPages);
+
+  return roles;
 }
 
 async function uploadStaffPhoto(id: string, photo: File) {

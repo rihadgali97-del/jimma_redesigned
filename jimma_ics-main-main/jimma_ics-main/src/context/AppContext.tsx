@@ -39,7 +39,7 @@ import { initialStaffMembers, permissionCategories as defaultPermissionCategorie
 import { initialAttendanceSessions, initialStaffAttendance } from '../data/mockAttendance';
 import { mockAuditDirectives, mockAuditChecklist, mockLedgerBlocks } from '../data/mockAuditCompliance';
 import { mockZakatCalculations } from '../data/mockZakatHistory';
-import { apiRequest, AuthUser, loginWithPassword, logoutFromServer, registerAccount, restoreAuthUser } from '../services/authApi';
+import { apiRequest, AuthUser, loginWithPassword, logoutFromServer, PaginationMeta, registerAccount, restoreAuthUser } from '../services/authApi';
 import { fetchDirectoryMadrasas, fetchDirectoryMosques } from '../services/directoryApi';
 import { hasAnyPermission } from '../data/permissionCatalog';
 import {
@@ -109,6 +109,7 @@ import {
   deactivateStaffRecord,
   deleteRoleRecord,
   fetchStaffAndRoles,
+  StaffRolesQuery,
   updateRoleRecord,
   updateStaffRecord,
 } from '../services/staffRolesApi';
@@ -139,11 +140,13 @@ interface AppContextType {
   // Staff & RBAC Management
   staffList: User[];
   staffListLoaded: boolean;
+  staffListMeta: PaginationMeta | null;
   rolesListLoaded: boolean;
+  rolesListMeta: PaginationMeta | null;
   securityLogsLoaded: boolean;
   staffAccessLoading: boolean;
   staffAccessError: string;
-  refreshStaffAndRoles: () => Promise<void>;
+  refreshStaffAndRoles: (query?: StaffRolesQuery) => Promise<void>;
   addStaff: (staff: Omit<User, 'id'> & { password: string }, profilePhoto?: File) => Promise<User | null>;
   updateStaff: (id: string, updates: Partial<User>, profilePhoto?: File) => Promise<boolean>;
   deleteStaff: (id: string) => Promise<boolean>;
@@ -391,11 +394,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [staffList, setStaffList] = useState<User[]>([]);
   const [rolesList, setRolesList] = useState<RoleDefinition[]>([]);
   const [staffListLoaded, setStaffListLoaded] = useState(false);
+  const [staffListMeta, setStaffListMeta] = useState<PaginationMeta | null>(null);
   const [rolesListLoaded, setRolesListLoaded] = useState(false);
+  const [rolesListMeta, setRolesListMeta] = useState<PaginationMeta | null>(null);
   const [securityLogsLoaded, setSecurityLogsLoaded] = useState(false);
   const [staffAccessLoading, setStaffAccessLoading] = useState(false);
   const [staffAccessError, setStaffAccessError] = useState('');
   const staffAccessRefreshRequest = useRef(0);
+  const staffAccessQuery = useRef<StaffRolesQuery>({
+    staff: { page: 1, pageSize: 20 },
+    roles: { page: 1, pageSize: 20 },
+  });
   const [permissionCategories] = useState<PermissionCategory[]>(defaultPermissionCategories);
   const [securityLogs, setSecurityLogs] = useState<SecurityAuditLog[]>([]);
 
@@ -745,7 +754,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSecurityLogs((prev) => [newLog, ...prev]);
   };
 
-  const refreshStaffAndRoles = async () => {
+  const refreshStaffAndRoles = async (query?: StaffRolesQuery) => {
+    if (query) staffAccessQuery.current = query;
+    const currentQuery = staffAccessQuery.current;
     const requestId = ++staffAccessRefreshRequest.current;
     const canManageStaff = hasAnyPermission(currentUser.permissions, ['users.manage'], currentUser.authRole);
     const canManageRoles = hasAnyPermission(currentUser.permissions, ['roles.manage'], currentUser.authRole);
@@ -755,21 +766,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const data = await fetchStaffAndRoles({
         manageStaff: canManageStaff,
         readRoles: canManageRoles || canManageStaff,
-      });
+      }, currentQuery);
       if (requestId !== staffAccessRefreshRequest.current) return;
       if (data.staff) {
         setStaffList(data.staff);
         setStaffListLoaded(true);
+        setStaffListMeta(data.staffMeta || null);
       } else if (!canManageStaff) {
         setStaffList([]);
         setStaffListLoaded(false);
+        setStaffListMeta(null);
       }
       if (data.roles) {
         setRolesList(data.roles);
         setRolesListLoaded(true);
+        setRolesListMeta(data.rolesMeta || null);
       } else if (!canManageRoles) {
         setRolesList([]);
         setRolesListLoaded(false);
+        setRolesListMeta(null);
       }
       if (data.logs) {
         setSecurityLogs(data.logs);
@@ -1948,7 +1963,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateZakatCalculation,
         staffList,
         staffListLoaded,
+        staffListMeta,
         rolesListLoaded,
+        rolesListMeta,
         securityLogsLoaded,
         staffAccessLoading,
         staffAccessError,

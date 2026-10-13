@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../../../context/AppContext';
 import { User, UserRole, StaffDepartment, StaffStatus } from '../../../types';
 import { DirectoryWoreda, fetchDirectoryWoredas } from '../../../services/directoryApi';
+import { fetchAllRoleProfiles } from '../../../services/staffRolesApi';
 import {
   X,
   Shield,
@@ -32,6 +33,9 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
   initialStaff,
 }) => {
   const { rolesList, permissionCategories, addStaff, updateStaff, addToast } = useApp();
+  const [staffRoleOptions, setStaffRoleOptions] = useState(rolesList);
+  const [rolesLoading, setRolesLoading] = useState(false);
+  const [rolesError, setRolesError] = useState('');
   const [kebeles, setKebeles] = useState<DirectoryWoreda[]>([]);
   const [kebelesLoading, setKebelesLoading] = useState(false);
   const [kebelesError, setKebelesError] = useState('');
@@ -142,6 +146,28 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     };
   }, [isOpen, kebelesReloadKey]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    let active = true;
+    setStaffRoleOptions([]);
+    setRolesLoading(true);
+    setRolesError('');
+    fetchAllRoleProfiles()
+      .then((records) => {
+        if (active) setStaffRoleOptions(records);
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setRolesError(error instanceof Error ? error.message : 'Could not load role profiles.');
+      })
+      .finally(() => {
+        if (active) setRolesLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [isOpen]);
+
   useEffect(() => () => {
     if (photoPreview.startsWith('blob:')) URL.revokeObjectURL(photoPreview);
   }, [photoPreview]);
@@ -158,7 +184,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
   };
 
   // When role changes, if not in override mode, inherit permissions from role
-  const selectedRoleDef = rolesList.find((r) => r.name === formData.role);
+  const selectedRoleDef = staffRoleOptions.find((r) => r.name === formData.role);
 
   const toggleCustomPermission = (permId: string) => {
     setFormData((prev) => {
@@ -434,21 +460,24 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
                   value={formData.role}
                   onChange={(e) => {
                     const nextRole = e.target.value as UserRole;
-                    const rDef = rolesList.find((r) => r.name === nextRole);
+                    const rDef = staffRoleOptions.find((r) => r.name === nextRole);
                     setFormData({
                       ...formData,
                       role: nextRole,
                       department: rDef ? (rDef.department as StaffDepartment) : formData.department,
                     });
                   }}
-                  className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500 font-semibold text-amber-700 dark:text-amber-400"
+                  disabled={rolesLoading || staffRoleOptions.length === 0}
+                  className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 outline-hidden focus:border-amber-500 font-semibold text-amber-700 dark:text-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {rolesList.map((r) => (
+                  {staffRoleOptions.map((r) => (
                     <option key={r.id} value={r.name}>
                       {r.name} ({r.privilegeLevel})
                     </option>
                   ))}
                 </select>
+                {rolesLoading && <p className="mt-1 text-[11px] text-stone-500">Loading all role profiles…</p>}
+                {rolesError && <p role="alert" className="mt-1 text-[11px] text-red-600 dark:text-red-400">{rolesError}</p>}
               </div>
             </div>
 

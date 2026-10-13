@@ -31,7 +31,20 @@ interface AuthSession {
 interface ApiEnvelope<T> {
   success: boolean;
   data: T;
+  meta?: PaginationMeta;
   error?: { message?: string };
+}
+
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}
+
+export interface ApiResultWithMeta<T> {
+  data: T;
+  meta?: PaginationMeta;
 }
 
 function logApiResponse(method: string, path: string, response: Response, startedAt: number) {
@@ -83,13 +96,17 @@ export function clearSession() {
   }
 }
 
-async function parseResponse<T>(response: Response): Promise<T> {
-  if (response.status === 204) return undefined as T;
+async function parseResponseWithMeta<T>(response: Response): Promise<ApiResultWithMeta<T>> {
+  if (response.status === 204) return { data: undefined as T };
   const body = (await response.json().catch(() => null)) as ApiEnvelope<T> | null;
   if (!response.ok || !body?.success) {
     throw new Error(body?.error?.message || `Request failed (${response.status})`);
   }
-  return body.data;
+  return { data: body.data, ...(body.meta ? { meta: body.meta } : {}) };
+}
+
+async function parseResponse<T>(response: Response): Promise<T> {
+  return (await parseResponseWithMeta<T>(response)).data;
 }
 
 async function publicRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -134,7 +151,7 @@ async function refreshSession(): Promise<AuthSession | null> {
   return refreshInFlight;
 }
 
-export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function apiRequestWithMeta<T>(path: string, init: RequestInit = {}): Promise<ApiResultWithMeta<T>> {
   const startedAt = performance.now();
   const method = (init.method || 'GET').toUpperCase();
   const send = async (accessToken?: string) => {
@@ -152,11 +169,15 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
       if (session) response = await send(session.accessToken);
     }
     logApiResponse(method, path, response, startedAt);
-    return await parseResponse<T>(response);
+    return await parseResponseWithMeta<T>(response);
   } catch (error) {
     logApiFailure(method, path, error);
     throw error;
   }
+}
+
+export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+  return (await apiRequestWithMeta<T>(path, init)).data;
 }
 
 export async function apiRequestBlob(path: string, init: RequestInit = {}): Promise<Blob> {
