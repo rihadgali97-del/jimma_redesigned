@@ -44,7 +44,13 @@ import { StaffBadgeModal } from '../../components/admin/staff/StaffBadgeModal';
 import { AccountAccessPanel } from '../../components/admin/staff/AccountAccessPanel';
 import { StaffAvatar } from '../../components/admin/staff/StaffAvatar';
 import { hasAnyPermission } from '../../data/permissionCatalog';
-import { fetchAllMatchingStaff } from '../../services/staffRolesApi';
+import { PaginationMeta } from '../../services/authApi';
+import {
+  AuditWriteFailure,
+  fetchAllMatchingStaff,
+  fetchAuditWriteFailures,
+  markAuditWriteFailureReviewed,
+} from '../../services/staffRolesApi';
 
 const REGISTRY_PAGE_SIZE = 20;
 
@@ -114,6 +120,12 @@ export const AdminStaffAndRolesPage: React.FC = () => {
   const [auditSearch, setAuditSearch] = useState<string>('');
   const [expandedAuditLogId, setExpandedAuditLogId] = useState<string | null>(null);
   const [isExportingStaff, setIsExportingStaff] = useState(false);
+  const [auditFailures, setAuditFailures] = useState<AuditWriteFailure[]>([]);
+  const [auditFailuresPage, setAuditFailuresPage] = useState(1);
+  const [auditFailuresMeta, setAuditFailuresMeta] = useState<PaginationMeta | null>(null);
+  const [auditFailuresLoading, setAuditFailuresLoading] = useState(false);
+  const [auditFailuresError, setAuditFailuresError] = useState('');
+  const [reviewingAuditFailureId, setReviewingAuditFailureId] = useState<number | null>(null);
 
   // Derived Stats
   const activeStaffCount = staffList.filter((s) => s.status === 'Active').length;
@@ -134,6 +146,29 @@ export const AdminStaffAndRolesPage: React.FC = () => {
   const hasStaffFilters = Boolean(
     searchQuery.trim() || selectedDepartment !== 'All' || selectedRole !== 'All' || selectedStatus !== 'All'
   );
+
+  useEffect(() => {
+    if (activeTab !== 'audit' || !canManageStaff) return;
+    let active = true;
+    setAuditFailuresLoading(true);
+    setAuditFailuresError('');
+    fetchAuditWriteFailures(auditFailuresPage, REGISTRY_PAGE_SIZE)
+      .then((result) => {
+        if (!active) return;
+        setAuditFailures(result.data);
+        setAuditFailuresMeta(result.meta || null);
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setAuditFailuresError(error instanceof Error ? error.message : 'Could not load audit write failures.');
+      })
+      .finally(() => {
+        if (active) setAuditFailuresLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [activeTab, canManageStaff, auditFailuresPage]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -213,6 +248,23 @@ export const AdminStaffAndRolesPage: React.FC = () => {
   const handleOpenEditRole = (role: RoleDefinition) => {
     setEditingRole(role);
     setIsRoleModalOpen(true);
+  };
+
+  const handleReviewAuditFailure = async (failure: AuditWriteFailure) => {
+    setReviewingAuditFailureId(failure.id);
+    try {
+      await markAuditWriteFailureReviewed(failure.id);
+      setAuditFailures((items) => items.filter((item) => item.id !== failure.id));
+      const totalItems = Math.max(0, (auditFailuresMeta?.totalItems ?? 1) - 1);
+      const totalPages = Math.max(1, Math.ceil(totalItems / (auditFailuresMeta?.pageSize ?? REGISTRY_PAGE_SIZE)));
+      setAuditFailuresMeta((meta) => meta ? { ...meta, totalItems, totalPages } : meta);
+      if (auditFailuresPage > totalPages) setAuditFailuresPage(totalPages);
+      addToast('Failure marked reviewed', `Audit write failure #${failure.id} was marked as reviewed.`, 'success');
+    } catch (error) {
+      addToast('Review update failed', error instanceof Error ? error.message : 'Could not mark this failure as reviewed.', 'error');
+    } finally {
+      setReviewingAuditFailureId(null);
+    }
   };
 
   const handleExportStaffCSV = async () => {
@@ -1231,6 +1283,98 @@ export const AdminStaffAndRolesPage: React.FC = () => {
               </Button>}
             </div>
           </div>
+
+          <section className="overflow-hidden rounded-2xl border border-red-200 bg-white shadow-xs dark:border-red-950 dark:bg-stone-900">
+            <div className="flex flex-col gap-1 border-b border-red-100 bg-red-50/70 px-4 py-3 dark:border-red-950 dark:bg-red-950/20 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-red-800 dark:text-red-300">Audit write failures — operational review</h2>
+                <p className="text-[11px] text-stone-600 dark:text-stone-400">
+                  Audit entries that failed are recorded here when the database is reachable; structured failure events are also sent to application logs for monitoring.
+                </p>
+              </div>
+              <span className="text-xs font-semibold text-red-700 dark:text-red-300">
+                {auditFailuresMeta?.totalItems ?? '—'} awaiting review
+              </span>
+            </div>
+            {auditFailuresError && (
+              <p role="alert" className="px-4 py-3 text-xs text-red-700 dark:text-red-300">
+                Could not load audit write failures: {auditFailuresError}
+              </p>
+            )}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-stone-50 text-[10px] uppercase tracking-wider text-stone-500 dark:bg-stone-800/80">
+                  <tr>
+                    <th className="px-4 py-2.5">Time / Request</th>
+                    <th className="px-4 py-2.5">Action</th>
+                    <th className="px-4 py-2.5">Persistence error</th>
+                    <th className="px-4 py-2.5 text-right">Review</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+                  {auditFailuresLoading && (
+                    <tr><td colSpan={4} className="px-4 py-5 text-center text-stone-500">Loading audit write failures…</td></tr>
+                  )}
+                  {!auditFailuresLoading && !auditFailuresError && auditFailures.length === 0 && (
+                    <tr><td colSpan={4} className="px-4 py-5 text-center text-stone-500">No unreviewed audit write failures.</td></tr>
+                  )}
+                  {!auditFailuresLoading && auditFailures.map((failure) => (
+                    <tr key={failure.id} className="align-top">
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <span className="block font-semibold">{new Date(failure.createdAt).toLocaleString()}</span>
+                        <span className="font-mono text-[10px] text-stone-500">
+                          {failure.requestId ? `Request ${failure.requestId}` : 'No request ID'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="block font-semibold">{failure.action} {failure.entityType}</span>
+                        <span className="font-mono text-[10px] text-stone-500">
+                          {failure.entityId === null ? 'No entity ID' : `Entity #${failure.entityId}`}
+                          {failure.actorId === null ? '' : ` · Actor #${failure.actorId}`}
+                        </span>
+                      </td>
+                      <td className="max-w-xl px-4 py-3 text-stone-600 dark:text-stone-400">
+                        <span className="block break-words">{failure.errorMessage}</span>
+                        {failure.errorCode && <span className="font-mono text-[10px] text-red-700 dark:text-red-300">{failure.errorCode}</span>}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={reviewingAuditFailureId === failure.id}
+                          onClick={() => void handleReviewAuditFailure(failure)}
+                          className="text-[11px] py-1.5"
+                        >
+                          {reviewingAuditFailureId === failure.id ? 'Saving…' : 'Mark reviewed'}
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {auditFailuresMeta && auditFailuresMeta.totalPages > 1 && (
+              <div className="flex items-center justify-end gap-2 border-t border-stone-100 px-4 py-2.5 text-xs dark:border-stone-800">
+                <button
+                  type="button"
+                  disabled={auditFailuresPage <= 1 || auditFailuresLoading}
+                  onClick={() => setAuditFailuresPage((page) => Math.max(1, page - 1))}
+                  className="rounded-lg border border-stone-200 px-3 py-1.5 font-semibold disabled:opacity-40 dark:border-stone-700"
+                >
+                  Previous
+                </button>
+                <span className="text-stone-500">Page {auditFailuresMeta.page} of {auditFailuresMeta.totalPages}</span>
+                <button
+                  type="button"
+                  disabled={auditFailuresPage >= auditFailuresMeta.totalPages || auditFailuresLoading}
+                  onClick={() => setAuditFailuresPage((page) => Math.min(auditFailuresMeta.totalPages, page + 1))}
+                  className="rounded-lg border border-stone-200 px-3 py-1.5 font-semibold disabled:opacity-40 dark:border-stone-700"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </section>
 
           <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">

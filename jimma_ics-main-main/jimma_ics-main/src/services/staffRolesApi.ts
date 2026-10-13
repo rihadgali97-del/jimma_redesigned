@@ -261,9 +261,32 @@ export interface RoleRegistryQuery {
   search?: string;
 }
 
+export interface AuditWriteFailure {
+  id: number;
+  actorId: number | null;
+  action: string;
+  entityType: string;
+  entityId: number | null;
+  requestId: string | null;
+  errorCode: string | null;
+  errorMessage: string;
+  createdAt: string;
+  reviewedAt: string | null;
+  reviewedBy: number | null;
+}
+
 export interface StaffRolesQuery {
   staff: StaffRegistryQuery;
   roles: RoleRegistryQuery;
+}
+
+export async function fetchAuditWriteFailures(page: number, pageSize: number) {
+  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize), status: 'open' });
+  return apiRequestWithMeta<AuditWriteFailure[]>(`/admin/audit-logs/write-failures?${params}`);
+}
+
+export async function markAuditWriteFailureReviewed(id: number) {
+  return apiRequest<AuditWriteFailure>(`/admin/audit-logs/write-failures/${id}/review`, { method: 'PATCH' });
 }
 
 export async function fetchStaffAndRoles(access: StaffAccessDataPermissions, query: StaffRolesQuery) {
