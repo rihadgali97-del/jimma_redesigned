@@ -73,6 +73,8 @@ export const AdminMadrasasPage: React.FC = () => {
   const [totalStudents, setTotalStudents] = useState(150);
   const [description, setDescription] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
+  const [photoRetry, setPhotoRetry] = useState<{ id: number; file: File; madrasaName: string } | null>(null);
+  const [photoRetryError, setPhotoRetryError] = useState('');
   const [headTeacherId, setHeadTeacherId] = useState('');
   const [hifzGraduatesCount, setHifzGraduatesCount] = useState('');
 
@@ -140,6 +142,8 @@ export const AdminMadrasasPage: React.FC = () => {
 
   const openAddModal = () => {
     setEditingMadrasa(null);
+    setPhotoRetry(null);
+    setPhotoRetryError('');
     setName('');
     const firstActiveWoreda = woredas.find((woreda) => woreda.isActive);
     setDistrict(firstActiveWoreda?.name || '');
@@ -154,6 +158,8 @@ export const AdminMadrasasPage: React.FC = () => {
 
   const openEditModal = (madrasa: (typeof madrasas)[number]) => {
     setEditingMadrasa(madrasa);
+    setPhotoRetry(null);
+    setPhotoRetryError('');
     setName(madrasa.name);
     const selectedWoreda = woredas.find((woreda) => woreda.id === madrasa.woredaId);
     setDistrict(selectedWoreda?.name || madrasa.district);
@@ -171,6 +177,8 @@ export const AdminMadrasasPage: React.FC = () => {
     setIsAddModalOpen(false);
     setEditingMadrasa(null);
     setPhoto(null);
+    setPhotoRetry(null);
+    setPhotoRetryError('');
   };
 
   const refreshAdminMadrasas = async () => {
@@ -180,6 +188,7 @@ export const AdminMadrasasPage: React.FC = () => {
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving || photoRetry) return;
     if (!name.trim()) {
       addToast('Missing Required Fields', 'Please enter the madrasa name.', 'warning');
       return;
@@ -206,28 +215,34 @@ export const AdminMadrasasPage: React.FC = () => {
         try {
           await uploadMadrasaPhoto(Number(editingMadrasa?.id ?? record.id), photo);
         } catch (error) {
-          await refreshDirectoryData();
-          await refreshAdminMadrasas();
-          setIsAddModalOpen(false);
-          setEditingMadrasa(null);
-          setName('');
-          setDescription('');
-          setPhoto(null);
+          const savedId = Number(record.id);
+          setPhotoRetry({ id: savedId, file: photo, madrasaName: name.trim() });
+          setPhotoRetryError(error instanceof Error ? error.message : 'The record was saved, but the photo upload failed.');
+          try {
+            await Promise.all([refreshDirectoryData(), refreshAdminMadrasas()]);
+          } catch (refreshError) {
+            addToast('Madrasa saved, registry refresh failed', refreshError instanceof Error ? refreshError.message : 'Refresh the registry to see the saved record.', 'warning');
+          }
           addToast(
             editingMadrasa ? 'Madrasa updated, photo not uploaded' : 'Madrasa registered, photo not uploaded',
-            error instanceof Error ? error.message : 'The record was saved; try uploading its photo again.',
-            'error'
+            'The madrasa details were saved. Retry the photo upload below; the details will not be submitted again.',
+            'warning'
           );
           return;
         }
       }
-      await refreshDirectoryData();
-      await refreshAdminMadrasas();
+      try {
+        await Promise.all([refreshDirectoryData(), refreshAdminMadrasas()]);
+      } catch (refreshError) {
+        addToast('Madrasa saved, registry refresh failed', refreshError instanceof Error ? refreshError.message : 'Refresh the registry to see the saved record.', 'warning');
+      }
       setIsAddModalOpen(false);
       setEditingMadrasa(null);
       setName('');
       setDescription('');
       setPhoto(null);
+      setPhotoRetry(null);
+      setPhotoRetryError('');
       addToast(
         editingMadrasa ? 'Madrasa updated' : 'Madrasa registered',
         editingMadrasa ? 'The record was updated in the council directory.' : 'The record was saved to the council database.',
@@ -239,6 +254,33 @@ export const AdminMadrasasPage: React.FC = () => {
         error instanceof Error ? error.message : 'Check your connection and try again.',
         'error'
       );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRetryPhotoUpload = async () => {
+    if (!photoRetry || isSaving) return;
+    setIsSaving(true);
+    setPhotoRetryError('');
+    try {
+      await uploadMadrasaPhoto(photoRetry.id, photoRetry.file);
+      try {
+        await Promise.all([refreshDirectoryData(), refreshAdminMadrasas()]);
+      } catch (refreshError) {
+        addToast('Photo uploaded, registry refresh failed', refreshError instanceof Error ? refreshError.message : 'Refresh the registry to see the updated photo.', 'warning');
+      }
+      setIsAddModalOpen(false);
+      setEditingMadrasa(null);
+      setName('');
+      setDescription('');
+      setPhoto(null);
+      setPhotoRetry(null);
+      addToast('Madrasa photo uploaded', `${photoRetry.madrasaName}'s details were already saved. Only the photo was retried.`, 'success');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'The photo could not be uploaded. Try again.';
+      setPhotoRetryError(message);
+      addToast('Madrasa photo upload failed', message, 'error');
     } finally {
       setIsSaving(false);
     }
@@ -383,6 +425,7 @@ export const AdminMadrasasPage: React.FC = () => {
           <p className="rounded-lg bg-blue-50 p-3 text-xs text-blue-800 dark:bg-blue-950/30 dark:text-blue-200">
             {editingMadrasa ? 'Save changes to the madrasa record in the council directory.' : 'This form saves the madrasa details and optional photo to the live council directory.'}
           </p>
+          <fieldset disabled={isSaving || Boolean(photoRetry)} className="space-y-4">
           {editingMadrasa?.image && !photo && (
             <img src={editingMadrasa.image} alt={`${editingMadrasa.name} current photo`} className="h-24 w-36 rounded-lg object-cover" />
           )}
@@ -512,14 +555,28 @@ export const AdminMadrasasPage: React.FC = () => {
             />
             {photo && <p className="mt-1 text-xs text-stone-500">{photo.name}</p>}
           </div>
+          </fieldset>
 
+          {photoRetry && (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200" role="status">
+              <p className="font-semibold">Madrasa details saved; photo upload still needs attention.</p>
+              <p className="mt-1">Retrying uploads only {photoRetry.file.name}; madrasa details will not be submitted again.</p>
+              {photoRetryError && <p className="mt-1 break-words">{photoRetryError}</p>}
+            </div>
+          )}
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-100 dark:border-stone-800">
             <Button variant="ghost" type="button" onClick={closeModal}>
-              Cancel
+              {photoRetry ? 'Close' : 'Cancel'}
             </Button>
-            <Button variant="primary" type="submit" disabled={isSaving}>
-              {isSaving ? 'Saving…' : editingMadrasa ? 'Save Changes' : 'Accredit Madrasa'}
-            </Button>
+            {photoRetry ? (
+              <Button variant="primary" type="button" onClick={handleRetryPhotoUpload} disabled={isSaving}>
+                {isSaving ? 'Uploading…' : 'Retry Photo Upload'}
+              </Button>
+            ) : (
+              <Button variant="primary" type="submit" disabled={isSaving}>
+                {isSaving ? 'Saving…' : editingMadrasa ? 'Save Changes' : 'Accredit Madrasa'}
+              </Button>
+            )}
           </div>
         </form>
       </Modal>

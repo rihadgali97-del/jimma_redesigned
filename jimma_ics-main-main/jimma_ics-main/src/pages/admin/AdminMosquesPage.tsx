@@ -77,6 +77,8 @@ export const AdminMosquesPage: React.FC = () => {
   const [capacity, setCapacity] = useState(1000);
   const [description, setDescription] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
+  const [photoRetry, setPhotoRetry] = useState<{ id: number; file: File; mosqueName: string } | null>(null);
+  const [photoRetryError, setPhotoRetryError] = useState('');
   const [selectedMadrasaId, setSelectedMadrasaId] = useState('');
 
   useEffect(() => {
@@ -145,6 +147,8 @@ export const AdminMosquesPage: React.FC = () => {
 
   const openAddModal = () => {
     setEditingMosque(null);
+    setPhotoRetry(null);
+    setPhotoRetryError('');
     setName('');
     setCode('');
     setCategory('');
@@ -161,6 +165,8 @@ export const AdminMosquesPage: React.FC = () => {
 
   const openEditModal = (mosque: (typeof mosques)[number]) => {
     setEditingMosque(mosque);
+    setPhotoRetry(null);
+    setPhotoRetryError('');
     setName(mosque.name);
     setCode(mosque.code || '');
     setCategory(mosque.category || '');
@@ -187,6 +193,7 @@ export const AdminMosquesPage: React.FC = () => {
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving || photoRetry) return;
     if (!name.trim() || !imam.trim() || !category) {
       addToast('Missing Required Fields', 'Please complete the mosque name, category, and imam.', 'warning');
       return;
@@ -219,24 +226,32 @@ export const AdminMosquesPage: React.FC = () => {
         try {
           await uploadMosquePhoto(Number(editingMosque?.id ?? record.id), photo);
         } catch (error) {
-          await refreshDirectoryData();
-          await refreshAdminMosques();
-          await refreshAdminMadrasas();
-          setIsAddModalOpen(false);
+          const savedId = Number(record.id);
+          setPhotoRetry({ id: savedId, file: photo, mosqueName: name.trim() });
+          setPhotoRetryError(error instanceof Error ? error.message : 'The record was saved, but the photo upload failed.');
+          try {
+            await Promise.all([refreshDirectoryData(), refreshAdminMosques(), refreshAdminMadrasas()]);
+          } catch (refreshError) {
+            addToast('Mosque saved, registry refresh failed', refreshError instanceof Error ? refreshError.message : 'Refresh the registry to see the saved record.', 'warning');
+          }
           addToast(
             editingMosque ? 'Mosque updated, photo not uploaded' : 'Mosque registered, photo not uploaded',
-            error instanceof Error ? error.message : 'Edit the mosque record and try uploading the photo again.',
-            'error'
+            'The mosque details were saved. Retry the photo upload below; the details will not be submitted again.',
+            'warning'
           );
           return;
         }
       }
-      await refreshDirectoryData();
-      await refreshAdminMosques();
-      await refreshAdminMadrasas();
+      try {
+        await Promise.all([refreshDirectoryData(), refreshAdminMosques(), refreshAdminMadrasas()]);
+      } catch (refreshError) {
+        addToast('Mosque saved, registry refresh failed', refreshError instanceof Error ? refreshError.message : 'Refresh the registry to see the saved record.', 'warning');
+      }
       setIsAddModalOpen(false);
       setEditingMosque(null);
       setPhoto(null);
+      setPhotoRetry(null);
+      setPhotoRetryError('');
       addToast(
         editingMosque ? 'Mosque updated' : 'Mosque registered',
         editingMosque ? 'The mosque record was updated.' : 'The record was saved to the council database.',
@@ -253,10 +268,38 @@ export const AdminMosquesPage: React.FC = () => {
     }
   };
 
+  const handleRetryPhotoUpload = async () => {
+    if (!photoRetry || isSaving) return;
+    setIsSaving(true);
+    setPhotoRetryError('');
+    try {
+      await uploadMosquePhoto(photoRetry.id, photoRetry.file);
+      try {
+        await Promise.all([refreshDirectoryData(), refreshAdminMosques(), refreshAdminMadrasas()]);
+      } catch (refreshError) {
+        addToast('Photo uploaded, registry refresh failed', refreshError instanceof Error ? refreshError.message : 'Refresh the registry to see the updated photo.', 'warning');
+      }
+      setIsAddModalOpen(false);
+      setEditingMosque(null);
+      setPhoto(null);
+      setPhotoRetry(null);
+      addToast('Mosque photo uploaded', `${photoRetry.mosqueName}'s details were already saved. Only the photo was retried.`, 'success');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'The photo could not be uploaded. Try again.';
+      setPhotoRetryError(message);
+      addToast('Mosque photo upload failed', message, 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleCloseModal = () => {
+    if (isSaving) return;
     setIsAddModalOpen(false);
     setEditingMosque(null);
     setPhoto(null);
+    setPhotoRetry(null);
+    setPhotoRetryError('');
   };
 
   return (
@@ -448,6 +491,7 @@ export const AdminMosquesPage: React.FC = () => {
           <p className="rounded-lg bg-blue-50 p-3 text-xs text-blue-800 dark:bg-blue-950/30 dark:text-blue-200">
             {editingMosque ? 'Save changes to the mosque record in the council directory.' : 'This form saves the mosque details and optional photo to the live council directory.'}
           </p>
+          <fieldset disabled={isSaving || Boolean(photoRetry)} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
               Mosque Official Name *
@@ -599,14 +643,28 @@ export const AdminMosquesPage: React.FC = () => {
             />
             {photo && <p className="mt-1 text-xs text-stone-500">{photo.name}</p>}
           </div>
+          </fieldset>
 
+          {photoRetry && (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200" role="status">
+              <p className="font-semibold">Mosque details saved; photo upload still needs attention.</p>
+              <p className="mt-1">Retrying uploads only {photoRetry.file.name}; mosque details will not be submitted again.</p>
+              {photoRetryError && <p className="mt-1 break-words">{photoRetryError}</p>}
+            </div>
+          )}
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-100 dark:border-stone-800">
             <Button variant="ghost" type="button" onClick={handleCloseModal}>
-              Cancel
+              {photoRetry ? 'Close' : 'Cancel'}
             </Button>
-            <Button variant="primary" type="submit" disabled={isSaving}>
-              {isSaving ? 'Saving…' : editingMosque ? 'Save Changes' : 'Register Mosque'}
-            </Button>
+            {photoRetry ? (
+              <Button variant="primary" type="button" onClick={handleRetryPhotoUpload} disabled={isSaving}>
+                {isSaving ? 'Uploading…' : 'Retry Photo Upload'}
+              </Button>
+            ) : (
+              <Button variant="primary" type="submit" disabled={isSaving}>
+                {isSaving ? 'Saving…' : editingMosque ? 'Save Changes' : 'Register Mosque'}
+              </Button>
+            )}
           </div>
         </form>
       </Modal>
