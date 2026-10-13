@@ -138,7 +138,7 @@ export const AdminWoredasPage: React.FC = () => {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!name.trim() || (!editingId && !code.trim())) {
+    if (!name.trim() || !code.trim()) {
       addToast('Missing Required Fields', 'Enter both the kebele code and display name.', 'warning');
       return;
     }
@@ -147,7 +147,7 @@ export const AdminWoredasPage: React.FC = () => {
     try {
       const profile = toGisProfilePayload(gisProfile);
       const saved = editingId
-        ? await updateWoredaRecord(editingId, { name, ...profile })
+        ? await updateWoredaRecord(editingId, { code, name, ...profile })
         : await createWoredaRecord({ code, name, ...profile });
       setWoredas((previous) => {
         const next = editingId
@@ -281,7 +281,7 @@ export const AdminWoredasPage: React.FC = () => {
                           className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
                         >
                           <Edit3 className="h-3.5 w-3.5" />
-                          Rename
+                          Edit
                         </button>
                         <button
                           type="button"
@@ -316,27 +316,19 @@ export const AdminWoredasPage: React.FC = () => {
           </div>
 
           <form onSubmit={(event) => void submit(event)} className="space-y-4">
-            {!editingId && (
-              <label className="block space-y-1.5 text-sm font-medium text-stone-700 dark:text-stone-300">
-                <span>Stable code</span>
-                <input
-                  value={code}
-                  onChange={(event) => setCode(event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
-                  pattern="[a-z0-9-]+"
-                  maxLength={80}
-                  required
-                  placeholder="e.g. limmu-kosa"
-                  className={inputClass}
-                />
-                <span className="block text-xs font-normal text-stone-500">Lowercase letters, numbers, and hyphens only.</span>
-              </label>
-            )}
-            {editingId !== null && (
-              <div className="space-y-1.5 text-sm">
-                <span className="block font-medium text-stone-700 dark:text-stone-300">Stable code</span>
-                <code className="block rounded-xl bg-stone-100 px-3 py-2.5 text-xs text-stone-700 dark:bg-stone-800 dark:text-stone-200">{code}</code>
-              </div>
-            )}
+            <label className="block space-y-1.5 text-sm font-medium text-stone-700 dark:text-stone-300">
+              <span>Stable code</span>
+              <input
+                value={code}
+                onChange={(event) => setCode(event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+                pattern="[a-z0-9-]+"
+                maxLength={80}
+                required
+                placeholder="e.g. limmu-kosa"
+                className={inputClass}
+              />
+              <span className="block text-xs font-normal text-stone-500">Lowercase letters, numbers, and hyphens only. Changing the code updates its stable identifier.</span>
+            </label>
             <label className="block space-y-1.5 text-sm font-medium text-stone-700 dark:text-stone-300">
               <span>English display name</span>
               <input

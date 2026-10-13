@@ -121,15 +121,16 @@ export async function createWoredaRecord(
 
 export async function updateWoredaRecord(
   id: number,
-  data: { name?: string; isActive?: boolean } & WoredaGisProfile
+  data: { code?: string; name?: string; isActive?: boolean } & WoredaGisProfile
 ): Promise<DirectoryWoreda> {
   const woreda = await apiRequest<ApiWoreda>(`/locations/woredas/${id}`, {
     method: 'PATCH',
     body: JSON.stringify({
+      ...(data.code !== undefined ? { code: data.code.trim().toLowerCase() } : {}),
       ...(data.name !== undefined ? { name: { en: data.name.trim() } } : {}),
       ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
       ...Object.fromEntries(
-        Object.entries(data).filter(([key]) => !['name', 'isActive'].includes(key))
+        Object.entries(data).filter(([key]) => !['code', 'name', 'isActive'].includes(key))
       ),
     }),
   });
