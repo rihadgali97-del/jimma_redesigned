@@ -137,6 +137,9 @@ interface AppContextType {
 
   // Staff & RBAC Management
   staffList: User[];
+  staffListLoaded: boolean;
+  rolesListLoaded: boolean;
+  securityLogsLoaded: boolean;
   staffAccessLoading: boolean;
   staffAccessError: string;
   refreshStaffAndRoles: () => Promise<void>;
@@ -386,8 +389,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [staffList, setStaffList] = useState<User[]>([]);
   const [rolesList, setRolesList] = useState<RoleDefinition[]>([]);
+  const [staffListLoaded, setStaffListLoaded] = useState(false);
+  const [rolesListLoaded, setRolesListLoaded] = useState(false);
+  const [securityLogsLoaded, setSecurityLogsLoaded] = useState(false);
   const [staffAccessLoading, setStaffAccessLoading] = useState(false);
   const [staffAccessError, setStaffAccessError] = useState('');
+  const staffAccessRefreshRequest = useRef(0);
   const [permissionCategories] = useState<PermissionCategory[]>(defaultPermissionCategories);
   const [securityLogs, setSecurityLogs] = useState<SecurityAuditLog[]>([]);
 
@@ -709,19 +716,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const refreshStaffAndRoles = async () => {
+    const requestId = ++staffAccessRefreshRequest.current;
     setStaffAccessLoading(true);
     setStaffAccessError('');
     try {
       const data = await fetchStaffAndRoles();
-      setStaffList(data.staff);
-      setRolesList(data.roles);
-      setSecurityLogs(data.logs);
+      if (requestId !== staffAccessRefreshRequest.current) return;
+      if (data.staff) {
+        setStaffList(data.staff);
+        setStaffListLoaded(true);
+      }
+      if (data.roles) {
+        setRolesList(data.roles);
+        setRolesListLoaded(true);
+      }
+      if (data.logs) {
+        setSecurityLogs(data.logs);
+        setSecurityLogsLoaded(true);
+      }
+      if (data.errors.length > 0) throw new Error(data.errors.join(' '));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Could not load staff and role records.';
-      setStaffAccessError(message);
+      if (requestId === staffAccessRefreshRequest.current) setStaffAccessError(message);
       throw error;
     } finally {
-      setStaffAccessLoading(false);
+      if (requestId === staffAccessRefreshRequest.current) setStaffAccessLoading(false);
     }
   };
 
@@ -796,6 +815,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const newStaff = await createStaffRecord(data, rolesList, profilePhoto);
       setStaffList((prev) => [newStaff, ...prev]);
+      setStaffListLoaded(true);
       addToast('Staff Account Created', `${newStaff.name} was saved to the backend.`, 'success');
       await refreshAfterStaffMutation();
       return newStaff;
@@ -842,6 +862,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const role = await createRoleRecord(data);
       setRolesList((prev) => [...prev, role]);
+      setRolesListLoaded(true);
       addToast('Role Created', `"${role.name}" was saved to the backend.`, 'success');
       await refreshAfterStaffMutation();
       return role;
@@ -1882,6 +1903,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deleteZakatCalculation,
         updateZakatCalculation,
         staffList,
+        staffListLoaded,
+        rolesListLoaded,
+        securityLogsLoaded,
         staffAccessLoading,
         staffAccessError,
         refreshStaffAndRoles,

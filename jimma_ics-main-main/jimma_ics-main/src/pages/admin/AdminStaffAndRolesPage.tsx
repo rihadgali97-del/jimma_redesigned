@@ -52,9 +52,12 @@ function hasRolePermission(role: RoleDefinition, permissionId: string): boolean 
 export const AdminStaffAndRolesPage: React.FC = () => {
   const {
     staffList,
+    staffListLoaded,
     rolesList,
+    rolesListLoaded,
     permissionCategories,
     securityLogs,
+    securityLogsLoaded,
     currentUser,
     staffAccessLoading,
     staffAccessError,
@@ -292,10 +295,10 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100">
-              {totalStaffCount}
+              {staffListLoaded ? totalStaffCount : '—'}
             </span>
             <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-              {activeStaffCount} Active
+              {staffListLoaded ? `${activeStaffCount} Active` : 'Unavailable'}
             </span>
           </div>
           <p className="text-[11px] text-stone-400 mt-1">Across 7 council directorates</p>
@@ -310,14 +313,14 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100">
-              {rolesList.length}
+              {rolesListLoaded ? rolesList.length : '—'}
             </span>
             <span className="text-xs text-stone-500 font-medium">
-              {rolesList.filter((r) => r.isSystemRole).length} System Core
+              {rolesListLoaded ? `${rolesList.filter((r) => r.isSystemRole).length} System Core` : 'Unavailable'}
             </span>
           </div>
           <p className="text-[11px] text-stone-400 mt-1">
-            {rolesList.filter((r) => !r.isSystemRole).length} custom configured roles
+            {rolesListLoaded ? rolesList.filter((r) => !r.isSystemRole).length : '—'} custom configured roles
           </p>
         </div>
 
@@ -330,10 +333,10 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100">
-              {twoFactorPercentage}%
+              {staffListLoaded ? `${twoFactorPercentage}%` : '—'}
             </span>
             <span className="text-xs text-emerald-600 font-semibold">
-              {twoFactorEnforcedCount} Staff
+              {staffListLoaded ? `${twoFactorEnforcedCount} Staff` : 'Unavailable'}
             </span>
           </div>
           <p className="text-[11px] text-stone-400 mt-1">Mandatory on finance & admin</p>
@@ -348,7 +351,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100">
-              {securityLogs.length}
+              {securityLogsLoaded ? securityLogs.length : '—'}
             </span>
             <span className="text-xs text-emerald-600 font-semibold">Real-time</span>
           </div>
@@ -368,7 +371,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Staff Directory ({staffList.length})</span>
+            <span>Staff Directory ({staffListLoaded ? staffList.length : '—'})</span>
           </button>
 
           <button
@@ -380,7 +383,7 @@ export const AdminStaffAndRolesPage: React.FC = () => {
             }`}
           >
             <Shield className="w-4 h-4" />
-            <span>Role Profiles ({rolesList.length})</span>
+            <span>Role Profiles ({rolesListLoaded ? rolesList.length : '—'})</span>
           </button>
 
           <button
@@ -510,7 +513,11 @@ export const AdminStaffAndRolesPage: React.FC = () => {
           {/* Results Summary */}
           <div className="flex items-center justify-between text-xs text-stone-500 px-1">
             <span>
-              Showing <strong>{filteredStaff.length}</strong> of {totalStaffCount} personnel records
+              {staffListLoaded
+                ? <>Showing <strong>{filteredStaff.length}</strong> of {totalStaffCount} personnel records</>
+                : staffAccessLoading
+                  ? 'Loading personnel records…'
+                  : 'Personnel records unavailable'}
             </span>
             {(searchQuery || selectedDepartment !== 'All' || selectedRole !== 'All' || selectedStatus !== 'All') && (
               <button
@@ -544,10 +551,14 @@ export const AdminStaffAndRolesPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100 dark:divide-stone-800 text-stone-800 dark:text-stone-200">
-                    {filteredStaff.length === 0 ? (
+                    {!staffListLoaded || filteredStaff.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="py-10 text-center text-stone-400 italic">
-                          No council personnel found matching the specified filters.
+                          {staffListLoaded
+                            ? 'No council personnel found matching the specified filters.'
+                            : staffAccessLoading
+                              ? 'Loading personnel records…'
+                              : 'Staff records could not be loaded. Use Retry above to try again.'}
                         </td>
                       </tr>
                     ) : (

@@ -247,15 +247,25 @@ function toRoleMetadata(value: Partial<RoleDefinition>): Metadata {
 }
 
 export async function fetchStaffAndRoles() {
-  const [users, roles, logs] = await Promise.all([
+  const [usersResult, rolesResult, logsResult] = await Promise.allSettled([
     apiRequest<ApiUser[]>('/admin/users?page=1&pageSize=100'),
     apiRequest<ApiRole[]>('/admin/roles'),
     apiRequest<ApiAuditLog[]>('/admin/audit-logs?page=1&pageSize=100'),
   ]);
+
+  const rejectionMessage = (reason: unknown) =>
+    reason instanceof Error ? reason.message : 'Request failed.';
+  const errors = [
+    ...(usersResult.status === 'rejected' ? [`Staff: ${rejectionMessage(usersResult.reason)}`] : []),
+    ...(rolesResult.status === 'rejected' ? [`Roles: ${rejectionMessage(rolesResult.reason)}`] : []),
+    ...(logsResult.status === 'rejected' ? [`Audit log: ${rejectionMessage(logsResult.reason)}`] : []),
+  ];
+
   return {
-    staff: users.map(toStaff),
-    roles: roles.map(toRole),
-    logs: logs.map(toAuditLog),
+    ...(usersResult.status === 'fulfilled' ? { staff: usersResult.value.map(toStaff) } : {}),
+    ...(rolesResult.status === 'fulfilled' ? { roles: rolesResult.value.map(toRole) } : {}),
+    ...(logsResult.status === 'fulfilled' ? { logs: logsResult.value.map(toAuditLog) } : {}),
+    errors,
   };
 }
 
