@@ -205,8 +205,51 @@
   }
 
   .mosque-registry-print,
-  .mosque-registry-print * {
+  .mosque-registry-print *,
+  .staff-id-print,
+  .staff-id-print * {
     visibility: visible !important;
+  }
+
+  .staff-id-print {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    display: block !important;
+    width: 86mm !important;
+    max-width: none !important;
+    transform: translate(-50%, -50%) !important;
+    border-color: #d99b16 !important;
+    box-shadow: none !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  .staff-id-print-header {
+    background: #065f46 !important;
+    color: #fff !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  .staff-id-print-role {
+    background: #fef3c7 !important;
+    color: #78350f !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  .staff-id-print-details {
+    background: #fafaf9 !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  .staff-id-print-footer {
+    background: #1c1917 !important;
+    color: #fcd34d !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
   }
 
   .mosque-registry-print {

@@ -56,7 +56,7 @@ export const StaffBadgeModal: React.FC<StaffBadgeModalProps> = ({
         <div className="p-6 flex flex-col items-center bg-stone-100 dark:bg-stone-950/60">
           <div
             ref={badgeRef}
-            className="w-full max-w-[340px] bg-white rounded-3xl border-2 border-amber-500/80 shadow-xl overflow-hidden text-stone-900 relative"
+            className="staff-id-print w-full max-w-[340px] bg-white rounded-3xl border-2 border-amber-500/80 shadow-xl overflow-hidden text-stone-900 relative"
           >
             {/* Top ID Lanyard Hole visual */}
             <div className="w-full h-3 bg-emerald-900 flex items-center justify-center">
@@ -64,7 +64,7 @@ export const StaffBadgeModal: React.FC<StaffBadgeModalProps> = ({
             </div>
 
             {/* Badge Header with Council Seal */}
-            <div className="p-4 bg-gradient-to-b from-emerald-950 via-emerald-900 to-emerald-800 text-white text-center border-b border-amber-400/40 relative">
+            <div className="staff-id-print-header p-4 bg-gradient-to-b from-emerald-950 via-emerald-900 to-emerald-800 text-white text-center border-b border-amber-400/40 relative">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <div className="w-7 h-7 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center border border-amber-400/50">
                   <Landmark className="w-4 h-4" />
@@ -105,7 +105,7 @@ export const StaffBadgeModal: React.FC<StaffBadgeModalProps> = ({
                     {staff.arabicName}
                   </p>
                 )}
-                <span className="inline-block mt-1.5 px-3 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[11px] border border-amber-300">
+                <span className="staff-id-print-role inline-block mt-1.5 px-3 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[11px] border border-amber-300">
                   {staff.role}
                 </span>
                 <p className="text-[10px] text-stone-500 font-medium mt-1">
@@ -114,7 +114,7 @@ export const StaffBadgeModal: React.FC<StaffBadgeModalProps> = ({
               </div>
 
               {/* ID Data Table */}
-              <div className="w-full bg-stone-50 rounded-xl p-2.5 border border-stone-200 text-left text-[10px] space-y-1">
+              <div className="staff-id-print-details w-full bg-stone-50 rounded-xl p-2.5 border border-stone-200 text-left text-[10px] space-y-1">
                 <div className="flex justify-between">
                   <span className="text-stone-500 font-semibold">Staff ID No:</span>
                   <span className="font-mono font-bold text-stone-800">
@@ -157,7 +157,7 @@ export const StaffBadgeModal: React.FC<StaffBadgeModalProps> = ({
             </div>
 
             {/* Bottom Footer Ribbon */}
-            <div className="px-3 py-1.5 bg-stone-900 text-[8px] text-amber-300 font-mono text-center tracking-wider uppercase">
+            <div className="staff-id-print-footer px-3 py-1.5 bg-stone-900 text-[8px] text-amber-300 font-mono text-center tracking-wider uppercase">
               Official Property of Jimma Islamic Affairs Council
             </div>
           </div>
