@@ -616,9 +616,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     void refreshDirectoryData();
     void refreshJanazahAvailability();
     void refreshPublicServiceAvailability();
-    void refreshTeachers().catch((error) => {
-      if (import.meta.env.DEV) console.warn('[API] Public teacher directory refresh failed.', error);
-    });
+    if (!window.location.pathname.startsWith('/admin/teachers')) {
+      void refreshTeachers().catch((error) => {
+        if (import.meta.env.DEV) console.warn('[API] Public teacher directory refresh failed.', error);
+      });
+    }
     void refreshUlema().catch((error) => {
       if (import.meta.env.DEV) console.warn('[API] Public Ulema directory refresh failed.', error);
     });

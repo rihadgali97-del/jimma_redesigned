@@ -45,7 +45,7 @@ export const AdminTeachersPage: React.FC = () => {
   const [specialization, setSpecialization] = useState('Hifz & Tajweed');
   const [sanad, setSanad] = useState('Hafs an Asim (Shatibiyyah Tariq)');
   const [experienceYears, setExperienceYears] = useState(8);
-  const [salaryETB, setSalaryETB] = useState(9000);
+  const [salaryETB, setSalaryETB] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
 
@@ -87,6 +87,9 @@ export const AdminTeachersPage: React.FC = () => {
     (acc, t) => acc + (t.salaryETB ?? 0),
     0
   );
+  const teachersWithStipend = teachers.filter(
+    (teacher) => typeof teacher.salaryETB === 'number' && Number.isFinite(teacher.salaryETB),
+  ).length;
 
   const certifiedCount = teachers.filter((t) => t.isCertified ?? true).length;
 
@@ -99,7 +102,7 @@ export const AdminTeachersPage: React.FC = () => {
     setSpecialization('Hifz & Tajweed');
     setSanad('Hafs an Asim (Shatibiyyah Tariq)');
     setExperienceYears(8);
-    setSalaryETB(9000);
+    setSalaryETB('');
     setIsFeatured(false);
     setIsPublished(false);
     setIsAddModalOpen(true);
@@ -114,7 +117,7 @@ export const AdminTeachersPage: React.FC = () => {
     setSpecialization(teacher.specialization);
     setSanad(teacher.sanad || teacher.qualification);
     setExperienceYears(teacher.experienceYears);
-    setSalaryETB(teacher.salaryETB ?? 0);
+    setSalaryETB(teacher.salaryETB === undefined ? '' : String(teacher.salaryETB));
     setIsFeatured(Boolean(teacher.isFeatured));
     setIsPublished(Boolean(teacher.isPublished));
     setIsAddModalOpen(true);
@@ -138,6 +141,16 @@ export const AdminTeachersPage: React.FC = () => {
       return;
     }
 
+    const monthlyStipend = salaryETB.trim() === '' ? undefined : Number(salaryETB);
+    if (monthlyStipend !== undefined && (!Number.isFinite(monthlyStipend) || monthlyStipend < 0)) {
+      addToast('Invalid monthly stipend', 'Enter a valid non-negative monthly amount in ETB.', 'warning');
+      return;
+    }
+    if (!editingTeacher && monthlyStipend === undefined) {
+      addToast('Monthly stipend required', 'Enter the council stipend amount for this teacher.', 'warning');
+      return;
+    }
+
     const teacherData = {
       name: name.trim(),
       phone: phone.trim(),
@@ -148,7 +161,7 @@ export const AdminTeachersPage: React.FC = () => {
       sanad: sanad.trim() || 'Council Certified Sanad',
       qualification: sanad.trim() || 'Certified Mu’allim License',
       experienceYears: Number(experienceYears),
-      salaryETB: Number(salaryETB),
+      ...(monthlyStipend !== undefined ? { salaryETB: monthlyStipend } : {}),
       isFeatured,
       isPublished,
     };
@@ -287,12 +300,15 @@ export const AdminTeachersPage: React.FC = () => {
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-serif font-bold text-purple-700 dark:text-purple-400 font-mono">
-            {totalMonthlyHonorarium.toLocaleString()}{' '}
-            <span className="text-xs font-sans font-normal text-stone-500">ETB</span>
+            {teachersWithStipend === 0
+              ? 'Not entered'
+              : `${totalMonthlyHonorarium.toLocaleString()} ETB`}
           </div>
           <div className="text-xs text-stone-400 flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800">
-            <span>Disbursement Status:</span>
-            <span className="font-semibold text-emerald-600">Funded via Waqf</span>
+            <span>Monthly amounts recorded:</span>
+            <span className="font-semibold text-stone-700 dark:text-stone-300">
+              {teachersWithStipend} / {teachers.length} mu'allims
+            </span>
           </div>
         </Card>
       </div>
@@ -422,7 +438,15 @@ export const AdminTeachersPage: React.FC = () => {
                         {safeStudents}
                       </td>
                       <td className="p-3.5 font-mono font-bold text-stone-900 dark:text-stone-100">
-                        {salary === undefined ? 'Not set' : `${salary.toLocaleString()} ETB`}
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(t)}
+                          className="inline-flex items-center gap-1.5 text-left hover:text-emerald-700 dark:hover:text-emerald-400"
+                          aria-label={`${salary === undefined ? 'Set' : 'Edit'} monthly council stipend for ${t.name}`}
+                        >
+                          {salary === undefined ? 'Set amount' : `${salary.toLocaleString()} ETB`}
+                          <Edit2 className="h-3 w-3 text-stone-400" />
+                        </button>
                       </td>
                       <td className="p-3.5">
                         <button
@@ -631,14 +655,15 @@ export const AdminTeachersPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                Council Monthly Honorarium (ETB)
+                Monthly Council Stipend (ETB) {editingTeacher ? '(leave blank to keep current amount)' : '*'}
               </label>
               <input
                 type="number"
                 min="0"
                 step="500"
+                required={!editingTeacher}
                 value={salaryETB}
-                onChange={(e) => setSalaryETB(Number(e.target.value))}
+                onChange={(e) => setSalaryETB(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden font-mono"
               />
             </div>
@@ -713,12 +738,24 @@ export const AdminTeachersPage: React.FC = () => {
                 </span>
               </div>
               <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700">
-                <span className="text-stone-400 block mb-0.5">Monthly Honorarium</span>
+                <span className="text-stone-400 block mb-0.5">Monthly Council Stipend</span>
                 <span className="font-mono font-bold text-stone-900 dark:text-stone-100">
                   {selectedTeacherForDetail.salaryETB === undefined
-                    ? 'Not set'
+                    ? 'Not entered'
                     : `${selectedTeacherForDetail.salaryETB.toLocaleString()} ETB`}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const teacher = selectedTeacherForDetail;
+                    setSelectedTeacherForDetail(null);
+                    openEditModal(teacher);
+                  }}
+                  className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:underline dark:text-emerald-400"
+                >
+                  <Edit2 className="h-3 w-3" />
+                  Edit stipend
+                </button>
               </div>
             </div>
 
