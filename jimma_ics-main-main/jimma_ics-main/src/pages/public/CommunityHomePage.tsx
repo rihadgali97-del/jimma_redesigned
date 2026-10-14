@@ -33,10 +33,9 @@ const shortcuts = [
 const sectionClass = 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8';
 
 export const CommunityHomePage: React.FC = () => {
-  const { mosques, madrasas, ulema, students, funds, publicServices } = useApp();
+  const { mosques, madrasas, ulema, students, publicServices } = useApp();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
-  const totalFundBalance = funds.reduce((total, fund) => total + fund.allocatedETB, 0);
 
   return (
     <div className="space-y-14 pb-10 sm:space-y-20">
@@ -74,19 +73,18 @@ export const CommunityHomePage: React.FC = () => {
             </div>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-stone-600 dark:text-stone-300">
               <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" /> Serving Jimma City communities</span>
-              <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-amber-700 dark:text-amber-400" /> 18 kebeles</span>
+              <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-amber-700 dark:text-amber-400" /> 13 kebeles</span>
             </div>
           </div>
         </div>
       </section>
 
       <section aria-label="Community overview" className={`${sectionClass} -mt-10 relative z-10`}>
-        <div className="grid grid-cols-2 divide-x divide-y divide-stone-200 overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm dark:divide-stone-700 dark:border-stone-700 dark:bg-stone-900 sm:grid-cols-4 sm:divide-y-0">
+        <div className="grid grid-cols-2 divide-x divide-y divide-stone-200 overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm dark:divide-stone-700 dark:border-stone-700 dark:bg-stone-900 sm:grid-cols-3 sm:divide-y-0">
           {[
-            { label: 'Mosques', value: '128+', detail: 'Across 18 kebeles', icon: Building },
+            { label: 'Mosques', value: '128+', detail: 'Across 13 kebeles', icon: Building },
             { label: 'Students enrolled', value: `${Math.max(4_850, students.length).toLocaleString()}+`, detail: 'In Quranic education', icon: BookOpen },
             { label: 'Ulema & teachers', value: `${Math.max(142, ulema.length)}+`, detail: 'Community educators', icon: Users },
-            { label: 'Community funds', value: `${(totalFundBalance / 1_000_000).toFixed(1)}M+`, detail: 'ETB allocated', icon: HeartHandshake },
           ].map(({ label, value, detail, icon: Icon }) => (
             <div key={label} className="p-4 sm:p-5">
               <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 dark:text-emerald-300">
