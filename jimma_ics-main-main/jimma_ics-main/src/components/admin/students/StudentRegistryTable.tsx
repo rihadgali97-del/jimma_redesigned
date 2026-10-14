@@ -24,7 +24,6 @@ export const StudentRegistryTable: React.FC<StudentRegistryTableProps> = ({
             <th className="p-3.5">Hifz Progress (30 Juz)</th>
             <th className="p-3.5">Current Sabaq</th>
             <th className="p-3.5">Tajweed Rating</th>
-            <th className="p-3.5">Today's Attendance</th>
             <th className="p-3.5 text-right">Actions</th>
           </tr>
         </thead>
@@ -90,19 +89,6 @@ export const StudentRegistryTable: React.FC<StudentRegistryTableProps> = ({
                     {student.tajweedRating}
                   </Badge>
                 </td>
-                <td className="p-3.5">
-                  <Badge
-                    variant={
-                      student.dailyAttendance === 'Present'
-                        ? 'emerald'
-                        : student.dailyAttendance === 'Excused'
-                          ? 'gold'
-                          : 'rose'
-                    }
-                  >
-                    {student.dailyAttendance || 'Not recorded'}
-                  </Badge>
-                </td>
                 <td className="p-3.5 text-right">
                   <div className="flex items-center justify-end gap-2">
                     <Button
@@ -123,7 +109,7 @@ export const StudentRegistryTable: React.FC<StudentRegistryTableProps> = ({
           })}
           {students.length === 0 && (
             <tr>
-              <td colSpan={7} className="p-10 text-center text-sm text-stone-500 dark:text-stone-400">
+              <td colSpan={6} className="p-10 text-center text-sm text-stone-500 dark:text-stone-400">
                 No students match these filters.
               </td>
             </tr>
