@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { CouncilEvent, EventRegistration } from '../../types';
 import {
@@ -21,6 +21,7 @@ import {
   Building,
   Radio,
   Share2,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { usePagination } from '../../hooks/usePagination';
@@ -31,6 +32,27 @@ import { CreateEventModal } from '../../components/events/CreateEventModal';
 import { EventAttendeesModal } from '../../components/events/EventAttendeesModal';
 import { EventPassModal } from '../../components/events/EventPassModal';
 import { EventAdminOverview, fetchAdminEventOverview, fetchEventRegistrations } from '../../services/eventsApi';
+
+// Must be longer than the API layer's own 20s timeout (ADMIN_DATA_TIMEOUT_MS in eventsApi.ts),
+// so this is only a last-resort safety net and never cuts a slow-but-valid request short.
+const REQUEST_TIMEOUT_MS = 25000;
+
+/** Rejects if a request never settles, so the loading state can never get stuck forever. */
+function withTimeout<T>(promise: Promise<T>, ms = REQUEST_TIMEOUT_MS): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Request timed out')), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
+}
 
 function formatEventDate(value: string) {
   const dateOnly = (value || '').slice(0, 10);
@@ -56,7 +78,6 @@ export const AdminEventsPage: React.FC = () => {
   const [isEventsLoading, setIsEventsLoading] = useState(true);
   const [isOverviewLoading, setIsOverviewLoading] = useState(true);
   const [eventsAvailable, setEventsAvailable] = useState(false);
-  const [overviewAvailable, setOverviewAvailable] = useState(false);
   const [overview, setOverview] = useState<EventAdminOverview | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -69,33 +90,48 @@ export const AdminEventsPage: React.FC = () => {
     registration: EventRegistration;
   } | null>(null);
 
+  const isMountedRef = useRef(true);
   useEffect(() => {
-    let isCurrent = true;
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-    void refreshEvents(true).then((eventsOk) => {
-      if (!isCurrent) return;
-      setEventsAvailable(eventsOk);
-      setIsEventsLoading(false);
-    });
+  // Loads events and the admin overview independently. Each request is time-limited,
+  // so a hanging request can never leave the KPI cards stuck on "Loading…".
+  const loadData = useCallback(async () => {
+    setIsEventsLoading(true);
+    setIsOverviewLoading(true);
 
-    void fetchAdminEventOverview()
-      .then((result) => {
-        if (!isCurrent) return;
-        setOverview(result);
-        setOverviewAvailable(true);
+    const eventsTask = withTimeout(Promise.resolve(refreshEvents(true)))
+      .then((ok) => {
+        if (isMountedRef.current) setEventsAvailable(Boolean(ok));
       })
       .catch(() => {
-        if (!isCurrent) return;
-        setOverviewAvailable(false);
+        if (isMountedRef.current) setEventsAvailable(false);
       })
       .finally(() => {
-        if (!isCurrent) return;
-        setIsOverviewLoading(false);
+        if (isMountedRef.current) setIsEventsLoading(false);
       });
 
-    return () => {
-      isCurrent = false;
-    };
+    const overviewTask = withTimeout(fetchAdminEventOverview())
+      .then((data) => {
+        if (isMountedRef.current) setOverview(data ?? null);
+      })
+      .catch(() => {
+        if (isMountedRef.current) setOverview(null);
+      })
+      .finally(() => {
+        if (isMountedRef.current) setIsOverviewLoading(false);
+      });
+
+    await Promise.allSettled([eventsTask, overviewTask]);
+  }, [refreshEvents]);
+
+  useEffect(() => {
+    void loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const categories = [
@@ -108,7 +144,8 @@ export const AdminEventsPage: React.FC = () => {
     'Community Gathering',
   ];
 
-  const adminEvents = isEventsLoading ? [] : events;
+  // Always show whatever real events the app already holds, even if the overview call failed.
+  const adminEvents = events || [];
   const filteredEvents = adminEvents.filter((e) => {
     const s = (searchTerm || '').toLowerCase();
     const matchesSearch =
@@ -125,15 +162,52 @@ export const AdminEventsPage: React.FC = () => {
   });
   const pagination = usePagination(filteredEvents, 10, `${searchTerm}|${selectedCategory}|${selectedStatus}`);
 
-  // Global KPIs
+  // KPI values: prefer the server overview; if it is unavailable, compute what we can
+  // from the real events list. Values we cannot know (check-ins, passes) stay null => "—".
+  const kpis = useMemo(() => {
+    if (overview) {
+      return {
+        source: 'server' as const,
+        eventCount: overview.eventCount,
+        openRegistrationEventCount: overview.openRegistrationEventCount,
+        confirmedAttendeeCount: overview.confirmedAttendeeCount,
+        totalCapacity: overview.totalCapacity,
+        checkedInAttendeeCount: overview.checkedInAttendeeCount as number | null,
+        issuedPassCount: overview.issuedPassCount as number | null,
+      };
+    }
+    if (events && events.length > 0) {
+      return {
+        source: 'events' as const,
+        eventCount: events.length,
+        openRegistrationEventCount: events.filter((e) => e.registrationOpen).length,
+        confirmedAttendeeCount: events.reduce((sum, e) => sum + (Number(e.attendeesCount) || 0), 0),
+        totalCapacity: events.reduce((sum, e) => sum + (Number(e.maxCapacity) || 0), 0),
+        checkedInAttendeeCount: null as number | null,
+        issuedPassCount: null as number | null,
+      };
+    }
+    return null;
+  }, [overview, events]);
+
+  const kpiLoading = isOverviewLoading && !kpis;
+  const fmt = (value: number | null | undefined) =>
+    kpiLoading ? '…' : value === null || value === undefined ? '—' : value.toLocaleString();
+
   const handleToggleRegistration = async (event: CouncilEvent) => {
     try {
-    await updateEvent(event.id, { registrationOpen: !event.registrationOpen });
-    addToast(
-      'Registration Status Updated',
-      `Public registration for "${event.title}" is now ${!event.registrationOpen ? 'OPEN' : 'PAUSED'}.`,
-      'info'
-    );
+      await updateEvent(event.id, { registrationOpen: !event.registrationOpen });
+      addToast(
+        'Registration Status Updated',
+        `Public registration for "${event.title}" is now ${!event.registrationOpen ? 'OPEN' : 'PAUSED'}.`,
+        'info'
+      );
+      // Keep the KPI cards in sync with the change.
+      void withTimeout(fetchAdminEventOverview())
+        .then((data) => {
+          if (isMountedRef.current) setOverview(data ?? null);
+        })
+        .catch(() => {});
     } catch {
       // The app context reports API errors.
     }
@@ -141,7 +215,15 @@ export const AdminEventsPage: React.FC = () => {
 
   const handleDeleteEvent = (id: string, title: string) => {
     if (window.confirm(`Are you sure you want to remove "${title}" from the council schedule?`)) {
-      void deleteEvent(id).catch(() => {});
+      void deleteEvent(id)
+        .then(() =>
+          withTimeout(fetchAdminEventOverview())
+            .then((data) => {
+              if (isMountedRef.current) setOverview(data ?? null);
+            })
+            .catch(() => {})
+        )
+        .catch(() => {});
     }
   };
 
@@ -185,6 +267,9 @@ export const AdminEventsPage: React.FC = () => {
     addToast('All Registrations Exported', `Downloaded CSV for ${registrations.length} registrations.`, 'success');
     setIsExporting(false);
   };
+
+  const isAnyLoading = isEventsLoading || isOverviewLoading;
+  const showLoadError = !isAnyLoading && (!eventsAvailable || !overview);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -231,14 +316,28 @@ export const AdminEventsPage: React.FC = () => {
         </div>
       </div>
 
-      {!isEventsLoading && !isOverviewLoading && (!eventsAvailable || !overviewAvailable) && (
+      {showLoadError && (
         <div
           role="alert"
-          className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+          className="flex flex-col gap-2 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200 sm:flex-row sm:items-center sm:justify-between"
         >
-          Could not load {!eventsAvailable && !overviewAvailable
-            ? 'event list or KPI data'
-            : !eventsAvailable ? 'event list' : 'KPI data'} from the server. Affected metrics are unavailable; refresh this page to retry.
+          <span>
+            Could not load {!eventsAvailable && !overview
+              ? 'event data or event metrics'
+              : !eventsAvailable ? 'event data' : 'event metrics'} from the server.
+            {kpis?.source === 'events'
+              ? ' Showing totals calculated from the events that are loaded; check-in and pass counts are unavailable.'
+              : ' Affected data is unavailable.'}
+          </span>
+          <Button
+            variant="outline"
+            size="xs"
+            onClick={() => void loadData()}
+            icon={<RefreshCw className="w-3.5 h-3.5" />}
+            className="whitespace-nowrap text-[11px]"
+          >
+            Retry
+          </Button>
         </div>
       )}
 
@@ -252,14 +351,14 @@ export const AdminEventsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
-            {isOverviewLoading ? '…' : overviewAvailable ? overview?.eventCount.toLocaleString() ?? '—' : '—'}
+            {fmt(kpis?.eventCount)}
           </p>
           <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-            {isOverviewLoading
+            {kpiLoading
               ? 'Loading event data…'
-              : overviewAvailable
-                ? `${overview?.openRegistrationEventCount.toLocaleString() ?? '—'} Gatherings RSVP Open`
-                : 'RSVP data unavailable'}
+              : kpis
+                ? `${kpis.openRegistrationEventCount.toLocaleString()} Gatherings RSVP Open`
+                : 'Event data unavailable'}
           </p>
         </div>
 
@@ -271,18 +370,10 @@ export const AdminEventsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
-            {isOverviewLoading
-              ? '…'
-              : overviewAvailable
-                ? overview?.confirmedAttendeeCount.toLocaleString() ?? '—'
-                : '—'}
+            {fmt(kpis?.confirmedAttendeeCount)}
           </p>
           <p className="text-[11px] text-stone-500">
-            Total Capacity: {isOverviewLoading
-              ? '…'
-              : overviewAvailable
-                ? `${overview?.totalCapacity.toLocaleString() ?? '—'} seats`
-                : '—'}
+            Total Capacity: {kpiLoading ? '…' : kpis ? `${kpis.totalCapacity.toLocaleString()} seats` : '—'}
           </p>
         </div>
 
@@ -294,11 +385,7 @@ export const AdminEventsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-serif font-bold text-emerald-600 dark:text-emerald-400">
-            {isOverviewLoading
-              ? '…'
-              : overviewAvailable
-                ? overview?.checkedInAttendeeCount.toLocaleString() ?? '—'
-                : '—'}
+            {fmt(kpis?.checkedInAttendeeCount)}
           </p>
           <p className="text-[11px] text-stone-500">
             Pass verification active
@@ -313,11 +400,7 @@ export const AdminEventsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
-            {isOverviewLoading
-              ? '…'
-              : overviewAvailable
-                ? overview?.issuedPassCount.toLocaleString() ?? '—'
-                : '—'}
+            {fmt(kpis?.issuedPassCount)}
           </p>
           <p className="text-[11px] text-stone-500">
             Across all council programs
