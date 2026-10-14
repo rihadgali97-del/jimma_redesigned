@@ -39,7 +39,7 @@ import {
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
-import { AuditDirective, AuditChecklistItem, CompliancePillar, AuditSeverity, AuditCategory, StaffDepartment } from '../../types';
+import { AuditDirective, AuditChecklistItem, AuditSeverity, AuditCategory, StaffDepartment, CryptographicLedgerBlock } from '../../types';
 import {
   archiveAuditDirective,
   AuditIntegritySnapshot,
@@ -61,24 +61,18 @@ export const AuditorDashboard: React.FC = () => {
     funds,
     donations,
     zakatDistributions,
-    auditChecklist: defaultAuditChecklist,
-    ledgerBlocks,
     addToast,
     currentUser,
   } = useApp();
+  const ledgerBlocks: CryptographicLedgerBlock[] = [];
   const [auditDirectives, setAuditDirectives] = useState<AuditDirective[]>([]);
-  const [auditChecklist, setAuditChecklist] = useState<AuditChecklistItem[]>(() => defaultAuditChecklist.map((item) => ({
-    ...item,
-    status: 'Pending Review',
-    evidenceNote: undefined,
-    verifiedBy: '',
-    lastVerified: 'Not reviewed',
-  })));
+  const [auditChecklist, setAuditChecklist] = useState<AuditChecklistItem[]>([]);
   const [auditTrail, setAuditTrail] = useState<Awaited<ReturnType<typeof fetchComplianceAuditTrail>>>([]);
   const [auditDataLoading, setAuditDataLoading] = useState(true);
   const [auditDataError, setAuditDataError] = useState('');
   const [auditReloadKey, setAuditReloadKey] = useState(0);
   const [integritySnapshot, setIntegritySnapshot] = useState<AuditIntegritySnapshot | null>(null);
+  const [checklistEvidenceDrafts, setChecklistEvidenceDrafts] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let mounted = true;
@@ -88,17 +82,7 @@ export const AuditorDashboard: React.FC = () => {
       .then(([directives, checklistUpdates, trail]) => {
         if (!mounted) return;
         setAuditDirectives(directives);
-        const updates = new Map(checklistUpdates.map((item) => [item.itemId, item]));
-        setAuditChecklist(defaultAuditChecklist.map((item) => {
-          const update = updates.get(item.id);
-          return {
-            ...item,
-            status: update?.status || 'Pending Review',
-            evidenceNote: update?.evidenceNote || undefined,
-            verifiedBy: update?.verifiedBy || '',
-            lastVerified: update?.lastVerified || 'Not reviewed',
-          };
-        }));
+        setAuditChecklist(checklistUpdates);
         setAuditTrail(trail);
         const snapshotEvent = trail.find((event) => event.entityType === 'audit_integrity_scan');
         if (snapshotEvent?.after && typeof snapshotEvent.after === 'object' && !Array.isArray(snapshotEvent.after)) {
@@ -114,7 +98,7 @@ export const AuditorDashboard: React.FC = () => {
     return () => {
       mounted = false;
     };
-  }, [defaultAuditChecklist, auditReloadKey]);
+  }, [auditReloadKey]);
 
   // Navigation tabs
   const [activeTab, setActiveTab] = useState<AuditorTab>('overview');
@@ -141,7 +125,8 @@ export const AuditorDashboard: React.FC = () => {
   const [directiveSearch, setDirectiveSearch] = useState('');
 
   // Checklist filtering
-  const [checklistPillarFilter, setChecklistPillarFilter] = useState<string>('all');
+  const [newChecklistItemId, setNewChecklistItemId] = useState('');
+  const [newChecklistEvidence, setNewChecklistEvidence] = useState('');
 
   // Security logs filtering
   const [logFilter, setLogFilter] = useState<'all' | 'Finance_Security' | 'Role_Change' | 'Auth' | 'Compliance'>('all');
@@ -261,18 +246,43 @@ export const AuditorDashboard: React.FC = () => {
 
   const changeChecklistStatus = async (item: AuditChecklistItem, status: AuditChecklistItem['status'], evidenceNote: string) => {
     try {
-      const update = await updateChecklistStatus(item.id, {
+      const update = await updateChecklistStatus(item.itemId, {
         status,
         evidenceNote,
         verifiedBy: currentUser.name,
       });
-      setAuditChecklist((items) => items.map((entry) => entry.id === item.id
-        ? { ...entry, status: update.status, evidenceNote: update.evidenceNote, verifiedBy: update.verifiedBy, lastVerified: update.lastVerified }
+      setAuditChecklist((items) => items.map((entry) => entry.itemId === item.itemId
+        ? update
         : entry));
+      setChecklistEvidenceDrafts((drafts) => ({ ...drafts, [item.itemId]: update.evidenceNote }));
       setAuditReloadKey((key) => key + 1);
-      addToast('Compliance checklist saved', `${item.id} is now ${status}.`, 'success');
+      addToast('Compliance checklist saved', `${item.itemId} is now ${status}.`, 'success');
     } catch (error) {
       addToast('Could not save checklist status', error instanceof Error ? error.message : 'Please try again.', 'error');
+    }
+  };
+
+  const createChecklistRecord = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const itemId = newChecklistItemId.trim();
+    if (!itemId) return;
+    if (auditChecklist.some((item) => item.itemId.toLowerCase() === itemId.toLowerCase())) {
+      addToast('Checklist record already exists', `${itemId} is already recorded.`, 'warning');
+      return;
+    }
+    try {
+      const created = await updateChecklistStatus(itemId, {
+        status: 'Pending Review',
+        verifiedBy: currentUser.name,
+        evidenceNote: newChecklistEvidence,
+      });
+      setAuditChecklist((items) => [created, ...items]);
+      setChecklistEvidenceDrafts((drafts) => ({ ...drafts, [itemId]: created.evidenceNote }));
+      setNewChecklistItemId('');
+      setNewChecklistEvidence('');
+      addToast('Compliance record created', `${itemId} was saved to the audit trail.`, 'success');
+    } catch (error) {
+      addToast('Could not create compliance record', error instanceof Error ? error.message : 'Please try again.', 'error');
     }
   };
 
@@ -316,9 +326,7 @@ export const AuditorDashboard: React.FC = () => {
   });
 
   // Filtered Checklist
-  const filteredChecklist = (auditChecklist || []).filter((c) => {
-    return checklistPillarFilter === 'all' || c.pillar === checklistPillarFilter;
-  });
+  const filteredChecklist = auditChecklist;
 
   // Filtered Security Logs
   const filteredLogs = auditTrail.map((event) => {
@@ -359,9 +367,10 @@ export const AuditorDashboard: React.FC = () => {
   // Active counts
   const openDirectivesCount = auditDirectives.filter((d) => d.status === 'Open' || d.status === 'Under Investigation').length;
   const criticalDirectivesCount = auditDirectives.filter((d) => d.severity === 'Critical' && d.status !== 'Resolved').length;
+  const resolvedDirectivesCount = auditDirectives.filter((d) => d.status === 'Resolved').length;
   const compliantChecklistCount = auditChecklist.filter((c) => c.status === 'Compliant').length;
   const totalChecklistCount = auditChecklist.length;
-  const compliancePercentage = totalChecklistCount > 0 ? Math.round((compliantChecklistCount / totalChecklistCount) * 100) : 100;
+  const compliancePercentage = totalChecklistCount > 0 ? Math.round((compliantChecklistCount / totalChecklistCount) * 100) : null;
 
   // Selected voucher details
   const selectedVoucher = expenseApprovals.find((v) => v.id === selectedVoucherId) || expenseApprovals[0];
@@ -369,9 +378,8 @@ export const AuditorDashboard: React.FC = () => {
   if (activeTab === 'overview') {
     const sections: { id: Exclude<AuditorTab, 'overview'>; title: string; description: string; icon: React.ReactNode; count: string }[] = [
       { id: 'directives', title: 'Audit findings', description: 'Create, assign, escalate, and resolve review findings.', icon: <AlertTriangle className="h-5 w-5" />, count: `${openDirectivesCount} open` },
-      { id: 'checklist', title: 'Compliance checklist', description: 'Review standards and record verification notes.', icon: <ShieldCheck className="h-5 w-5" />, count: `${compliantChecklistCount}/${totalChecklistCount} compliant` },
+      { id: 'checklist', title: 'Saved compliance records', description: 'Review and update compliance records saved in the audit trail.', icon: <ShieldCheck className="h-5 w-5" />, count: `${compliantChecklistCount}/${totalChecklistCount} compliant` },
       { id: 'ledger', title: 'Data integrity', description: 'Create a SHA-256 snapshot of persisted donation and Zakat records.', icon: <Database className="h-5 w-5" />, count: integritySnapshot ? `${integritySnapshot.checkedRecords} records scanned` : 'Not scanned' },
-      { id: 'vouchers', title: 'Voucher review', description: 'Voucher inspection is not yet connected to persisted backend records.', icon: <FileCheck2 className="h-5 w-5" />, count: 'Not connected' },
       { id: 'security', title: 'System audit trail', description: 'Search persisted administrative activity and compliance events.', icon: <Lock className="h-5 w-5" />, count: `${auditTrail.length} latest events` },
     ];
 
@@ -540,7 +548,7 @@ export const AuditorDashboard: React.FC = () => {
           <div className="text-xs text-stone-500 dark:text-stone-400 flex items-center justify-between pt-2 border-t border-stone-100 dark:border-stone-800">
             <span>Resolution Rate</span>
             <span className="font-semibold text-stone-700 dark:text-stone-300 font-mono">
-              {auditDirectives.length > 0 ? Math.round(((auditDirectives.length - openDirectivesCount) / auditDirectives.length) * 100) : 100}% cleared
+              {auditDirectives.length > 0 ? `${Math.round((resolvedDirectivesCount / auditDirectives.length) * 100)}% resolved` : '—'}
             </span>
           </div>
         </Card>
@@ -611,7 +619,7 @@ export const AuditorDashboard: React.FC = () => {
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
-          <span>Compliance checklist</span>
+          <span>Saved compliance records</span>
         </button>
 
         <button
@@ -624,18 +632,6 @@ export const AuditorDashboard: React.FC = () => {
         >
           <Database className="w-4 h-4" />
           <span>Data integrity</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('vouchers')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold whitespace-nowrap transition-all ${
-            activeTab === 'vouchers'
-              ? 'bg-amber-600 text-white shadow-xs'
-              : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
-          }`}
-        >
-          <FileCheck2 className="w-4 h-4" />
-          <span>Voucher Inspector</span>
         </button>
 
         <button
@@ -1159,42 +1155,49 @@ export const AuditorDashboard: React.FC = () => {
             <div>
               <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100 flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                <span>Institutional Governance & Compliance Matrix (4 Pillars)</span>
+                <span>Saved Compliance Records</span>
               </h3>
               <p className="text-xs text-stone-500">
-                Continuous compliance benchmark alignment covering Shari'ah standards (AAOIFI), Ethiopian CSO laws, and internal controls.
+                These records are the checklist updates saved to the backend audit trail. No unrecorded standards or default statuses are shown.
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <select
-                value={checklistPillarFilter}
-                onChange={(e) => setChecklistPillarFilter(e.target.value)}
-                className="p-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-xs text-stone-900 dark:text-stone-100"
-              >
-                <option value="all">All 4 Pillars</option>
-                <option value="Shariah">Pillar 1: Shari'ah Financial Governance</option>
-                <option value="Financial">Pillar 2: Financial Integrity & Controls</option>
-                <option value="Regulatory">Pillar 3: CSO Regulatory & Statutory</option>
-                <option value="Governance">Pillar 4: Property & Digital Governance</option>
-              </select>
-            </div>
           </div>
+
+          <form onSubmit={createChecklistRecord} className="flex flex-col sm:flex-row gap-2">
+            <input
+              value={newChecklistItemId}
+              onChange={(event) => setNewChecklistItemId(event.target.value)}
+              required
+              maxLength={80}
+              placeholder="Compliance record ID"
+              aria-label="Compliance record ID"
+              className="flex-1 p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-xs text-stone-900 dark:text-stone-100"
+            />
+            <input
+              value={newChecklistEvidence}
+              onChange={(event) => setNewChecklistEvidence(event.target.value)}
+              maxLength={5000}
+              placeholder="Evidence note (optional)"
+              aria-label="Evidence note"
+              className="flex-1 p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-xs text-stone-900 dark:text-stone-100"
+            />
+            <Button type="submit" variant="primary" size="sm" icon={<Plus className="w-4 h-4" />}>
+              Save record
+            </Button>
+          </form>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredChecklist.map((item) => (
               <div
-                key={item.id}
+                key={item.itemId}
                 className="p-5 rounded-3xl bg-white dark:bg-stone-800/70 border border-stone-200 dark:border-stone-700 shadow-xs space-y-3 text-xs flex flex-col justify-between"
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-bold text-[11px] text-amber-700 dark:text-amber-400">
-                        {item.id}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-700 text-[10px] font-bold text-stone-600 dark:text-stone-300 uppercase">
-                        {item.pillar}
+                        {item.itemId}
                       </span>
                     </div>
 
@@ -1211,44 +1214,58 @@ export const AuditorDashboard: React.FC = () => {
                     </Badge>
                   </div>
 
-                  <h4 className="font-bold text-sm text-stone-900 dark:text-stone-100">
-                    {item.title}
-                  </h4>
-                  <p className="text-stone-500 dark:text-stone-400 leading-relaxed">
-                    {item.description}
-                  </p>
-
                   <div className="p-2.5 rounded-xl bg-stone-50 dark:bg-stone-900/60 border border-stone-100 dark:border-stone-800 text-[11px] font-mono text-stone-600 dark:text-stone-300 space-y-1">
-                    <div>Standard: <span className="font-bold text-stone-800 dark:text-stone-200">{item.standardReference}</span></div>
-                    {item.evidenceNote && (
-                      <div className="text-stone-500 italic">"{item.evidenceNote}"</div>
-                    )}
+                    <textarea
+                      value={checklistEvidenceDrafts[item.itemId] ?? item.evidenceNote}
+                      onChange={(event) => setChecklistEvidenceDrafts((drafts) => ({
+                        ...drafts,
+                        [item.itemId]: event.target.value,
+                      }))}
+                      maxLength={5000}
+                      aria-label={`${item.itemId} evidence note`}
+                      placeholder="Add evidence note"
+                      className="w-full min-h-16 resize-y bg-transparent outline-hidden"
+                    />
                   </div>
                 </div>
 
                 <div className="pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-[11px]">
-                  <span className="text-stone-400 font-mono">Verified: {item.lastVerified}</span>
+                  <span className="text-stone-400 font-mono">
+                    {item.verifiedBy ? `Saved by ${item.verifiedBy} · ${item.lastVerified}` : `Last updated ${item.lastVerified}`}
+                  </span>
 
                   <div className="flex items-center gap-1.5">
-                    {item.status !== 'Compliant' ? (
-                      <button
-                        onClick={() => changeChecklistStatus(item, 'Compliant', 'Auditor verified complete documentation.')}
-                        className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 font-bold hover:bg-emerald-200 transition-colors flex items-center gap-1"
-                      >
-                        <Check className="w-3 h-3" /> Mark Compliant
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => changeChecklistStatus(item, 'Action Required', 'Requires re-audit for next fiscal quarter.')}
-                        className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 font-semibold hover:bg-stone-200 transition-colors"
-                      >
-                        Re-inspect
-                      </button>
-                    )}
+                    <select
+                      value={item.status}
+                      onChange={(event) => void changeChecklistStatus(item, event.target.value as AuditChecklistItem['status'], item.evidenceNote)}
+                      aria-label={`Update ${item.itemId} status`}
+                      className="max-w-40 p-1.5 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-[11px]"
+                    >
+                      <option value="Pending Review">Pending Review</option>
+                      <option value="Compliant">Compliant</option>
+                      <option value="Action Required">Action Required</option>
+                      <option value="Exempt">Exempt</option>
+                    </select>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void changeChecklistStatus(
+                        item,
+                        item.status,
+                        checklistEvidenceDrafts[item.itemId] ?? item.evidenceNote
+                      )}
+                    >
+                      Save
+                    </Button>
                   </div>
                 </div>
               </div>
             ))}
+            {!auditDataLoading && !auditDataError && filteredChecklist.length === 0 && (
+              <div className="md:col-span-2 rounded-xl border border-dashed border-stone-300 p-8 text-center text-sm text-stone-500 dark:border-stone-700">
+                No compliance records have been saved yet. Add a record ID above to begin recording real review status.
+              </div>
+            )}
           </div>
         </Card>
       )}
@@ -1386,22 +1403,6 @@ export const AuditorDashboard: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
-        </Card>
-      )}
-
-      {activeTab === 'vouchers' && (
-        <Card className="space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-amber-50 p-2 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
-              <FileCheck2 className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-stone-900 dark:text-stone-100">Voucher review is not connected</h2>
-              <p className="mt-1 max-w-2xl text-sm text-stone-500 dark:text-stone-400">
-                Expense voucher records and audit stamps are not currently persisted by the backend. No sample vouchers are shown or marked as verified.
-              </p>
-            </div>
           </div>
         </Card>
       )}

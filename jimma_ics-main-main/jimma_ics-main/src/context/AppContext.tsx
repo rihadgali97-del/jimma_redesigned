@@ -25,9 +25,6 @@ import {
   SecurityAuditLog,
   CouncilResource,
   ZakatBeneficiaryDistribution,
-  AuditDirective,
-  AuditChecklistItem,
-  CryptographicLedgerBlock,
   ZakatCalculationRecord,
 } from '../types';
 import { mockStudents } from '../data/mockStudents';
@@ -35,7 +32,6 @@ import { mockFunds, mockTransactions, mockDonations, mockExpenseApprovals } from
 import { mockPublicServices, ServiceItem } from '../data/mockServices';
 import { initialCouncilResources } from '../data/mockResources';
 import { initialAttendanceSessions, initialStaffAttendance } from '../data/mockAttendance';
-import { mockAuditDirectives, mockAuditChecklist, mockLedgerBlocks } from '../data/mockAuditCompliance';
 import { mockZakatCalculations } from '../data/mockZakatHistory';
 import { apiRequest, AuthUser, loginWithPassword, logoutFromServer, PaginationMeta, registerAccount, restoreAuthUser } from '../services/authApi';
 import { fetchDirectoryMadrasas, fetchDirectoryMosques } from '../services/directoryApi';
@@ -253,18 +249,6 @@ interface AppContextType {
   batchMarkAttendance: (sessionId: string, status: AttendanceStatus) => void;
   updateStaffAttendanceRecord: (id: string, updates: Partial<StaffAttendanceEntry>) => void;
   addStaffAttendanceRecord: (entry: Omit<StaffAttendanceEntry, 'id'>) => StaffAttendanceEntry;
-
-  // Independent Audit & Shariah Compliance
-  auditDirectives: AuditDirective[];
-  addAuditDirective: (directive: Omit<AuditDirective, 'id' | 'createdDate'>) => AuditDirective;
-  updateAuditDirective: (id: string, updates: Partial<AuditDirective>) => void;
-  resolveAuditDirective: (id: string, resolutionNote: string) => void;
-  escalateAuditDirective: (id: string) => void;
-  deleteAuditDirective: (id: string) => void;
-  auditChecklist: AuditChecklistItem[];
-  updateChecklistStatus: (id: string, status: AuditChecklistItem['status'], note?: string) => void;
-  ledgerBlocks: CryptographicLedgerBlock[];
-  runForensicReconciliation: () => Promise<{ verifiedBlocks: number; verifiedTxs: number; varianceETB: number; hash: string }>;
 
   // Toasts
   toasts: ToastNotification[];
@@ -584,9 +568,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [eventSubscriptions, setEventSubscriptions] = useState<EventNotificationSubscription[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [resources, setResources] = useState<CouncilResource[]>(initialCouncilResources);
-  const [auditDirectives, setAuditDirectives] = useState<AuditDirective[]>(mockAuditDirectives);
-  const [auditChecklist, setAuditChecklist] = useState<AuditChecklistItem[]>(mockAuditChecklist);
-  const [ledgerBlocks, setLedgerBlocks] = useState<CryptographicLedgerBlock[]>(mockLedgerBlocks);
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
 
@@ -1858,102 +1839,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  // Independent Audit & Shariah Compliance Methods
-  const addAuditDirective = (directive: Omit<AuditDirective, 'id' | 'createdDate'>): AuditDirective => {
-    const newId = `AUD-2026-${String(auditDirectives.length + 1).padStart(3, '0')}`;
-    const today = new Date().toISOString().split('T')[0];
-    const newDirective: AuditDirective = {
-      ...directive,
-      id: newId,
-      createdDate: today,
-    };
-    setAuditDirectives((prev) => [newDirective, ...prev]);
-    addToast(
-      'Audit Directive Attached',
-      `Audit inquiry ${newId} assigned to ${newDirective.assignedAuditor}.`,
-      'info'
-    );
-    return newDirective;
-  };
-
-  const updateAuditDirective = (id: string, updates: Partial<AuditDirective>) => {
-    setAuditDirectives((prev) =>
-      prev.map((d) => (d.id === id ? { ...d, ...updates } : d))
-    );
-    addToast('Audit Record Updated', 'Audit directive parameters updated successfully.', 'info');
-  };
-
-  const resolveAuditDirective = (id: string, resolutionNote: string) => {
-    const today = new Date().toISOString().split('T')[0];
-    setAuditDirectives((prev) =>
-      prev.map((d) =>
-        d.id === id
-          ? {
-              ...d,
-              status: 'Resolved',
-              resolvedDate: today,
-              resolutionNote,
-            }
-          : d
-      )
-    );
-    addToast('Audit Finding Resolved', `Audit directive ${id} marked as resolved and sealed.`, 'success');
-  };
-
-  const escalateAuditDirective = (id: string) => {
-    setAuditDirectives((prev) =>
-      prev.map((d) => (d.id === id ? { ...d, status: 'Escalated to Shura' } : d))
-    );
-    addToast(
-      'Escalated to Shura Council',
-      `Audit inquiry ${id} formally submitted to the Supreme Executive Shura.`,
-      'warning'
-    );
-  };
-
-  const deleteAuditDirective = (id: string) => {
-    setAuditDirectives((prev) => prev.filter((d) => d.id !== id));
-    addToast('Directive Removed', `Audit record ${id} removed from active review.`, 'info');
-  };
-
-  const updateChecklistStatus = (id: string, status: AuditChecklistItem['status'], note?: string) => {
-    const today = new Date().toISOString().split('T')[0];
-    setAuditChecklist((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              status,
-              lastVerified: today,
-              verifiedBy: currentUser.name,
-              evidenceNote: note || item.evidenceNote,
-            }
-          : item
-      )
-    );
-    addToast('Governance Checklist Updated', `Compliance standard ${id} updated to [${status}].`, 'success');
-  };
-
-  const runForensicReconciliation = async (): Promise<{
-    verifiedBlocks: number;
-    verifiedTxs: number;
-    varianceETB: number;
-    hash: string;
-  }> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const totalTxCount = transactions.length + 1378;
-        const digest = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
-        resolve({
-          verifiedBlocks: ledgerBlocks.length,
-          verifiedTxs: totalTxCount,
-          varianceETB: 0.0,
-          hash: digest,
-        });
-      }, 1500);
-    });
-  };
-
   return (
     <AppContext.Provider
       value={{
@@ -2072,16 +1957,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         batchMarkAttendance,
         updateStaffAttendanceRecord,
         addStaffAttendanceRecord,
-        auditDirectives,
-        addAuditDirective,
-        updateAuditDirective,
-        resolveAuditDirective,
-        escalateAuditDirective,
-        deleteAuditDirective,
-        auditChecklist,
-        updateChecklistStatus,
-        ledgerBlocks,
-        runForensicReconciliation,
         toasts,
         addToast,
         removeToast,

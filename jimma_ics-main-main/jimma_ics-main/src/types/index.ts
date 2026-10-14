@@ -706,19 +706,12 @@ export interface AuditDirective {
   amountETB?: number;
 }
 
-export type CompliancePillar = 'Shariah' | 'Financial' | 'Regulatory' | 'Governance';
-
 export interface AuditChecklistItem {
-  id: string;
-  title: string;
-  pillar: CompliancePillar;
-  description: string;
+  itemId: string;
   status: 'Compliant' | 'Pending Review' | 'Action Required' | 'Exempt';
-  lastVerified: string;
+  evidenceNote: string;
   verifiedBy: string;
-  standardReference: string;
-  evidenceNote?: string;
-  frequency: 'Continuous' | 'Monthly' | 'Quarterly' | 'Annual';
+  lastVerified: string;
 }
 
 export interface CryptographicLedgerBlock {
