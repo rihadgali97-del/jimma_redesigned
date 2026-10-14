@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CouncilEvent, EventScheduleItem } from '../../types';
 import { useApp } from '../../context/AppContext';
-import { KEBELE_NAMES } from '../../constants/kebeles';
+import { DirectoryWoreda, fetchDirectoryWoredas } from '../../services/directoryApi';
 import {
   X,
   Calendar,
@@ -30,6 +30,10 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
 }) => {
   const { addEvent, updateEvent, addToast } = useApp();
   const [isSaving, setIsSaving] = useState(false);
+  const [woredas, setWoredas] = useState<DirectoryWoreda[]>([]);
+  const [woredasLoading, setWoredasLoading] = useState(false);
+  const [woredasError, setWoredasError] = useState('');
+  const [woredasRetry, setWoredasRetry] = useState(0);
 
   const [title, setTitle] = useState(initialEvent?.title || '');
   const [arabicTitle, setArabicTitle] = useState(initialEvent?.arabicTitle || '');
@@ -41,7 +45,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   const [time, setTime] = useState(initialEvent?.time || '08:30 AM - 04:30 PM');
   const [location, setLocation] = useState(initialEvent?.location || 'Grand Anwar Mosque Auditorium');
   const [venueDetails, setVenueDetails] = useState(initialEvent?.venueDetails || 'Main Auditorium & Conference Hall');
-  const [district, setDistrict] = useState(initialEvent?.district || KEBELE_NAMES[0]);
+  const [district, setDistrict] = useState(initialEvent?.district || '');
   const [organizer, setOrganizer] = useState(initialEvent?.organizer || 'Jimma Islamic Council Education Directorate');
   const [speaker, setSpeaker] = useState(initialEvent?.speaker || 'Sheikh Abdullah Ahmed Al-Jimmawi');
   const [description, setDescription] = useState(
@@ -63,6 +67,33 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   const [registrationOpen, setRegistrationOpen] = useState(
     initialEvent ? initialEvent.registrationOpen : true
   );
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let isCurrent = true;
+    setWoredasLoading(true);
+    setWoredasError('');
+    fetchDirectoryWoredas()
+      .then((items) => {
+        if (!isCurrent) return;
+        const activeWoredas = items.filter((item) => item.isActive);
+        setWoredas(activeWoredas);
+        setDistrict((current) => current || activeWoredas[0]?.name || '');
+      })
+      .catch((error: unknown) => {
+        if (!isCurrent) return;
+        const message = error instanceof Error ? error.message : 'Could not load the kebele list.';
+        setWoredasError(message);
+      })
+      .finally(() => {
+        if (isCurrent) setWoredasLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [isOpen, woredasRetry]);
 
   // Agenda Timeline Builder
   const [schedule, setSchedule] = useState<EventScheduleItem[]>(
@@ -281,16 +312,41 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold">Kebele</label>
+                <label className="text-xs font-semibold">Kebele *</label>
                 <select
+                  required
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs sm:text-sm outline-hidden focus:ring-2 focus:ring-amber-500"
+                  disabled={woredasLoading || (woredas.length === 0 && !initialEvent?.district)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs sm:text-sm outline-hidden focus:ring-2 focus:ring-amber-500 disabled:opacity-60"
                 >
-                  {[...new Set([...KEBELE_NAMES, ...(KEBELE_NAMES.includes(district) ? [] : [district])])].map((d) => (
-                    <option key={d} value={d}>{d}</option>
+                  <option value="" disabled>
+                    {woredasLoading ? 'Loading kebeles…' : woredasError ? 'Kebele list unavailable' : 'Select a kebele'}
+                  </option>
+                  {initialEvent?.district && !woredas.some((woreda) => woreda.name === initialEvent.district) && (
+                    <option value={initialEvent.district}>{initialEvent.district} (current event)</option>
+                  )}
+                  {woredas.map((woreda) => (
+                    <option key={woreda.id} value={woreda.name}>{woreda.name}</option>
                   ))}
                 </select>
+                {woredasError && (
+                  <div className="flex items-center justify-between gap-2 text-xs text-rose-600 dark:text-rose-400" role="alert">
+                    <span>{woredasError}</span>
+                    <button
+                      type="button"
+                      className="shrink-0 font-semibold underline"
+                      onClick={() => setWoredasRetry((attempt) => attempt + 1)}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+                {!woredasLoading && !woredasError && woredas.length === 0 && (
+                  <p className="text-xs text-amber-700 dark:text-amber-400" role="status">
+                    No active kebeles are configured.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5 sm:col-span-3">
