@@ -25,7 +25,6 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
 import {
-  CertificateTemplate,
   CertificateData,
   CertificateLanguage,
   CertificateTheme,
@@ -142,6 +141,7 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
   student,
 }) => {
   const certificateRef = useRef<HTMLDivElement>(null);
+  const livePreviewCanvasRef = useRef<HTMLCanvasElement>(null);
 
   // Active configuration states
   const [selectedPresetId, setSelectedPresetId] = useState<string>(
@@ -238,6 +238,11 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
     honorsNote,
     language,
   };
+
+  useEffect(() => {
+    const canvas = livePreviewCanvasRef.current;
+    if (isOpen && canvas) drawCertificateOnCanvas(canvas, certificateData, theme, language);
+  }, [certificateData, isOpen, language, theme]);
 
   // Direct Native Canvas-based PDF Generation Engine (0 external DOM dependency, 0 oklch error)
   const handleDownloadPdf = async () => {
@@ -718,7 +723,7 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
               </div>
             </div>
 
-            {/* Printable Certificate Template (Target Element for html2canvas & Print) */}
+            {/* Live preview uses the same renderer as the downloaded PDF. */}
             <div className="flex-1 w-full flex items-center justify-center py-4 overflow-auto">
               <div
                 ref={certificateRef}
@@ -727,9 +732,13 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
                   transformOrigin: 'center center',
                   transition: 'transform 0.15s ease-out',
                 }}
-                className="shadow-2xl"
+                className="w-full max-w-[1100px] shadow-2xl"
               >
-                <CertificateTemplate data={certificateData} theme={theme} previewMode={false} />
+                <canvas
+                  ref={livePreviewCanvasRef}
+                  className="block h-auto w-full"
+                  aria-label={`${language === 'ar' ? 'معاينة الشهادة باللغة العربية' : 'Certificate preview'}: ${certificateData.studentName}`}
+                />
               </div>
             </div>
 
