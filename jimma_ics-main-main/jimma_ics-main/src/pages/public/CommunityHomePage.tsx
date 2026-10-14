@@ -118,20 +118,20 @@ export const CommunityHomePage: React.FC = () => {
         </div>
       </section>
 
-      <section className={`${sectionClass} grid gap-6 lg:grid-cols-2`}>
-        <div className="rounded-3xl border border-stone-200 bg-white p-5 dark:border-stone-700 dark:bg-stone-900 sm:p-6">
-          <div className="mb-5 flex items-end justify-between gap-3">
+      <section className={`${sectionClass} grid min-w-0 gap-4 sm:gap-6 xl:grid-cols-2`}>
+        <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900 sm:p-6">
+          <div className="mb-5 flex flex-col items-start gap-2 md:flex-row md:items-end md:justify-between md:gap-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[.17em] text-emerald-800 dark:text-emerald-300">Local directory</p>
-              <h2 className="mt-1 font-serif text-xl font-extrabold text-stone-900 dark:text-stone-50 sm:text-2xl">Places to learn and worship</h2>
+              <h2 className="mt-1 font-serif text-xl font-extrabold leading-tight text-stone-900 dark:text-stone-50 sm:text-2xl">Places to learn and worship</h2>
             </div>
-            <Link to="/mosques" className="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-emerald-800 hover:text-emerald-600 dark:text-emerald-300">
+            <Link to="/mosques" className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 hover:text-emerald-600 dark:text-emerald-300">
               All institutions <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
           <div className="space-y-3">
             {mosques.slice(0, 2).map((mosque) => (
-              <Link key={mosque.id} to={`/mosques/${mosque.id}`} className="flex items-center gap-3 rounded-2xl border border-stone-100 p-3 transition hover:border-emerald-700/30 hover:bg-stone-50 dark:border-stone-800 dark:hover:bg-stone-800">
+              <Link key={mosque.id} to={`/mosques/${mosque.id}`} className="flex min-w-0 items-center gap-3 rounded-2xl border border-stone-100 p-3 transition hover:border-emerald-700/30 hover:bg-stone-50 dark:border-stone-800 dark:hover:bg-stone-800">
                 <img src={mosque.image} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-16 w-16 shrink-0 rounded-xl bg-stone-200 object-cover dark:bg-stone-700" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-bold text-stone-900 dark:text-stone-100">{mosque.name}</span>
@@ -141,7 +141,7 @@ export const CommunityHomePage: React.FC = () => {
               </Link>
             ))}
             {madrasas.slice(0, 2).map((madrasa) => (
-              <Link key={madrasa.id} to={`/madrasas/${madrasa.id}`} className="flex items-center gap-3 rounded-2xl border border-stone-100 p-3 transition hover:border-emerald-700/30 hover:bg-stone-50 dark:border-stone-800 dark:hover:bg-stone-800">
+              <Link key={madrasa.id} to={`/madrasas/${madrasa.id}`} className="flex min-w-0 items-center gap-3 rounded-2xl border border-stone-100 p-3 transition hover:border-emerald-700/30 hover:bg-stone-50 dark:border-stone-800 dark:hover:bg-stone-800">
                 <span className="grid h-16 w-16 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-300"><BookOpen className="h-6 w-6" /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-bold text-stone-900 dark:text-stone-100">{madrasa.name}</span>
@@ -158,7 +158,7 @@ export const CommunityHomePage: React.FC = () => {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-stone-200 bg-white p-5 dark:border-stone-700 dark:bg-stone-900 sm:p-6">
+        <div className="min-w-0 rounded-3xl border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900 sm:p-6">
           <div className="mb-5">
             <p className="text-[11px] font-bold uppercase tracking-[.17em] text-emerald-800 dark:text-emerald-300">Public services</p>
             <h2 className="mt-1 font-serif text-xl font-extrabold text-stone-900 dark:text-stone-50 sm:text-2xl">What can we help with?</h2>
@@ -166,11 +166,11 @@ export const CommunityHomePage: React.FC = () => {
           </div>
           <div className="space-y-2">
             {publicServices.slice(0, 4).map((service) => (
-              <Link key={service.id} to={`/services?apply=${service.id}`} className="flex items-center gap-3 rounded-xl border border-stone-100 px-3 py-3 transition hover:border-emerald-700/30 hover:bg-stone-50 dark:border-stone-800 dark:hover:bg-stone-800">
+              <Link key={service.id} to={`/services?apply=${service.id}`} className="flex min-w-0 items-center gap-3 rounded-xl border border-stone-100 px-3 py-3 transition hover:border-emerald-700/30 hover:bg-stone-50 dark:border-stone-800 dark:hover:bg-stone-800">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"><HeartHandshake className="h-4 w-4" /></span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-bold text-stone-900 dark:text-stone-100">{service.title}</span>
-                  <span className="mt-0.5 block truncate text-xs text-stone-500 dark:text-stone-400">{service.category} · {service.processingTime}</span>
+                  <span className="block line-clamp-2 break-words text-sm font-bold text-stone-900 dark:text-stone-100">{service.title}</span>
+                  <span className="mt-0.5 block line-clamp-2 break-words text-xs text-stone-500 dark:text-stone-400">{service.category} · {service.processingTime}</span>
                 </span>
                 <ArrowRight className="h-4 w-4 shrink-0 text-stone-400" />
               </Link>
