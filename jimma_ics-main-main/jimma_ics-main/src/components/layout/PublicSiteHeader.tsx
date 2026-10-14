@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
-import { useTheme } from '../../context/ThemeContext';
 import { useApp } from '../../context/AppContext';
 import { LanguageSelector } from '../common/LanguageSelector';
 import {
@@ -15,9 +14,7 @@ import {
   HeartHandshake,
   Landmark,
   Menu,
-  Moon,
   Search,
-  Sun,
   Users,
   X,
 } from 'lucide-react';
@@ -41,7 +38,6 @@ const serviceLinks = [
 
 export const PublicSiteHeader: React.FC = () => {
   const { t, language } = useLanguage();
-  const { theme, toggleTheme } = useTheme();
   const { setIsSearchOpen } = useApp();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -187,14 +183,6 @@ export const PublicSiteHeader: React.FC = () => {
             <Search className="h-4 w-4" />
           </button>
           <span className="hidden sm:inline-flex"><LanguageSelector compact /></span>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label="Toggle theme"
-            className="grid h-9 w-9 place-items-center rounded-full border border-stone-200 bg-white text-stone-600 transition-colors hover:border-emerald-700 hover:text-emerald-800 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:text-amber-300"
-          >
-            {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4" />}
-          </button>
           <Link
             to="/donate"
             className="hidden items-center gap-2 rounded-full bg-amber-500 px-4 py-2.5 text-sm font-bold text-emerald-950 shadow-sm transition-colors hover:bg-amber-400 sm:inline-flex"

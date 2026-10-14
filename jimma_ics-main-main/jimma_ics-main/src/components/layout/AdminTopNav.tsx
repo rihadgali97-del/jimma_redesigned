@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
-import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { LanguageSelector } from '../common/LanguageSelector';
 import {
   Menu,
   Search,
-  Moon,
-  Sun,
   Bell,
   ChevronRight,
   CheckCircle2,
@@ -47,7 +44,6 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
     serviceRequests,
     logout,
   } = useApp();
-  const { theme, toggleTheme } = useTheme();
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
@@ -223,15 +219,6 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
 
         {/* Language Selector */}
         <LanguageSelector compact />
-
-        {/* Theme Toggle */}
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-xl text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-white bg-stone-100 dark:bg-stone-800 hover:bg-stone-200/80 dark:hover:bg-stone-700/80 transition-colors"
-          aria-label="Toggle Color Theme"
-        >
-          {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-        </button>
 
         {/* Authenticated account menu */}
         <div className="relative">
