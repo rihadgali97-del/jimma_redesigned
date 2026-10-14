@@ -380,7 +380,7 @@ export interface ServiceRequest {
   applicantPhone: string;
   applicantDistrict: string;
   submissionDate: string;
-  status: 'Submitted' | 'Under Review' | 'Approved' | 'Disbursed' | 'Completed' | 'Rejected';
+  status: 'Submitted' | 'Under Review' | 'Approved' | 'Disbursed' | 'Completed' | 'Rejected' | 'Cancelled';
   assignedOfficer: string;
   notes: string;
   documentsCount: number;

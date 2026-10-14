@@ -32,8 +32,7 @@ import {
 } from '../types';
 import { mockStudents } from '../data/mockStudents';
 import { mockFunds, mockTransactions, mockDonations, mockExpenseApprovals } from '../data/mockFinance';
-import { mockPublicServices, mockServiceRequests, ServiceItem } from '../data/mockServices';
-import { mockEvents, mockAnnouncements } from '../data/mockEventsAndDocs';
+import { mockPublicServices, ServiceItem } from '../data/mockServices';
 import { initialCouncilResources } from '../data/mockResources';
 import { initialAttendanceSessions, initialStaffAttendance } from '../data/mockAttendance';
 import { mockAuditDirectives, mockAuditChecklist, mockLedgerBlocks } from '../data/mockAuditCompliance';
@@ -46,7 +45,7 @@ import {
   fetchAdminStudents,
   updateStudentRecord,
 } from '../services/studentsApi';
-import { createZakatDistribution as createZakatDistributionApi, deleteZakatAssessment, fetchZakatDistributions } from '../services/zakatApi';
+import { createZakatDistribution as createZakatDistributionApi, deleteZakatAssessment, fetchZakatApplications, fetchZakatDistributions } from '../services/zakatApi';
 import { fetchJanazahAvailability, fetchJanazahRequests, JANAZAH_CATALOGUE_ID } from '../services/janazahApi';
 import {
   CIVIC_PUBLIC_SERVICE_IDS,
@@ -432,7 +431,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [donations, setDonations] = useState<Donation[]>(mockDonations);
   const [zakatDistributions, setZakatDistributions] = useState<ZakatBeneficiaryDistribution[]>([]);
   const [expenseApprovals, setExpenseApprovals] = useState<ExpenseApproval[]>(mockExpenseApprovals);
-  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>(mockServiceRequests);
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
   const [janazahPublicEnabled, setJanazahPublicEnabled] = useState(true);
   const [publicServiceAvailability, setPublicServiceAvailability] = useState<Record<string, boolean>>(
     () => Object.fromEntries(CIVIC_PUBLIC_SERVICE_IDS.map((serviceId) => [serviceId, true]))
@@ -441,6 +440,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentUser.authRole === 'super_admin'
     || currentUser.permissions.includes('janazah.manage')
     || currentUser.permissions.includes('services.process')
+  );
+  const canManageZakat = isLoggedIn && (
+    currentUser.authRole === 'super_admin'
+    || currentUser.permissions.includes('zakat.manage')
   );
   const janazahRefreshInFlight = useRef<Promise<number> | null>(null);
 
@@ -474,7 +477,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             : request.status === 'APPROVED' ? 'Approved'
             : request.status === 'REJECTED' ? 'Rejected'
             : request.status === 'COMPLETED' ? 'Completed'
-            : 'Rejected',
+            : 'Cancelled',
           assignedOfficer: request.assignedOfficer?.fullName || 'On-call Janazah desk',
           notes: [
             `Deceased: ${request.deceasedName}`,
@@ -506,6 +509,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     janazahRefreshInFlight.current = refresh;
     return refresh;
   }, [canManageJanazah]);
+
+  const refreshZakatApplications = useCallback(async () => {
+    if (!canManageZakat) return;
+    try {
+      const applications = await fetchZakatApplications();
+      const mapped = applications.map((application): ServiceRequest => ({
+        id: `zakat-${application.id}`,
+        trackingNo: application.referenceNumber,
+        serviceType: 'Zakat Assistance',
+        applicantName: application.applicantFullName,
+        applicantPhone: application.applicantPhone,
+        applicantDistrict: application.woreda ? `Kebele ${application.woreda.code}` : 'Jimma City',
+        submissionDate: new Date(application.createdAt).toLocaleDateString(),
+        status: application.status === 'SUBMITTED' ? 'Submitted'
+          : application.status === 'UNDER_REVIEW' ? 'Under Review'
+          : application.status === 'APPROVED' ? 'Approved'
+          : application.status === 'REJECTED' ? 'Rejected'
+          : application.status === 'COMPLETED' ? 'Completed'
+          : 'Cancelled',
+        assignedOfficer: application.assignedOfficer?.fullName || 'Unassigned',
+        notes: application.eligibilityNotes || '',
+        documentsCount: 0,
+        priority: 'Normal',
+      }));
+
+      setServiceRequests((prev) => {
+        const zakatIds = new Set(mapped.map((request) => request.trackingNo));
+        const others = prev.filter((request) => request.serviceType !== 'Zakat Assistance'
+          && !zakatIds.has(request.trackingNo));
+        return [...mapped, ...others];
+      });
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[API] Zakat application list refresh failed.', error);
+      }
+    }
+  }, [canManageZakat]);
 
   const refreshJanazahAvailability = async () => {
     try {
@@ -539,10 +579,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (service.id === JANAZAH_CATALOGUE_ID) return janazahPublicEnabled;
     return publicServiceAvailability[service.id] !== false;
   });
-  const [events, setEvents] = useState<CouncilEvent[]>(mockEvents);
+  const [events, setEvents] = useState<CouncilEvent[]>([]);
   const [eventRegistrations, setEventRegistrations] = useState<EventRegistration[]>([]);
   const [eventSubscriptions, setEventSubscriptions] = useState<EventNotificationSubscription[]>([]);
-  const [announcements, setAnnouncements] = useState<Announcement[]>(mockAnnouncements);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [resources, setResources] = useState<CouncilResource[]>(initialCouncilResources);
   const [auditDirectives, setAuditDirectives] = useState<AuditDirective[]>(mockAuditDirectives);
   const [auditChecklist, setAuditChecklist] = useState<AuditChecklistItem[]>(mockAuditChecklist);
@@ -630,6 +670,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       window.removeEventListener('online', refreshWhenAvailable);
     };
   }, [authReady, canManageJanazah, refreshJanazahRequests]);
+
+  useEffect(() => {
+    if (!authReady || !canManageZakat) return;
+
+    const refreshWhenAvailable = () => {
+      if (document.visibilityState === 'visible') void refreshZakatApplications();
+    };
+    void refreshZakatApplications();
+    window.addEventListener('focus', refreshWhenAvailable);
+    window.addEventListener('online', refreshWhenAvailable);
+    return () => {
+      window.removeEventListener('focus', refreshWhenAvailable);
+      window.removeEventListener('online', refreshWhenAvailable);
+    };
+  }, [authReady, canManageZakat, refreshZakatApplications]);
 
   // Initial Attendance Map initialized to "Present" for all students
   const [attendanceMap, setAttendanceMap] = useState<Record<string, 'Present' | 'Absent' | 'Late' | 'Excused'>>(() => {

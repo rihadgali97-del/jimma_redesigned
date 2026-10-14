@@ -333,6 +333,7 @@ export const AdminServicesPage: React.FC = () => {
           <option value="Completed">Completed</option>
           <option value="Disbursed">Disbursed</option>
           <option value="Rejected">Rejected</option>
+          <option value="Cancelled">Cancelled</option>
         </select>
       </div>
 
@@ -455,6 +456,7 @@ export const AdminServicesPage: React.FC = () => {
                   <option value="Completed">Completed</option>
                   <option value="Disbursed">Disbursed</option>
                   <option value="Rejected">Rejected</option>
+                  <option value="Cancelled">Cancelled</option>
                 </select>
               </div>
 
