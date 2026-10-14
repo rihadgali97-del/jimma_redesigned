@@ -6,11 +6,9 @@ import {
   Building,
   CalendarDays,
   CheckCircle2,
-  Clock3,
   Compass,
   FileText,
   HeartHandshake,
-  Landmark,
   MapPin,
   Radio,
   Send,
@@ -20,18 +18,6 @@ import {
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
-import { JimmaDistrictMap } from '../../components/charts/JimmaDistrictMap';
-import { JimmaGisMiniWidget } from '../../components/gis/JimmaGisMiniWidget';
-
-const prayerTimes = [
-  { name: 'Fajr', time: '05:18 AM' },
-  { name: 'Sunrise', time: '06:32 AM' },
-  { name: 'Dhuhr', time: '12:44 PM' },
-  { name: 'Asr', time: '04:02 PM' },
-  { name: 'Maghrib', time: '06:52 PM' },
-  { name: 'Isha', time: '08:04 PM' },
-];
 
 const shortcuts = [
   { label: 'Mosques', detail: 'Find a nearby mosque', path: '/mosques', icon: Building },
@@ -47,7 +33,7 @@ const shortcuts = [
 const sectionClass = 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8';
 
 export const CommunityHomePage: React.FC = () => {
-  const { mosques, madrasas, ulema, students, funds, events, announcements, publicServices } = useApp();
+  const { mosques, madrasas, ulema, students, funds, publicServices } = useApp();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const totalFundBalance = funds.reduce((total, fund) => total + fund.allocatedETB, 0);
@@ -60,13 +46,13 @@ export const CommunityHomePage: React.FC = () => {
             <div className="absolute inset-8 rounded-full bg-[radial-gradient(circle,rgba(212,177,103,.2),transparent_70%)]" />
           </div>
         </div>
-        <div className={`${sectionClass} relative grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-[1.1fr_.9fr] lg:gap-14 lg:py-20`}>
-          <div className="relative z-10">
+        <div className={`${sectionClass} relative flex justify-center py-14 sm:py-20 lg:py-24`}>
+          <div className="relative z-10 mx-auto max-w-4xl text-center">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-900/15 bg-white/70 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.13em] text-emerald-900 dark:border-emerald-300/20 dark:bg-stone-800 dark:text-emerald-200">
               <span className="h-2 w-2 rounded-full bg-amber-500" />
               Jimma City · Public community portal
             </div>
-            <h1 className="max-w-3xl font-serif text-4xl font-extrabold leading-[1.08] tracking-tight text-stone-900 dark:text-stone-50 sm:text-5xl lg:text-6xl">
+            <h1 className="mx-auto max-w-3xl font-serif text-4xl font-extrabold leading-[1.08] tracking-tight text-stone-900 dark:text-stone-50 sm:text-5xl lg:text-6xl">
               {language === 'ar' ? (
                 'خدمة المجتمع، معًا'
               ) : language === 'om' ? (
@@ -75,10 +61,10 @@ export const CommunityHomePage: React.FC = () => {
                 <>A clearer way to connect with <span className="text-emerald-800 dark:text-emerald-300">your community.</span></>
               )}
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-stone-600 dark:text-stone-300 sm:text-lg">
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-stone-600 dark:text-stone-300 sm:text-lg">
               Find local institutions, public services, community updates and practical guidance in one welcoming place.
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-wrap justify-center gap-3">
               <Link to="/services" className="inline-flex min-h-12 items-center gap-2 rounded-full bg-emerald-900 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800 dark:bg-emerald-700 dark:hover:bg-emerald-600">
                 Explore public services <ArrowRight className="h-4 w-4" />
               </Link>
@@ -86,47 +72,11 @@ export const CommunityHomePage: React.FC = () => {
                 Find an institution
               </Link>
             </div>
-            <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-stone-600 dark:text-stone-300">
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-stone-600 dark:text-stone-300">
               <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-800 dark:text-emerald-300" /> Serving Jimma City communities</span>
               <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-amber-700 dark:text-amber-400" /> 18 kebeles</span>
             </div>
           </div>
-
-          <aside className="relative z-10 rounded-[1.75rem] bg-emerald-950 p-5 text-white shadow-xl sm:p-7">
-            <div className="flex items-start justify-between gap-4 border-b border-white/15 pb-4">
-              <div>
-                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.13em] text-amber-300">
-                  <Clock3 className="h-4 w-4" /> Jimma City prayer schedule
-                </p>
-                <p className="mt-1 text-xs text-emerald-100/75">Standard Shafi’i / Hanafi calculation · Hijri 1447 AH</p>
-              </div>
-              <Badge variant="emerald">Today</Badge>
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {prayerTimes.map(({ name, time }) => (
-                <div key={name} className="rounded-xl border border-white/10 bg-white/[.07] px-3 py-3">
-                  <span className="block text-xs text-emerald-100/70">{name}</span>
-                  <span className="mt-1 block text-sm font-bold tabular-nums">{time}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 rounded-2xl border border-emerald-700/70 bg-emerald-900/70 p-4">
-              <div className="flex items-center gap-2 text-sm font-bold text-amber-200">
-                <Landmark className="h-4 w-4" /> Need a council service?
-              </div>
-              <p className="mt-1 text-xs leading-5 text-emerald-50/80">
-                Start a request, use the Zakat calculator, or check an application.
-              </p>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <Button variant="secondary" size="sm" onClick={() => navigate('/services')} className="justify-center text-xs">
-                  Browse services
-                </Button>
-                <Button variant="secondary" size="sm" onClick={() => navigate('/services?tab=zakat')} className="justify-center text-xs">
-                  Zakat tools
-                </Button>
-              </div>
-            </div>
-          </aside>
         </div>
       </section>
 
@@ -230,65 +180,6 @@ export const CommunityHomePage: React.FC = () => {
             <Link to="/services?tab=track" className="flex items-center justify-between rounded-xl bg-emerald-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-900">
               Track an application <ArrowRight className="h-4 w-4" />
             </Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-y border-stone-200 bg-[#eae7d9] py-12 dark:border-stone-800 dark:bg-stone-900/70 sm:py-16">
-        <div className={sectionClass}>
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[.17em] text-emerald-800 dark:text-emerald-300">Explore Jimma City</p>
-              <h2 className="mt-1 font-serif text-2xl font-extrabold text-stone-900 dark:text-stone-50 sm:text-3xl">Local places, on the map.</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600 dark:text-stone-300">Find institutions and explore the kebeles and communities they serve.</p>
-            </div>
-            <Link to="/map" className="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-4 py-2.5 text-sm font-bold text-stone-800 hover:border-emerald-700 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100">
-              Open interactive map <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-          <div className="space-y-5">
-            <JimmaGisMiniWidget />
-            <JimmaDistrictMap />
-          </div>
-        </div>
-      </section>
-
-      <section className={sectionClass}>
-        <div className="grid gap-8 lg:grid-cols-[.75fr_1.25fr]">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[.17em] text-emerald-800 dark:text-emerald-300">The latest</p>
-            <h2 className="mt-2 font-serif text-2xl font-extrabold text-stone-900 dark:text-stone-50 sm:text-3xl">Updates and gatherings.</h2>
-            <p className="mt-3 text-sm leading-6 text-stone-600 dark:text-stone-300">Important council notices and community events, brought together in one place.</p>
-            <div className="mt-5 flex gap-4">
-              <Link to="/announcements" className="inline-flex items-center gap-1 text-sm font-bold text-emerald-800 hover:text-emerald-600 dark:text-emerald-300">All announcements <ArrowRight className="h-4 w-4" /></Link>
-              <Link to="/events" className="inline-flex items-center gap-1 text-sm font-bold text-emerald-800 hover:text-emerald-600 dark:text-emerald-300">All events <ArrowRight className="h-4 w-4" /></Link>
-            </div>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-700 dark:bg-stone-900">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-stone-900 dark:text-stone-100"><FileText className="h-4 w-4 text-emerald-800 dark:text-emerald-300" /> Council notices</h3>
-              <div className="space-y-3">
-                {announcements.slice(0, 3).map((notice) => (
-                  <div key={notice.id} className="border-t border-stone-100 pt-3 first:border-0 first:pt-0 dark:border-stone-800">
-                    <p className="line-clamp-2 text-sm font-semibold text-stone-800 dark:text-stone-200">{notice.title}</p>
-                    <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">{notice.date || notice.publishDate} · {notice.category}</p>
-                  </div>
-                ))}
-                {!announcements.length && <p className="text-sm text-stone-500 dark:text-stone-400">New notices will appear here when published.</p>}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-700 dark:bg-stone-900">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-stone-900 dark:text-stone-100"><CalendarDays className="h-4 w-4 text-emerald-800 dark:text-emerald-300" /> Upcoming events</h3>
-              <div className="space-y-3">
-                {events.slice(0, 3).map((event) => (
-                  <div key={event.id} className="border-t border-stone-100 pt-3 first:border-0 first:pt-0 dark:border-stone-800">
-                    <p className="line-clamp-2 text-sm font-semibold text-stone-800 dark:text-stone-200">{event.title}</p>
-                    <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">{event.date} · {event.location}</p>
-                  </div>
-                ))}
-                {!events.length && <p className="text-sm text-stone-500 dark:text-stone-400">Community events will appear here when scheduled.</p>}
-              </div>
-            </div>
           </div>
         </div>
       </section>
