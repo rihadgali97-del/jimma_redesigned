@@ -123,15 +123,12 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
   const [donationsLoading, setDonationsLoading] = useState(true);
   const [donationsLoadError, setDonationsLoadError] = useState('');
   const [donationsReloadKey, setDonationsReloadKey] = useState(0);
-  const [nisabRate, setNisabRateState] = useState<NisabRate>({
-    goldPricePerGram: 7000,
-    silverPricePerGram: 78000 / 595,
-    effectiveDate: '',
-  });
+  const [nisabRate, setNisabRateState] = useState<NisabRate | null>(null);
+  const [nisabRateLoading, setNisabRateLoading] = useState(true);
   const [nisabRateError, setNisabRateError] = useState('');
   const [isEditingNisabRates, setIsEditingNisabRates] = useState(false);
-  const [goldPriceDraft, setGoldPriceDraft] = useState('7000');
-  const [silverPriceDraft, setSilverPriceDraft] = useState(String(78000 / 595));
+  const [goldPriceDraft, setGoldPriceDraft] = useState('');
+  const [silverPriceDraft, setSilverPriceDraft] = useState('');
   const [savingNisabRate, setSavingNisabRate] = useState(false);
   const canManageNisabRates = currentUser?.authRole === 'super_admin'
     || currentUser?.permissions?.includes('zakat.rates.write') === true;
@@ -159,15 +156,19 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
+    setNisabRateLoading(true);
     fetchCurrentNisabRate()
       .then((rate) => {
-        if (!mounted || !rate) return;
+        if (!mounted) return;
         setNisabRateState(rate);
-        setGoldPriceDraft(String(rate.goldPricePerGram));
-        setSilverPriceDraft(String(rate.silverPricePerGram));
+        setGoldPriceDraft(rate ? String(rate.goldPricePerGram) : '');
+        setSilverPriceDraft(rate ? String(rate.silverPricePerGram) : '');
       })
       .catch((error: unknown) => {
         if (mounted) setNisabRateError(error instanceof Error ? error.message : 'Could not load council Nisab rates.');
+      })
+      .finally(() => {
+        if (mounted) setNisabRateLoading(false);
       });
     return () => {
       mounted = false;
@@ -1150,7 +1151,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
                   <Scale className="w-4 h-4" />
-                  <span>Current Nisab Standards in Ethiopia (1448 AH)</span>
+                  <span>Published Nisab Rates</span>
                 </div>
                 {canManageNisabRates && !isEditingNisabRates && (
                   <Button variant="secondary" size="xs" icon={<Edit className="w-3.5 h-3.5" />} onClick={() => setIsEditingNisabRates(true)}>
@@ -1159,17 +1160,21 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 )}
               </div>
               <h2 className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
-                Official Jimma Fatwa Board Nisab Thresholds
+                Nisab Thresholds
               </h2>
               <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
-                Under the guidance of the Jimma City Ulema & Fatwa Board, the following Nisab thresholds are pegged to prevailing market rates of precious metals and coffee cherry harvests in southwestern Ethiopia:
+                The monetary thresholds below use the current gold and silver prices published by the council. Gold and silver Nisab are based on 85 grams of gold and 595 grams of silver respectively. For personal religious guidance, consult a qualified scholar.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                 <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 space-y-1">
                   <span className="text-xs font-bold text-amber-900 dark:text-amber-300">Gold Nisab (85 Grams)</span>
                   <div className="text-lg font-mono font-bold text-stone-900 dark:text-stone-100">
-                    ETB {(nisabRate.goldPricePerGram * 85).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    {nisabRateLoading
+                      ? 'Loading…'
+                      : nisabRate
+                        ? `ETB ${(nisabRate.goldPricePerGram * 85).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+                        : 'Not published'}
                   </div>
                   <p className="text-[11px] text-stone-500">Benchmark for liquid cash, bank savings, and trade inventory.</p>
                 </div>
@@ -1177,7 +1182,11 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 <div className="p-4 rounded-2xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 space-y-1">
                   <span className="text-xs font-bold text-stone-700 dark:text-stone-300">Silver Nisab (595 Grams)</span>
                   <div className="text-lg font-mono font-bold text-stone-900 dark:text-stone-100">
-                    ETB {(nisabRate.silverPricePerGram * 595).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    {nisabRateLoading
+                      ? 'Loading…'
+                      : nisabRate
+                        ? `ETB ${(nisabRate.silverPricePerGram * 595).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+                        : 'Not published'}
                   </div>
                   <p className="text-[11px] text-stone-500">Recommended for conservative assessments to benefit the poor.</p>
                 </div>
@@ -1191,20 +1200,25 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 </div>
               </div>
 
-              {nisabRate.effectiveDate && (
+              {nisabRate?.effectiveDate && (
                 <p className="text-[11px] text-stone-500">
                   Market rates effective {new Date(nisabRate.effectiveDate).toLocaleDateString()}.
                 </p>
               )}
               {nisabRateError && (
                 <p role="status" className="text-xs text-amber-700 dark:text-amber-400">
-                  Could not load published rates; showing the guide’s previous reference values. {nisabRateError}
+                  Could not load published rates, so Nisab amounts are hidden. {nisabRateError}
+                </p>
+              )}
+              {!nisabRateLoading && !nisabRate && !nisabRateError && (
+                <p role="status" className="text-xs text-stone-500 dark:text-stone-400">
+                  No current Nisab rates have been published.
                 </p>
               )}
               {isEditingNisabRates && canManageNisabRates && (
                 <form onSubmit={saveNisabRates} className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-900 dark:bg-emerald-950/20">
                   <p className="text-xs text-stone-600 dark:text-stone-300">
-                    Update the market price per gram. Nisab quantities (85g gold, 595g silver) and the coffee Ushr ruling remain fixed.
+                    Publish the current market price per gram. Nisab quantities are 85g gold and 595g silver.
                   </p>
                   <div className="flex flex-wrap items-end gap-3">
                     <label className="space-y-1 text-xs text-stone-600 dark:text-stone-300">
