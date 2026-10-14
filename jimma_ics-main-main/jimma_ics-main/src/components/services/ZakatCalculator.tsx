@@ -52,7 +52,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
   gatewayButtonText,
   initialTab,
 }) => {
-  const { currentUser, isLoggedIn, addZakatCalculation, zakatCalculations } = useApp();
+  const { currentUser, isLoggedIn, addZakatCalculation, zakatCalculations, addToast } = useApp();
   const [nisabRateDate, setNisabRateDate] = useState<string | null>(null);
   const [rateLoadError, setRateLoadError] = useState('');
 
@@ -295,7 +295,11 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
       const saved = await saveZakatAssessment(title, assessment as unknown as Record<string, unknown>);
       addZakatCalculation({ ...assessment, id: saved.id });
     } catch (error) {
-      window.alert(error instanceof Error ? `Could not save assessment: ${error.message}` : 'Could not save assessment.');
+      addToast(
+        'Could not save assessment',
+        error instanceof Error ? error.message : 'Please try again.',
+        'error'
+      );
       return;
     }
 

@@ -36,6 +36,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
   const [staffRoleOptions, setStaffRoleOptions] = useState(rolesList);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [rolesError, setRolesError] = useState('');
+  const [rolesReloadKey, setRolesReloadKey] = useState(0);
   const [kebeles, setKebeles] = useState<DirectoryWoreda[]>([]);
   const [kebelesLoading, setKebelesLoading] = useState(false);
   const [kebelesError, setKebelesError] = useState('');
@@ -125,7 +126,9 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
       .catch((error: unknown) => {
         if (!active) return;
         setKebeles([]);
-        setKebelesError(error instanceof Error ? error.message : 'Could not load registered kebeles.');
+        const message = error instanceof Error ? error.message : 'Could not load registered kebeles.';
+        setKebelesError(message);
+        addToast('Could not load kebele options', message, 'error');
       })
       .finally(() => {
         if (active) setKebelesLoading(false);
@@ -147,7 +150,9 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
       })
       .catch((error: unknown) => {
         if (!active) return;
-        setRolesError(error instanceof Error ? error.message : 'Could not load role profiles.');
+        const message = error instanceof Error ? error.message : 'Could not load role profiles.';
+        setRolesError(message);
+        addToast('Could not load role profiles', message, 'error');
       })
       .finally(() => {
         if (active) setRolesLoading(false);
@@ -155,7 +160,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     return () => {
       active = false;
     };
-  }, [isOpen]);
+  }, [isOpen, rolesReloadKey]);
 
   useEffect(() => () => {
     if (photoPreview.startsWith('blob:')) URL.revokeObjectURL(photoPreview);
@@ -403,10 +408,9 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
                   </select>
                 </div>
                 {kebelesError ? (
-                  <div className="mt-1 flex items-center gap-2 text-xs text-rose-700 dark:text-rose-300" role="alert">
-                    <span>Kebele registry unavailable: {kebelesError}</span>
-                    <button type="button" className="font-semibold underline" onClick={() => setKebelesReloadKey((key) => key + 1)}>
-                      Retry
+                  <div className="mt-1 text-xs">
+                    <button type="button" className="font-semibold text-emerald-700 underline dark:text-emerald-300" onClick={() => setKebelesReloadKey((key) => key + 1)}>
+                      Retry loading kebeles
                     </button>
                   </div>
                 ) : !kebelesLoading && kebeles.length === 0 && (
@@ -472,7 +476,11 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
                   ))}
                 </select>
                 {rolesLoading && <p className="mt-1 text-[11px] text-stone-500">Loading all role profiles…</p>}
-                {rolesError && <p role="alert" className="mt-1 text-[11px] text-red-600 dark:text-red-400">{rolesError}</p>}
+                {rolesError && (
+                  <button type="button" className="mt-1 text-[11px] font-semibold text-emerald-700 underline dark:text-emerald-300" onClick={() => setRolesReloadKey((key) => key + 1)}>
+                    Retry loading roles
+                  </button>
+                )}
               </div>
             </div>
 

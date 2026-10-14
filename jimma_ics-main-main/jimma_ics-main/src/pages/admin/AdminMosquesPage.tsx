@@ -78,7 +78,6 @@ export const AdminMosquesPage: React.FC = () => {
   const [description, setDescription] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoRetry, setPhotoRetry] = useState<{ id: number; file: File; mosqueName: string } | null>(null);
-  const [photoRetryError, setPhotoRetryError] = useState('');
   const [selectedMadrasaId, setSelectedMadrasaId] = useState('');
 
   useEffect(() => {
@@ -148,7 +147,6 @@ export const AdminMosquesPage: React.FC = () => {
   const openAddModal = () => {
     setEditingMosque(null);
     setPhotoRetry(null);
-    setPhotoRetryError('');
     setName('');
     setCode('');
     setCategory('');
@@ -166,7 +164,6 @@ export const AdminMosquesPage: React.FC = () => {
   const openEditModal = (mosque: (typeof mosques)[number]) => {
     setEditingMosque(mosque);
     setPhotoRetry(null);
-    setPhotoRetryError('');
     setName(mosque.name);
     setCode(mosque.code || '');
     setCategory(mosque.category || '');
@@ -228,7 +225,7 @@ export const AdminMosquesPage: React.FC = () => {
         } catch (error) {
           const savedId = Number(record.id);
           setPhotoRetry({ id: savedId, file: photo, mosqueName: name.trim() });
-          setPhotoRetryError(error instanceof Error ? error.message : 'The record was saved, but the photo upload failed.');
+          const message = error instanceof Error ? error.message : 'The photo upload failed.';
           try {
             await Promise.all([refreshDirectoryData(), refreshAdminMosques(), refreshAdminMadrasas()]);
           } catch (refreshError) {
@@ -236,7 +233,7 @@ export const AdminMosquesPage: React.FC = () => {
           }
           addToast(
             editingMosque ? 'Mosque updated, photo not uploaded' : 'Mosque registered, photo not uploaded',
-            'The mosque details were saved. Retry the photo upload below; the details will not be submitted again.',
+            `${message} The mosque details were saved. Retry the photo upload below; the details will not be submitted again.`,
             'warning'
           );
           return;
@@ -251,7 +248,6 @@ export const AdminMosquesPage: React.FC = () => {
       setEditingMosque(null);
       setPhoto(null);
       setPhotoRetry(null);
-      setPhotoRetryError('');
       addToast(
         editingMosque ? 'Mosque updated' : 'Mosque registered',
         editingMosque ? 'The mosque record was updated.' : 'The record was saved to the council database.',
@@ -271,7 +267,6 @@ export const AdminMosquesPage: React.FC = () => {
   const handleRetryPhotoUpload = async () => {
     if (!photoRetry || isSaving) return;
     setIsSaving(true);
-    setPhotoRetryError('');
     try {
       await uploadMosquePhoto(photoRetry.id, photoRetry.file);
       try {
@@ -286,7 +281,6 @@ export const AdminMosquesPage: React.FC = () => {
       addToast('Mosque photo uploaded', `${photoRetry.mosqueName}'s details were already saved. Only the photo was retried.`, 'success');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'The photo could not be uploaded. Try again.';
-      setPhotoRetryError(message);
       addToast('Mosque photo upload failed', message, 'error');
     } finally {
       setIsSaving(false);
@@ -299,7 +293,6 @@ export const AdminMosquesPage: React.FC = () => {
     setEditingMosque(null);
     setPhoto(null);
     setPhotoRetry(null);
-    setPhotoRetryError('');
   };
 
   return (
@@ -649,7 +642,6 @@ export const AdminMosquesPage: React.FC = () => {
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200" role="status">
               <p className="font-semibold">Mosque details saved; photo upload still needs attention.</p>
               <p className="mt-1">Retrying uploads only {photoRetry.file.name}; mosque details will not be submitted again.</p>
-              {photoRetryError && <p className="mt-1 break-words">{photoRetryError}</p>}
             </div>
           )}
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-100 dark:border-stone-800">
