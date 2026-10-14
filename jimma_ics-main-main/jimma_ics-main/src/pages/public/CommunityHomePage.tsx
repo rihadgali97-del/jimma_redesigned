@@ -48,7 +48,7 @@ export const CommunityHomePage: React.FC = () => {
         </div>
         <div className={`${sectionClass} relative flex justify-center py-14 sm:py-20 lg:py-24`}>
           <div className="relative z-10 mx-auto max-w-4xl text-center">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-900/15 bg-white/70 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.13em] text-emerald-900 dark:border-emerald-300/20 dark:bg-stone-800 dark:text-emerald-200">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-700/20 bg-white/70 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.13em] text-emerald-700 dark:border-emerald-300/20 dark:bg-stone-800 dark:text-emerald-200">
               <span className="h-2 w-2 rounded-full bg-amber-500" />
               Jimma City · Public community portal
             </div>
@@ -58,22 +58,22 @@ export const CommunityHomePage: React.FC = () => {
               ) : language === 'om' ? (
                 'Hawaasa keenya waliin tajaajiluu'
               ) : (
-                <>A clearer way to connect with <span className="text-emerald-800 dark:text-emerald-300">your community.</span></>
+                <>A clearer way to connect with <span className="text-emerald-700 dark:text-emerald-300">your community.</span></>
               )}
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-stone-600 dark:text-stone-300 sm:text-lg">
               Find local institutions, public services, community updates and practical guidance in one welcoming place.
             </p>
             <div className="mt-7 flex flex-wrap justify-center gap-3">
-              <Link to="/services" className="inline-flex min-h-12 items-center gap-2 rounded-full bg-emerald-900 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800 dark:bg-emerald-700 dark:hover:bg-emerald-600">
+              <Link to="/services" className="inline-flex min-h-12 items-center gap-2 rounded-full bg-emerald-700 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500">
                 Explore public services <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link to="/mosques" className="inline-flex min-h-12 items-center gap-2 rounded-full border border-stone-300 bg-white/80 px-5 py-3 text-sm font-bold text-stone-800 transition hover:border-emerald-700 hover:text-emerald-900 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100 dark:hover:text-emerald-200">
+              <Link to="/mosques" className="inline-flex min-h-12 items-center gap-2 rounded-full border border-stone-300 bg-white/80 px-5 py-3 text-sm font-bold text-stone-800 transition hover:border-emerald-600 hover:text-emerald-700 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100 dark:hover:text-emerald-200">
                 Find an institution
               </Link>
             </div>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-stone-600 dark:text-stone-300">
-              <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-800 dark:text-emerald-300" /> Serving Jimma City communities</span>
+              <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" /> Serving Jimma City communities</span>
               <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-amber-700 dark:text-amber-400" /> 18 kebeles</span>
             </div>
           </div>

@@ -475,7 +475,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
             Donations & Zakat Ledger
           </h1>
           <p className="text-stone-600 dark:text-stone-400 text-xs sm:text-sm max-w-3xl mt-1">
-            Jimma City Shari'ah Audited Contributions, Nisab Calculator, Official Certificate Generator & Asnaf Welfare Distributions across 18 Kebeles.
+            Jimma City Shari'ah Audited Contributions, Nisab Calculator, Official Certificate Generator & Asnaf Welfare Distributions across 13 Kebeles.
           </p>
         </div>
 
@@ -604,7 +604,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
           </div>
           <div className="flex items-center justify-between text-xs text-stone-500">
             <span>Disbursed: ETB {(totalAsnafDisbursedETB / 1000000).toFixed(2)}M</span>
-            <Badge variant="blue">18 Kebeles</Badge>
+            <Badge variant="blue">13 Kebeles</Badge>
           </div>
         </Card>
       </div>
@@ -1074,7 +1074,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 Quranic 8 Asnaf Zakat Distribution Ledger
               </h2>
               <p className="text-emerald-200 text-xs sm:text-sm leading-relaxed">
-                Audited allocation from Jimma Council central Zakat treasury directly to eligible verified beneficiaries across 18 kebeles.
+                Audited allocation from Jimma Council central Zakat treasury directly to eligible verified beneficiaries across 13 kebeles.
               </p>
             </div>
 
