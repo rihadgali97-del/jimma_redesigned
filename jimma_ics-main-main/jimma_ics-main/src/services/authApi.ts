@@ -109,6 +109,29 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return (await parseResponseWithMeta<T>(response)).data;
 }
 
+function waitForRequest<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  if (signal.aborted) return Promise.reject(signal.reason ?? new Error('Request aborted'));
+
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => {
+      signal.removeEventListener('abort', onAbort);
+      reject(signal.reason ?? new Error('Request aborted'));
+    };
+    signal.addEventListener('abort', onAbort, { once: true });
+    promise.then(
+      (value) => {
+        signal.removeEventListener('abort', onAbort);
+        resolve(value);
+      },
+      (error: unknown) => {
+        signal.removeEventListener('abort', onAbort);
+        reject(error);
+      },
+    );
+  });
+}
+
 async function publicRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   if (init.body && !isFormData(init.body) && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
@@ -165,7 +188,7 @@ export async function apiRequestWithMeta<T>(path: string, init: RequestInit = {}
     let session = readSession();
     let response = await send(session?.accessToken);
     if (response.status === 401 && path !== '/auth/refresh' && session?.refreshToken) {
-      session = await refreshSession();
+      session = await waitForRequest(refreshSession(), init.signal);
       if (session) response = await send(session.accessToken);
     }
     logApiResponse(method, path, response, startedAt);
@@ -194,7 +217,7 @@ export async function apiRequestBlob(path: string, init: RequestInit = {}): Prom
     let session = readSession();
     let response = await send(session?.accessToken);
     if (response.status === 401 && path !== '/auth/refresh' && session?.refreshToken) {
-      session = await refreshSession();
+      session = await waitForRequest(refreshSession(), init.signal);
       if (session) response = await send(session.accessToken);
     }
     logApiResponse(method, path, response, startedAt);
