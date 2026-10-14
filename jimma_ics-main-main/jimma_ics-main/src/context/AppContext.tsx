@@ -27,7 +27,6 @@ import {
   ZakatBeneficiaryDistribution,
   ZakatCalculationRecord,
 } from '../types';
-import { mockStudents } from '../data/mockStudents';
 import { mockFunds, mockTransactions, mockDonations, mockExpenseApprovals } from '../data/mockFinance';
 import { mockPublicServices, ServiceItem } from '../data/mockServices';
 import { initialCouncilResources } from '../data/mockResources';
@@ -400,7 +399,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [mosques, setMosques] = useState<Mosque[]>([]);
   const [madrasas, setMadrasas] = useState<Madrasa[]>([]);
-  const [students, setStudents] = useState<Student[]>(mockStudents);
+  const [students, setStudents] = useState<Student[]>([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentsError, setStudentsError] = useState('');
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -669,14 +668,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [authReady, canManageZakat, refreshZakatApplications]);
 
-  // Initial Attendance Map initialized to "Present" for all students
-  const [attendanceMap, setAttendanceMap] = useState<Record<string, 'Present' | 'Absent' | 'Late' | 'Excused'>>(() => {
-    const map: Record<string, 'Present' | 'Absent' | 'Late' | 'Excused'> = {};
-    mockStudents.forEach((st, idx) => {
-      map[st.id] = idx % 11 === 0 ? 'Absent' : idx % 17 === 0 ? 'Late' : 'Present';
-    });
-    return map;
-  });
+  const [attendanceMap, setAttendanceMap] = useState<Record<string, 'Present' | 'Absent' | 'Late' | 'Excused'>>({});
 
   const [dailyAttendanceSessions, setDailyAttendanceSessions] = useState<DailyAttendanceSession[]>(initialAttendanceSessions);
   const [staffAttendanceList, setStaffAttendanceList] = useState<StaffAttendanceEntry[]>(initialStaffAttendance);
@@ -712,11 +704,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     fetchAdminStudents()
       .then((records) => {
         if (!active) return;
-        const recordIds = new Set(records.map((student) => student.id));
-        setStudents([
-          ...records,
-          ...mockStudents.filter((student) => !recordIds.has(student.id)),
-        ]);
+        setStudents(records);
       })
       .catch((error) => {
         if (!active) return;

@@ -39,7 +39,6 @@ const AdminDashboardPage = lazyPage(() => import('./pages/admin/AdminDashboardPa
 const AdminMosquesPage = lazyPage(() => import('./pages/admin/AdminMosquesPage'), 'AdminMosquesPage');
 const AdminMadrasasPage = lazyPage(() => import('./pages/admin/AdminMadrasasPage'), 'AdminMadrasasPage');
 const AdminStudentsPage = lazyPage(() => import('./pages/admin/AdminStudentsPage'), 'AdminStudentsPage');
-const StudentProgressPage = lazyPage(() => import('./pages/admin/StudentProgressPage'), 'StudentProgressPage');
 const AdminTeachersPage = lazyPage(() => import('./pages/admin/AdminTeachersPage'), 'AdminTeachersPage');
 const AdminUlemaPage = lazyPage(() => import('./pages/admin/AdminUlemaPage'), 'AdminUlemaPage');
 const AdminFinancePage = lazyPage(() => import('./pages/admin/AdminFinancePage'), 'AdminFinancePage');
@@ -111,7 +110,6 @@ export default function App() {
                   <Route path="mosques" element={<AdminMosquesPage />} />
                   <Route path="madrasas" element={<AdminMadrasasPage />} />
                   <Route path="students" element={<AdminStudentsPage />} />
-                  <Route path="students/:id" element={<StudentProgressPage />} />
                   <Route path="teachers" element={<AdminTeachersPage />} />
                   <Route path="ulema" element={<AdminUlemaPage />} />
                   <Route path="finance" element={<AdminFinancePage />} />

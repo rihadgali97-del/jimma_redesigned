@@ -17,7 +17,7 @@ const STUDENT_LEVELS = [
 const PAGE_SIZE = 10;
 
 export const AdminStudentsPage: React.FC = () => {
-  const { students, madrasas, addStudent } = useApp();
+  const { students, madrasas, addStudent, studentsLoading, studentsError } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMadrasa, setSelectedMadrasa] = useState('All');
   const [selectedLevel, setSelectedLevel] = useState('All');
@@ -90,6 +90,16 @@ export const AdminStudentsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {studentsLoading && (
+        <div role="status" className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          Loading saved student records…
+        </div>
+      )}
+      {studentsError && (
+        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          Could not load saved student records: {studentsError}
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-1">
@@ -97,10 +107,10 @@ export const AdminStudentsPage: React.FC = () => {
             <span>Islamic Education Board • Quranic Hifz Desk</span>
           </div>
           <h1 className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
-            Tahfeez Students & Hifz Progress Portal
+            Students & Hifz Records
           </h1>
           <p className="text-stone-500 dark:text-stone-400 text-xs sm:text-sm">
-            Live monitoring of daily Sabaq, Sabaqi, Manzil, and 30-Juz completion status across Jimma City.
+            Review student Hifz records and generate PDF certificates for course completion and Sanad recognition.
           </p>
         </div>
 

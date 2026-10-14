@@ -1,6 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Award, ExternalLink } from 'lucide-react';
+import { Award } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import { Badge } from '../../ui/Badge';
 import { Button } from '../../ui/Button';
@@ -107,24 +106,16 @@ export const StudentRegistryTable: React.FC<StudentRegistryTableProps> = ({
                 <td className="p-3.5 text-right">
                   <div className="flex items-center justify-end gap-2">
                     <Button
-                      variant="outline"
-                      size="sm"
-                      icon={<Award className="w-3.5 h-3.5 text-amber-600" />}
+                      variant="secondary"
+                      size="xs"
+                      icon={<Award className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />}
                       onClick={() => onOpenCertificate(student)}
-                      className="text-xs text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700/60"
+                      className="whitespace-nowrap shadow-sm hover:-translate-y-0.5"
+                      title={`Generate a PDF certificate for ${student.name}`}
+                      aria-label={`Generate PDF certificate for ${student.name}`}
                     >
-                      Certificate (PDF)
+                      PDF Certificate
                     </Button>
-                    <Link to={`/admin/students/${student.id}`}>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        icon={<ExternalLink className="w-3.5 h-3.5" />}
-                        className="text-xs"
-                      >
-                        Progress Dossier
-                      </Button>
-                    </Link>
                   </div>
                 </td>
               </tr>

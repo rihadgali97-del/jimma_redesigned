@@ -1,5 +1,4 @@
 import { DailyAttendanceSession, StaffAttendanceEntry } from '../types';
-import { mockStudents } from './mockStudents';
 
 export const initialAttendanceSessions: DailyAttendanceSession[] = [
   {
