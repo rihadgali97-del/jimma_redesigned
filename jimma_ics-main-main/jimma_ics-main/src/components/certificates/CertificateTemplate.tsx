@@ -2,6 +2,7 @@ import React from 'react';
 import { Award, ShieldCheck, QrCode } from 'lucide-react';
 
 export type CertificateTheme = 'emerald-gold' | 'navy-gold' | 'parchment-maroon' | 'slate-bronze';
+export type CertificateLanguage = 'en' | 'ar';
 
 export interface CertificateData {
   studentName: string;
@@ -24,6 +25,7 @@ export interface CertificateData {
   accreditationBody: string;
   verificationUrl: string;
   honorsNote?: string;
+  language?: CertificateLanguage;
 }
 
 interface CertificateTemplateProps {
@@ -37,6 +39,7 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
   theme = 'emerald-gold',
   previewMode = false,
 }) => {
+  const isArabic = data.language === 'ar';
   // Explicit Hex & RGB theme definitions to ensure 100% compatibility with canvas renderers
   const themeHex = {
     'emerald-gold': {
@@ -138,6 +141,7 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
         minHeight: previewMode ? 'auto' : '680px',
         color: t.primaryText,
       }}
+      dir={isArabic ? 'rtl' : 'ltr'}
     >
       {/* Background Subtle Watermark & Islamic Geometry */}
       <div
@@ -223,7 +227,7 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
               className="text-[10px] sm:text-xs tracking-widest uppercase font-semibold font-mono"
               style={{ color: t.headerAccent }}
             >
-              {data.accreditationBody}
+              {isArabic ? 'المجلس الأعلى للشؤون الإسلامية بمدينة جيما' : data.accreditationBody}
             </span>
             <div
               className="h-px w-12 sm:w-20"
@@ -243,10 +247,12 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
               className="font-serif text-base sm:text-lg lg:text-xl font-bold uppercase tracking-wider"
               style={{ color: t.headerAccent }}
             >
-              Certificate of Academic Excellence & Course Completion
+              {isArabic ? 'شهادة التفوق العلمي وإتمام المقرر' : 'Certificate of Academic Excellence & Course Completion'}
             </h2>
             <div className="text-[11px] sm:text-xs font-medium" style={{ color: t.secondaryText }}>
-              Official Sanad & Accreditation issued under the auspices of the Jimma Islamic Affairs Board
+              {isArabic
+                ? 'إجازة واعتماد رسمي صادر عن مجلس الشؤون الإسلامية بمدينة جيما'
+                : 'Official Sanad & Accreditation issued under the auspices of the Jimma Islamic Affairs Board'}
             </div>
           </div>
         </div>
@@ -254,7 +260,7 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
         {/* SECTION 2: Body / Student Award Statement */}
         <div className="text-center space-y-3 my-2 sm:my-3">
           <p className="text-xs sm:text-sm font-medium" style={{ color: t.secondaryText }}>
-            This is to formally certify and attest that the student:
+            {isArabic ? 'تشهد هذه الوثيقة بأن الطالب/الطالبة:' : 'This is to formally certify and attest that the student:'}
           </p>
 
           {/* Student Name Display */}
@@ -264,13 +270,17 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
                 className="font-serif text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-wide px-4 py-1"
                 style={{ color: t.primaryText }}
               >
-                {data.studentName}
+                {isArabic ? data.arabicStudentName || data.studentName : data.studentName}
               </h3>
-              {data.arabicStudentName && (
+              {isArabic && data.arabicStudentName ? (
+                <span className="block font-sans text-xs sm:text-sm font-medium" style={{ color: t.secondaryText }} dir="ltr">
+                  {data.studentName}
+                </span>
+              ) : !isArabic && data.arabicStudentName ? (
                 <span className="block font-serif text-sm sm:text-base font-medium" style={{ color: t.headerAccent }}>
                   {data.arabicStudentName}
                 </span>
-              )}
+              ) : null}
               <div
                 className="h-0.5 w-full mt-1"
                 style={{ background: `linear-gradient(to right, transparent, ${t.innerBorder}, transparent)` }}
@@ -283,15 +293,15 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
             className="max-w-2xl mx-auto text-xs sm:text-[13px] leading-relaxed px-2"
             style={{ color: t.bodyText }}
           >
-            <span>Has with distinction completed the prescribed syllabus for </span>
+            <span>{isArabic ? 'أتمّ/أتمّت المنهج المقرر بنجاح وتميّز في ' : 'Has with distinction completed the prescribed syllabus for '}</span>
             <strong className="font-bold font-serif text-sm sm:text-base" style={{ color: t.strongText }}>
               {data.courseTitle}
             </strong>
-            <span> at </span>
+            <span>{isArabic ? ' في ' : ' at '}</span>
             <strong className="font-semibold" style={{ color: t.primaryText }}>{data.madrasaName}</strong>,
-            <span> demonstrating commendable recitation fidelity, disciplined attendance, and mastery of </span>
+            <span>{isArabic ? '، وأظهر/أظهرت إتقانًا في التلاوة والمواظبة، وتميّزًا في ' : ', demonstrating commendable recitation fidelity, disciplined attendance, and mastery of '}</span>
             <strong className="font-semibold" style={{ color: t.strongText }}>{data.juzOrMilestone}</strong>
-            <span> with an evaluation distinction of </span>
+            <span>{isArabic ? '، بتقدير ' : ' with an evaluation distinction of '}</span>
             <span
               className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold ml-1"
               style={{
@@ -300,13 +310,13 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
                 color: t.accentPillText,
               }}
             >
-              {data.grade} {data.gradePercentage ? `(${data.gradePercentage}%)` : ''}
+              {data.grade} {data.gradePercentage ? `(${data.gradePercentage}${isArabic ? '٪' : '%'})` : ''}
             </span>.
           </div>
 
           {data.honorsNote && (
             <p className="text-[11px] italic max-w-xl mx-auto" style={{ color: t.headerAccent }}>
-              "{data.honorsNote}"
+              {isArabic ? `«${data.honorsNote}»` : `"${data.honorsNote}"`}
             </p>
           )}
         </div>
@@ -358,13 +368,13 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
                     className="text-[7px] sm:text-[8px] font-black uppercase tracking-tighter leading-none font-mono mt-0.5"
                     style={{ color: t.sealText }}
                   >
-                    OFFICIAL SEAL
+                    {isArabic ? 'الختم الرسمي' : 'OFFICIAL SEAL'}
                   </span>
                   <span
                     className="text-[6px] sm:text-[7px] font-bold leading-none"
                     style={{ color: t.sealText }}
                   >
-                    ACCREDITED
+                    {isArabic ? 'معتمد' : 'ACCREDITED'}
                   </span>
                 </div>
               </div>
@@ -387,7 +397,7 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
                 {data.boardPresident}
               </div>
               <div className="text-[9px] sm:text-[10px]" style={{ color: t.secondaryText }}>
-                President, Jimma Islamic Affairs Board
+                {isArabic ? 'رئيس مجلس الشؤون الإسلامية بمدينة جيما' : 'President, Jimma Islamic Affairs Board'}
               </div>
             </div>
           </div>
@@ -398,19 +408,19 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
             style={{ borderTop: `1px solid ${t.divider}`, color: t.dateText }}
           >
             <div className="flex items-center gap-3">
-              <span>Date: <strong style={{ color: t.primaryText }}>{data.issueDate}</strong></span>
+              <span>{isArabic ? 'التاريخ:' : 'Date:'} <strong style={{ color: t.primaryText }}>{data.issueDate}</strong></span>
               <span>•</span>
-              <span>Hijri: <strong style={{ color: t.primaryText }}>{data.hijriDate}</strong></span>
+              <span>{isArabic ? 'هجري:' : 'Hijri:'} <strong style={{ color: t.primaryText }}>{data.hijriDate}</strong></span>
             </div>
 
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-3.5 h-3.5" style={{ color: t.headerAccent }} />
-              <span style={{ color: t.bodyText }}>Authenticity Verified via Jimma Majlis Portal</span>
+              <span style={{ color: t.bodyText }}>{isArabic ? 'تم التحقق من صحة الشهادة عبر بوابة مجلس جيما' : 'Authenticity Verified via Jimma Majlis Portal'}</span>
             </div>
 
             <div className="flex items-center gap-1.5 font-bold" style={{ color: t.headerAccent }}>
               <QrCode className="w-3.5 h-3.5" />
-              <span>Verify: {data.certificateNumber}</span>
+              <span>{isArabic ? 'رقم التحقق:' : 'Verify:'} {data.certificateNumber}</span>
             </div>
           </div>
         </div>

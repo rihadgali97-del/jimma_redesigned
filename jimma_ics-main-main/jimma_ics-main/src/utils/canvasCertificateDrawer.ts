@@ -1,4 +1,4 @@
-import { CertificateData, CertificateTheme } from '../components/certificates/CertificateTemplate';
+import { CertificateData, CertificateLanguage, CertificateTheme } from '../components/certificates/CertificateTemplate';
 
 export interface ThemeColors {
   bgGradient: [string, string, string];
@@ -147,7 +147,8 @@ function wrapText(
 export function drawCertificateOnCanvas(
   canvas: HTMLCanvasElement,
   data: CertificateData,
-  theme: CertificateTheme = 'emerald-gold'
+  theme: CertificateTheme = 'emerald-gold',
+  language: CertificateLanguage = data.language || 'en'
 ): void {
   const width = 2000;
   const height = 1414;
@@ -159,8 +160,10 @@ export function drawCertificateOnCanvas(
   if (!ctx) return;
 
   const pal = THEME_PALETTES[theme] || THEME_PALETTES['emerald-gold'];
+  const isArabic = language === 'ar';
 
   ctx.save();
+  ctx.direction = isArabic ? 'rtl' : 'ltr';
 
   // 1. Background Gradient
   const bgGrad = ctx.createLinearGradient(0, 0, width, height);
@@ -253,7 +256,11 @@ export function drawCertificateOnCanvas(
   // Header Accreditation Banner line
   ctx.font = '600 18px "Courier New", monospace, sans-serif';
   ctx.fillStyle = pal.headerAccent;
-  ctx.fillText(`•  ${data.accreditationBody.toUpperCase()}  •`, width / 2, 172);
+  ctx.fillText(
+    isArabic ? '•  المجلس الأعلى للشؤون الإسلامية بمدينة جيما  •' : `•  ${data.accreditationBody.toUpperCase()}  •`,
+    width / 2,
+    172
+  );
 
   // Divider under council name
   const lineGrad = ctx.createLinearGradient(centerX - 350, 0, centerX + 350, 0);
@@ -275,27 +282,47 @@ export function drawCertificateOnCanvas(
   // English Certificate Title
   ctx.font = 'bold 30px "Times New Roman", Georgia, serif';
   ctx.fillStyle = pal.primaryText;
-  ctx.fillText('CERTIFICATE OF ACADEMIC EXCELLENCE & COMPLETION', width / 2, 310);
+  ctx.fillText(
+    isArabic ? 'شهادة التفوق العلمي وإتمام المقرر' : 'CERTIFICATE OF ACADEMIC EXCELLENCE & COMPLETION',
+    width / 2,
+    310
+  );
 
   // Subtitle
   ctx.font = '18px sans-serif';
   ctx.fillStyle = pal.secondaryText;
-  ctx.fillText('Official Sanad & Accreditation issued under the auspices of the Jimma Islamic Affairs Board', width / 2, 345);
+  ctx.fillText(
+    isArabic
+      ? 'إجازة واعتماد رسمي صادر عن مجلس الشؤون الإسلامية بمدينة جيما'
+      : 'Official Sanad & Accreditation issued under the auspices of the Jimma Islamic Affairs Board',
+    width / 2,
+    345
+  );
 
   // 7. Statement intro
   ctx.font = '22px sans-serif';
   ctx.fillStyle = pal.secondaryText;
-  ctx.fillText('This is to formally certify and attest that the student:', width / 2, 420);
+  ctx.fillText(
+    isArabic ? 'تشهد هذه الوثيقة بأن الطالب/الطالبة:' : 'This is to formally certify and attest that the student:',
+    width / 2,
+    420
+  );
 
   // 8. Student Name Block
-  ctx.font = 'bold 54px "Times New Roman", Georgia, serif';
+  ctx.font = isArabic
+    ? 'bold 54px "Amiri", "Traditional Arabic", serif'
+    : 'bold 54px "Times New Roman", Georgia, serif';
   ctx.fillStyle = pal.primaryText;
-  ctx.fillText(data.studentName, width / 2, 490);
+  ctx.fillText(isArabic ? data.arabicStudentName || data.studentName : data.studentName, width / 2, 490);
 
-  if (data.arabicStudentName) {
-    ctx.font = 'bold 32px "Amiri", serif';
+  if (data.arabicStudentName && !isArabic) {
+    ctx.font = 'bold 32px "Amiri", "Traditional Arabic", serif';
     ctx.fillStyle = pal.headerAccent;
     ctx.fillText(data.arabicStudentName, width / 2, 540);
+  } else if (isArabic && data.arabicStudentName) {
+    ctx.font = 'bold 26px "Times New Roman", Georgia, serif';
+    ctx.fillStyle = pal.secondaryText;
+    ctx.fillText(data.studentName, width / 2, 540);
   }
 
   // Gold accent bar under student name
@@ -314,31 +341,40 @@ export function drawCertificateOnCanvas(
   ctx.font = '21px sans-serif';
   ctx.fillStyle = pal.bodyText;
 
-  const descLine1 = `Has with distinction completed the prescribed syllabus for`;
+  const descLine1 = isArabic ? 'أتمّ/أتمّت المنهج المقرر بنجاح وتميّز في' : 'Has with distinction completed the prescribed syllabus for';
   const descLine2 = `${data.courseTitle}`;
-  const descLine3 = `at ${data.madrasaName}, demonstrating commendable recitation fidelity,`;
-  const descLine4 = `disciplined attendance, and mastery of ${data.juzOrMilestone}`;
-  const descLine5 = `with an evaluation distinction of ${data.grade} (${data.gradePercentage || 96}%).`;
+  const descLine3 = isArabic
+    ? `في ${data.madrasaName}، مع إتقان حسن للتلاوة والمواظبة`
+    : `at ${data.madrasaName}, demonstrating commendable recitation fidelity,`;
+  const descLine4 = isArabic
+    ? `والتفوق في ${data.juzOrMilestone}`
+    : `disciplined attendance, and mastery of ${data.juzOrMilestone}`;
+  const descLine5 = isArabic
+    ? `بتقدير ${data.grade} (${data.gradePercentage || 96}٪).`
+    : `with an evaluation distinction of ${data.grade} (${data.gradePercentage || 96}%).`;
 
-  ctx.fillText(descLine1, width / 2, 630);
+  ctx.fillText(isArabic ? `${descLine1} ${descLine2}` : descLine1, width / 2, 630);
 
-  ctx.font = 'bold 28px "Times New Roman", serif';
+  ctx.font = isArabic ? 'bold 28px "Amiri", "Traditional Arabic", serif' : 'bold 28px "Times New Roman", serif';
   ctx.fillStyle = pal.strongText;
-  ctx.fillText(descLine2, width / 2, 675);
+  if (!isArabic) ctx.fillText(descLine2, width / 2, 675);
 
   ctx.font = '21px sans-serif';
   ctx.fillStyle = pal.bodyText;
   ctx.fillText(descLine3, width / 2, 720);
   ctx.fillText(descLine4, width / 2, 755);
+  if (isArabic) ctx.fillText(descLine5, width / 2, 790);
 
   // Distinction Pill Badge
   ctx.save();
   ctx.font = 'bold 20px sans-serif';
-  const pillText = `Distinction: ${data.grade} ${data.gradePercentage ? `(${data.gradePercentage}%)` : ''}`;
+  const pillText = isArabic
+    ? `التقدير: ${data.grade} ${data.gradePercentage ? `(${data.gradePercentage}٪)` : ''}`
+    : `Distinction: ${data.grade} ${data.gradePercentage ? `(${data.gradePercentage}%)` : ''}`;
   const pillWidth = ctx.measureText(pillText).width + 40;
   const pillHeight = 38;
   const pillX = centerX - pillWidth / 2;
-  const pillY = 785;
+  const pillY = isArabic ? 825 : 785;
 
   ctx.fillStyle = pal.pillBg;
   ctx.beginPath();
@@ -356,7 +392,7 @@ export function drawCertificateOnCanvas(
   if (data.honorsNote) {
     ctx.font = 'italic 18px Georgia, serif';
     ctx.fillStyle = pal.headerAccent;
-    ctx.fillText(`"${data.honorsNote}"`, width / 2, 860);
+    ctx.fillText(isArabic ? `«${data.honorsNote}»` : `"${data.honorsNote}"`, width / 2, isArabic ? 890 : 860);
   }
 
   // 10. Horizontal separator before signatures & seal
@@ -386,7 +422,11 @@ export function drawCertificateOnCanvas(
 
   ctx.font = '16px sans-serif';
   ctx.fillStyle = pal.secondaryText;
-  ctx.fillText(data.instructorTitle || 'Lead Tahfeez Instructor', leftX, 1095);
+  ctx.fillText(
+    isArabic ? 'معلم القرآن الكريم' : data.instructorTitle || 'Lead Tahfeez Instructor',
+    leftX,
+    1095
+  );
 
   // 12. Right Signatory (Board President)
   const rightX = width - 380;
@@ -407,7 +447,11 @@ export function drawCertificateOnCanvas(
 
   ctx.font = '16px sans-serif';
   ctx.fillStyle = pal.secondaryText;
-  ctx.fillText('President, Jimma Islamic Affairs Board', rightX, 1095);
+  ctx.fillText(
+    isArabic ? 'رئيس مجلس الشؤون الإسلامية بمدينة جيما' : 'President, Jimma Islamic Affairs Board',
+    rightX,
+    1095
+  );
 
   // 13. Center Official Gold Seal & Ribbon
   const sealX = width / 2;
@@ -463,13 +507,13 @@ export function drawCertificateOnCanvas(
   // Seal Text
   ctx.font = '900 13px monospace';
   ctx.fillStyle = pal.sealText;
-  ctx.fillText('★ OFFICIAL SEAL ★', sealX, sealY - 14);
+  ctx.fillText(isArabic ? '★ الختم الرسمي ★' : '★ OFFICIAL SEAL ★', sealX, sealY - 14);
 
   ctx.font = 'bold 15px sans-serif';
-  ctx.fillText('ACCREDITED', sealX, sealY + 8);
+  ctx.fillText(isArabic ? 'معتمد' : 'ACCREDITED', sealX, sealY + 8);
 
   ctx.font = '10px monospace';
-  ctx.fillText('JIMMA MAJLIS', sealX, sealY + 28);
+  ctx.fillText(isArabic ? 'مجلس جيما' : 'JIMMA MAJLIS', sealX, sealY + 28);
 
   ctx.restore();
 
@@ -484,15 +528,27 @@ export function drawCertificateOnCanvas(
   ctx.font = '16px monospace';
   ctx.fillStyle = pal.dateText;
   ctx.textAlign = 'left';
-  ctx.fillText(`Issued: ${data.issueDate}  |  Hijri: ${data.hijriDate}`, 120, 1310);
+  ctx.fillText(
+    isArabic ? `تاريخ الإصدار: ${data.issueDate}  |  هجري: ${data.hijriDate}` : `Issued: ${data.issueDate}  |  Hijri: ${data.hijriDate}`,
+    isArabic ? width - 120 : 120,
+    1310
+  );
 
   ctx.textAlign = 'center';
   ctx.fillStyle = pal.headerAccent;
-  ctx.fillText(`Security Ref: ${data.certificateNumber}`, width / 2, 1310);
+  ctx.fillText(
+    isArabic ? `الرقم المرجعي: ${data.certificateNumber}` : `Security Ref: ${data.certificateNumber}`,
+    width / 2,
+    1310
+  );
 
-  ctx.textAlign = 'right';
+  ctx.textAlign = isArabic ? 'left' : 'right';
   ctx.fillStyle = pal.dateText;
-  ctx.fillText('Digital Verification: https://jimma-islamic-affairs.et/verify', width - 120, 1310);
+  ctx.fillText(
+    isArabic ? 'التحقق الرقمي: https://jimma-islamic-affairs.et/verify' : 'Digital Verification: https://jimma-islamic-affairs.et/verify',
+    isArabic ? 120 : width - 120,
+    1310
+  );
 
   ctx.restore();
 }

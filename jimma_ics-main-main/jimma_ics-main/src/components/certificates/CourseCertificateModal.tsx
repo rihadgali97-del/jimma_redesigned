@@ -27,6 +27,7 @@ import { Modal } from '../ui/Modal';
 import {
   CertificateTemplate,
   CertificateData,
+  CertificateLanguage,
   CertificateTheme,
 } from './CertificateTemplate';
 import {
@@ -47,67 +48,91 @@ const COURSE_PRESETS = [
     id: 'khatm_quran',
     title: 'Holy Quran Full Memorization (Khatm Sanad)',
     arabicTitle: 'إِجَازَةُ خَتْمِ وَحِفْظِ الْقُرْآنِ الْكَرِيمِ',
+    arabicCourseTitle: 'حفظ القرآن الكريم وإجازة الختم',
     category: 'Tahfeez al-Quran',
     defaultMilestone: '30 Juz Complete with Sanad Recitation',
+    arabicMilestone: 'إتمام حفظ ثلاثين جزءًا مع إجازة التلاوة',
     arabicStudentTitle: 'حَافِظُ كِتَابِ اللَّهِ',
     honorsNote: 'In recognition of mastering the recitation of Hafs from Asim via Shatibiyyah with flawless tajweed and steadfast dedication.',
     defaultGrade: 'Distinction with Highest Honors (Mumtaz)',
+    arabicGrade: 'امتياز مع مرتبة الشرف',
     defaultPercentage: 98,
+    arabicHonorsNote: 'تقديرًا لإتقان رواية حفص عن عاصم من طريق الشاطبية مع التجويد المتقن والمواظبة.',
   },
   {
     id: 'tajweed_mastery',
     title: 'Applied Tajweed & Makharij Rules',
     arabicTitle: 'شَهَادَةُ إِتْقَانِ التَّجْوِيدِ وَمَخَارِجِ الْحُرُوفِ',
+    arabicCourseTitle: 'إتقان التجويد ومخارج الحروف',
     category: 'Tajweed Studies',
     defaultMilestone: 'Matn Tuhfat al-Atfal & Al-Jazariyyah',
+    arabicMilestone: 'متن تحفة الأطفال والمقدمة الجزرية',
     arabicStudentTitle: 'مُتْقِنُ أَحْكَامِ التَّجْوِيدِ',
     honorsNote: 'Certified in precise phonetic articulation, theoretical madd rules, and sifaat characteristics.',
     defaultGrade: 'Excellent (Mumtaz)',
+    arabicGrade: 'ممتاز',
     defaultPercentage: 95,
+    arabicHonorsNote: 'إتقان مخارج الحروف وأحكام المد والصفات الصوتية.',
   },
   {
     id: 'fiqh_ibadat',
     title: 'Islamic Jurisprudence (Fiqh al-Ibadat)',
     arabicTitle: 'شَهَادَةُ إِتْمَامِ دِرَاسَةِ فِقْهِ الْعِبَادَاتِ',
+    arabicCourseTitle: 'الفقه الإسلامي (فقه العبادات)',
     category: 'Shariah Studies',
     defaultMilestone: 'Matn Abi Shuja / Safinat an-Naja',
+    arabicMilestone: 'متن أبي شجاع وسفينة النجاة',
     arabicStudentTitle: 'طَالِبُ الْعِلْمِ الشَّرْعِيِّ',
     honorsNote: 'Comprehensive comprehension of Taharah, Salah, Zakah, Sawm, and Hajj ordinances.',
     defaultGrade: 'Very Good (Jayyid Jiddan)',
+    arabicGrade: 'جيد جدًا',
     defaultPercentage: 90,
+    arabicHonorsNote: 'إتمام دراسة أحكام الطهارة والصلاة والزكاة والصيام والحج.',
   },
   {
     id: 'hadith_studies',
     title: 'Hadith Studies (Arba\'in an-Nawawiyyah)',
     arabicTitle: 'شَهَادَةُ حِفْظِ وَفَهْمِ الْأَرْبَعِينَ النَّوَوِيَّةِ',
+    arabicCourseTitle: 'علوم الحديث (الأربعون النووية)',
     category: 'Hadith Sciences',
     defaultMilestone: '42 Prophetic Hadiths with Isnad & Commentary',
+    arabicMilestone: 'حفظ وفهم الأحاديث النبوية الأربعين مع الإسناد والشرح',
     arabicStudentTitle: 'رَاوِي وَحَافِظُ الْحَدِيثِ',
     honorsNote: 'Commendable memorization and theological application of the foundational Prophetic traditions.',
     defaultGrade: 'Distinction with Honors',
+    arabicGrade: 'امتياز مع مرتبة الشرف',
     defaultPercentage: 94,
+    arabicHonorsNote: 'إتقان حفظ الأحاديث النبوية وفهم معانيها والعمل بها.',
   },
   {
     id: 'arabic_grammar',
     title: 'Arabic Morphology & Grammar (Nahw & Sarf)',
     arabicTitle: 'شَهَادَةُ قَوَاعِدِ اللُّغَةِ الْعَرَبِيَّةِ وَالْآجُرُّومِيَّةِ',
+    arabicCourseTitle: 'قواعد اللغة العربية (النحو والصرف)',
     category: 'Arabic Linguistics',
     defaultMilestone: 'Al-Ajrumiyyah & Tasreef Foundation',
+    arabicMilestone: 'الآجرومية وأصول علم الصرف',
     arabicStudentTitle: 'مُجِيدُ اللُّغَةِ الْعَرَبِيَّةِ',
     honorsNote: 'Mastery of foundational syntax, inflection cases, and verb morphological patterns.',
     defaultGrade: 'Very Good (Jayyid Jiddan)',
+    arabicGrade: 'جيد جدًا',
     defaultPercentage: 88,
+    arabicHonorsNote: 'إتقان أساسيات النحو والإعراب وتصريف الأفعال.',
   },
   {
     id: 'ethics_seerah',
     title: 'Islamic Ethics, Adab & Prophetic Seerah',
     arabicTitle: 'شَهَادَةُ الْآدَابِ الْإِسْلَامِيَّةِ وَالسِّيرَةِ النَّبَوِيَّةِ',
+    arabicCourseTitle: 'الأخلاق الإسلامية والسيرة النبوية',
     category: 'Islamic Character',
     defaultMilestone: 'Makkan & Madinan Chronology & Adab al-Mufrad',
+    arabicMilestone: 'السيرة المكية والمدنية وكتاب الأدب المفرد',
     arabicStudentTitle: 'طَالِبُ الْآدَابِ وَالسِّيرَةِ',
     honorsNote: 'Exemplary conduct, Islamic etiquette, and deep understanding of the Prophetic biography.',
     defaultGrade: 'Distinction (Mumtaz)',
+    arabicGrade: 'امتياز',
     defaultPercentage: 96,
+    arabicHonorsNote: 'تميز في حسن الخلق والآداب الإسلامية وفهم السيرة النبوية.',
   },
 ];
 
@@ -123,6 +148,7 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
     student.quranJuzCompleted >= 30 ? 'khatm_quran' : 'tajweed_mastery'
   );
   const [theme, setTheme] = useState<CertificateTheme>('emerald-gold');
+  const [language, setLanguage] = useState<CertificateLanguage>('en');
   const [zoomScale, setZoomScale] = useState<number>(0.85);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState<string>('');
@@ -147,18 +173,23 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
   // Auto-fill from preset
   useEffect(() => {
     const preset = COURSE_PRESETS.find((p) => p.id === selectedPresetId) || COURSE_PRESETS[0];
-    setCourseTitle(preset.title);
+    setCourseTitle(language === 'ar' ? preset.arabicCourseTitle : preset.title);
     setArabicCourseTitle(preset.arabicTitle);
     setCourseCategory(preset.category);
     setJuzOrMilestone(
-      selectedPresetId === 'khatm_quran'
+      language === 'ar'
+        ? preset.arabicMilestone
+        : selectedPresetId === 'khatm_quran'
         ? `${student.quranJuzCompleted >= 30 ? '30 Juz Full Quran' : `${student.quranJuzCompleted} Juz Tahfeez`} with verified Tajweed`
         : preset.defaultMilestone
     );
-    setGrade(preset.defaultGrade);
+    setGrade(language === 'ar' ? preset.arabicGrade : preset.defaultGrade);
     setGradePercentage(student.examScoreAvg || preset.defaultPercentage);
-    setHonorsNote(preset.honorsNote);
+    setHonorsNote(language === 'ar' ? preset.arabicHonorsNote : preset.honorsNote);
+  }, [selectedPresetId, student, language]);
 
+  useEffect(() => {
+    const preset = COURSE_PRESETS.find((p) => p.id === selectedPresetId) || COURSE_PRESETS[0];
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     setCertificateNumber(`JIC-${preset.category.substring(0, 3).toUpperCase()}-${new Date().getFullYear()}-${student.id.toUpperCase()}-${randomSuffix}`);
 
@@ -169,6 +200,20 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
     });
     setIssueDate(today);
   }, [selectedPresetId, student]);
+
+  const changeLanguage = (nextLanguage: CertificateLanguage) => {
+    setLanguage(nextLanguage);
+    const preset = COURSE_PRESETS.find((item) => item.id === selectedPresetId) || COURSE_PRESETS[0];
+    setCourseTitle(nextLanguage === 'ar' ? preset.arabicCourseTitle : preset.title);
+    setArabicCourseTitle(preset.arabicTitle);
+    setJuzOrMilestone(nextLanguage === 'ar'
+      ? preset.arabicMilestone
+      : selectedPresetId === 'khatm_quran'
+        ? `${student.quranJuzCompleted >= 30 ? '30 Juz Full Quran' : `${student.quranJuzCompleted} Juz Tahfeez`} with verified Tajweed`
+        : preset.defaultMilestone);
+    setGrade(nextLanguage === 'ar' ? preset.arabicGrade : preset.defaultGrade);
+    setHonorsNote(nextLanguage === 'ar' ? preset.arabicHonorsNote : preset.honorsNote);
+  };
 
   const certificateData: CertificateData = {
     studentName: student.name,
@@ -191,6 +236,7 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
     accreditationBody: 'SUPREME ISLAMIC AFFAIRS BOARD OF JIMMA CITY',
     verificationUrl: `https://jimma-islamic-affairs.et/verify/${certificateNumber}`,
     honorsNote,
+    language,
   };
 
   // Direct Native Canvas-based PDF Generation Engine (0 external DOM dependency, 0 oklch error)
@@ -200,11 +246,12 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
       setGenerationProgress('Rendering high-resolution vector canvas...');
 
       const canvas = document.createElement('canvas');
-      drawCertificateOnCanvas(canvas, certificateData, theme);
+      drawCertificateOnCanvas(canvas, certificateData, theme, language);
 
       setGenerationProgress('Assembling printable Landscape A4 PDF document...');
       const safeStudentName = student.name.replace(/[^a-zA-Z0-9]/g, '_');
-      const safeCourse = courseTitle.replace(/[^a-zA-Z0-9]/g, '_');
+      const safeCourse = courseTitle.replace(/[^a-zA-Z0-9]/g, '_')
+        || (language === 'ar' ? 'Arabic_Certificate' : 'Certificate');
       const fileName = `Certificate_${safeStudentName}_${safeCourse}.pdf`;
 
       await downloadCanvasAsPdf(canvas, fileName);
@@ -223,7 +270,7 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
       setGenerationProgress('Rendering high-definition raster image...');
 
       const canvas = document.createElement('canvas');
-      drawCertificateOnCanvas(canvas, certificateData, theme);
+      drawCertificateOnCanvas(canvas, certificateData, theme, language);
 
       const safeStudentName = student.name.replace(/[^a-zA-Z0-9]/g, '_');
       const fileName = `Certificate_${safeStudentName}_HighRes.png`;
@@ -241,7 +288,7 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
   const handleDirectPrint = () => {
     try {
       const canvas = document.createElement('canvas');
-      drawCertificateOnCanvas(canvas, certificateData, theme);
+      drawCertificateOnCanvas(canvas, certificateData, theme, language);
       const imgUrl = canvas.toDataURL('image/png');
 
       const printWindow = window.open('', '_blank');
@@ -342,6 +389,39 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
           {/* Left Customizer Sidebar (4 cols) */}
           <div className="lg:col-span-4 p-5 border-r border-stone-200 dark:border-stone-800 overflow-y-auto space-y-5 bg-stone-50/30 dark:bg-stone-900/30">
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5 text-amber-600" />
+                Certificate Language
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => changeLanguage('en')}
+                  aria-pressed={language === 'en'}
+                  className={`rounded-xl border px-3 py-2 text-xs font-semibold transition-colors ${
+                    language === 'en'
+                      ? 'border-emerald-600 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
+                      : 'border-stone-200 bg-white text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300'
+                  }`}
+                >
+                  English
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changeLanguage('ar')}
+                  aria-pressed={language === 'ar'}
+                  className={`rounded-xl border px-3 py-2 text-xs font-semibold transition-colors ${
+                    language === 'ar'
+                      ? 'border-emerald-600 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
+                      : 'border-stone-200 bg-white text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300'
+                  }`}
+                >
+                  العربية
+                </button>
+              </div>
+            </div>
+
             {/* Step 1: Select Course Preset */}
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-1.5">
@@ -363,7 +443,7 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
                       }`}
                     >
                       <div className="truncate pr-2">
-                        <div className="truncate">{preset.title}</div>
+                        <div className="truncate">{language === 'ar' ? preset.arabicCourseTitle : preset.title}</div>
                         <span className="text-[10px] text-stone-400 font-serif block">
                           {preset.arabicTitle}
                         </span>
@@ -478,11 +558,23 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
                       onChange={(e) => setGrade(e.target.value)}
                       className="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100"
                     >
-                      <option value="Distinction with Highest Honors (Mumtaz)">Distinction (Mumtaz)</option>
-                      <option value="Excellent (Mumtaz)">Excellent (Mumtaz)</option>
-                      <option value="Very Good (Jayyid Jiddan)">Very Good (Jayyid Jiddan)</option>
-                      <option value="Good (Jayyid)">Good (Jayyid)</option>
-                      <option value="Successfully Completed">Passed</option>
+                      {language === 'ar' ? (
+                        <>
+                          <option value="امتياز مع مرتبة الشرف">امتياز مع مرتبة الشرف</option>
+                          <option value="ممتاز">ممتاز</option>
+                          <option value="جيد جدًا">جيد جدًا</option>
+                          <option value="جيد">جيد</option>
+                          <option value="اجتاز بنجاح">اجتاز بنجاح</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="Distinction with Highest Honors (Mumtaz)">Distinction (Mumtaz)</option>
+                          <option value="Excellent (Mumtaz)">Excellent (Mumtaz)</option>
+                          <option value="Very Good (Jayyid Jiddan)">Very Good (Jayyid Jiddan)</option>
+                          <option value="Good (Jayyid)">Good (Jayyid)</option>
+                          <option value="Successfully Completed">Passed</option>
+                        </>
+                      )}
                     </select>
                   </div>
                   <div>
@@ -512,7 +604,9 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
                       className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100"
                     />
                   </div>
-                  <div>
+                </div>
+
+                <div>
                     <label className="text-[11px] font-medium text-stone-600 dark:text-stone-400 block mb-1">
                       Board President
                     </label>
@@ -522,7 +616,6 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
                       onChange={(e) => setBoardPresident(e.target.value)}
                       className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100"
                     />
-                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -549,6 +642,7 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
                     />
                   </div>
                 </div>
+
               </div>
             </div>
 
@@ -588,7 +682,7 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
             {/* Zoom Controls Bar */}
             <div className="w-full flex items-center justify-between pb-3 text-xs text-stone-400 border-b border-stone-800">
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-stone-200">A4 Landscape Canvas Preview</span>
+                <span className="font-semibold text-stone-200">Live A4 Landscape Preview</span>
                 <span className="text-[10px] bg-stone-800 text-stone-300 px-2 py-0.5 rounded-full font-mono">
                   297 × 210 mm
                 </span>
@@ -643,7 +737,7 @@ export const CourseCertificateModal: React.FC<CourseCertificateModalProps> = ({
             <div className="w-full pt-3 border-t border-stone-800 flex items-center justify-between text-xs text-stone-400">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>Vector fonts, crisp geometry & golden seals ready for print</span>
+                <span>Preview updates as you edit. Changes apply to this certificate only.</span>
               </div>
 
               <div className="flex items-center gap-3">
