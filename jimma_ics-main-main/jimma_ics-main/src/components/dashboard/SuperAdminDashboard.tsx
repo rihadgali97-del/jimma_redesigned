@@ -4,13 +4,10 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Link } from 'react-router-dom';
-import { CommunityOperationsChart } from '../charts/CommunityOperationsChart';
 import { LiveOperationalSnapshot } from './LiveOperationalSnapshot';
 
 export const SuperAdminDashboard: React.FC = () => {
   const {
-    mosques,
-    madrasas,
     securityLogs,
     securityLogsLoaded,
   } = useApp();
@@ -40,40 +37,10 @@ export const SuperAdminDashboard: React.FC = () => {
 
       <LiveOperationalSnapshot />
 
-      {/* Main Row: Community Operations & Audit Feed */}
+      {/* Live security audit feed */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Community directory data */}
-        <div className="lg:col-span-7 space-y-6">
-          <Card className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100">
-                  Community & Education Overview
-                </h3>
-                <p className="text-xs text-stone-500">
-                  Registered mosques, madrasas, students and teachers
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <Link to="/admin/mosques">
-                  <Button variant="ghost" size="sm" className="text-xs">
-                    Mosques →
-                  </Button>
-                </Link>
-                <Link to="/admin/madrasas">
-                  <Button variant="ghost" size="sm" className="text-xs">
-                    Madrasas →
-                  </Button>
-                </Link>
-              </div>
-            </div>
-            <CommunityOperationsChart mosques={mosques} madrasas={madrasas} />
-          </Card>
-
-        </div>
-
         {/* Live security event stream */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-12 space-y-6">
           {/* Live Security Log Feed */}
           <Card className="space-y-4">
             <div className="flex items-center justify-between">

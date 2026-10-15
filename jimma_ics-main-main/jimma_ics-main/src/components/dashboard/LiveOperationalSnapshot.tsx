@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Activity, AlertCircle, Building2, HeartHandshake, RefreshCw, School, ShieldCheck, Wallet } from 'lucide-react';
 import { apiRequest } from '../../services/authApi';
+import { CommunityOperationsChart } from '../charts/CommunityOperationsChart';
 
 type DashboardSummary = {
   applications: { zakat: Record<string, number>; janazah: Record<string, number> };
@@ -60,6 +61,18 @@ export const LiveOperationalSnapshot: React.FC = () => {
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {stats.map(({ label, value, icon: Icon }) => <div key={label} className="rounded-xl bg-stone-50 p-3 dark:bg-stone-800"><div className="flex items-center justify-between text-xs text-stone-500"><span>{label}</span><Icon className="h-4 w-4 text-emerald-700 dark:text-emerald-400" /></div><div className="mt-1 text-2xl font-bold text-stone-900 dark:text-stone-100">{value.toLocaleString()}</div></div>)}
+      </div>
+      <div className="mt-6 border-t border-stone-100 pt-5 dark:border-stone-800">
+        <div className="mb-3">
+          <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+            Mosque & madrasa distribution
+          </h4>
+          <p className="text-xs text-stone-500">Registered locations by woreda</p>
+        </div>
+        <CommunityOperationsChart
+          mosques={summary.directoryByWoreda.mosques}
+          madrasas={summary.directoryByWoreda.madrasas}
+        />
       </div>
       <p className="mt-3 text-right text-[11px] text-stone-400">Updated {new Date(summary.generatedAt).toLocaleString()}</p>
     </section>
