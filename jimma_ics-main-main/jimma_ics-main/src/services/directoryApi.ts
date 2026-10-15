@@ -1,5 +1,5 @@
 import { apiRequest, getPublicAssetUrl } from './authApi';
-import { Madrasa, Mosque, MosqueCategory } from '../types';
+import { Language, Madrasa, Mosque, MosqueCategory } from '../types';
 
 type ApiMosque = {
   id: number;
@@ -71,10 +71,10 @@ function formatWoreda(code: string) {
   return code.replace(/[-_]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-async function fetchAll<T>(path: string): Promise<T[]> {
+async function fetchAll<T>(path: string, locale: Language = 'en'): Promise<T[]> {
   const rows: T[] = [];
   for (let page = 1; page <= 50; page += 1) {
-    const batch = await apiRequest<T[]>(`${path}?page=${page}&pageSize=100&locale=en`);
+    const batch = await apiRequest<T[]>(`${path}?page=${page}&pageSize=100&locale=${locale}`);
     rows.push(...batch);
     if (batch.length < 100) break;
   }
@@ -226,8 +226,8 @@ export async function fetchAdminDirectoryMosques(): Promise<Mosque[]> {
   return rows.map(mapMosque);
 }
 
-export async function fetchDirectoryMosques(): Promise<Mosque[]> {
-  const rows = await fetchAll<ApiMosque>('/mosques');
+export async function fetchDirectoryMosques(locale: Language = 'en'): Promise<Mosque[]> {
+  const rows = await fetchAll<ApiMosque>('/mosques', locale);
   return rows.map(mapMosque);
 }
 
@@ -264,14 +264,14 @@ function mapMosque(row: ApiMosque): Mosque {
   };
 }
 
-export async function searchDirectoryMosques(query: string): Promise<Mosque[]> {
-  const params = new URLSearchParams({ search: query, page: '1', pageSize: '100', locale: 'en' });
+export async function searchDirectoryMosques(query: string, locale: Language = 'en'): Promise<Mosque[]> {
+  const params = new URLSearchParams({ search: query, page: '1', pageSize: '100', locale });
   const rows = await apiRequest<ApiMosque[]>(`/mosques?${params.toString()}`);
   return rows.map(mapMosque);
 }
 
-export async function fetchDirectoryMadrasas(): Promise<Madrasa[]> {
-  const rows = await fetchAll<ApiMadrasa>('/madrasas');
+export async function fetchDirectoryMadrasas(locale: Language = 'en'): Promise<Madrasa[]> {
+  const rows = await fetchAll<ApiMadrasa>('/madrasas', locale);
   return rows.map(mapMadrasa);
 }
 
@@ -306,8 +306,8 @@ function mapMadrasa(row: ApiMadrasa): Madrasa {
   };
 }
 
-export async function searchDirectoryMadrasas(query: string): Promise<Madrasa[]> {
-  const params = new URLSearchParams({ search: query, page: '1', pageSize: '100', locale: 'en' });
+export async function searchDirectoryMadrasas(query: string, locale: Language = 'en'): Promise<Madrasa[]> {
+  const params = new URLSearchParams({ search: query, page: '1', pageSize: '100', locale });
   const rows = await apiRequest<ApiMadrasa[]>(`/madrasas?${params.toString()}`);
   return rows.map(mapMadrasa);
 }

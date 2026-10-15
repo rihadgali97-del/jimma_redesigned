@@ -26,10 +26,12 @@ import {
   CouncilResource,
   ZakatBeneficiaryDistribution,
   ZakatCalculationRecord,
+  Language,
 } from '../types';
 import { mockFunds, mockTransactions, mockDonations, mockExpenseApprovals } from '../data/mockFinance';
 import { mockPublicServices, ServiceItem } from '../data/mockServices';
 import { initialCouncilResources } from '../data/mockResources';
+import { useLanguage } from './LanguageContext';
 import { initialAttendanceSessions, initialStaffAttendance } from '../data/mockAttendance';
 import { mockZakatCalculations } from '../data/mockZakatHistory';
 import { apiRequest, AuthUser, loginWithPassword, logoutFromServer, PaginationMeta, registerAccount, restoreAuthUser } from '../services/authApi';
@@ -294,6 +296,7 @@ function toFrontendUser(apiUser: AuthUser): User {
 }
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { language } = useLanguage();
   const [currentUser, setCurrentUser] = useState<User>(emptyUser);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authReady, setAuthReady] = useState(false);
@@ -399,6 +402,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [mosques, setMosques] = useState<Mosque[]>([]);
   const [madrasas, setMadrasas] = useState<Madrasa[]>([]);
+  const directoryRefreshRequest = useRef(0);
+  const directoryLocale = useRef(language);
   const [students, setStudents] = useState<Student[]>([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentsError, setStudentsError] = useState('');
@@ -570,8 +575,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
 
-  const refreshDirectoryData = async () => {
-    const results = await Promise.allSettled([fetchDirectoryMosques(), fetchDirectoryMadrasas()]);
+  const refreshDirectoryData = async (locale: Language = language) => {
+    const requestId = ++directoryRefreshRequest.current;
+    const results = await Promise.allSettled([fetchDirectoryMosques(locale), fetchDirectoryMadrasas(locale)]);
+    if (requestId !== directoryRefreshRequest.current) return;
     const [mosquesResult, madrasasResult] = results;
     if (mosquesResult.status === 'fulfilled') setMosques(mosquesResult.value);
     if (madrasasResult.status === 'fulfilled') setMadrasas(madrasasResult.value);
@@ -612,7 +619,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   useEffect(() => {
-    void refreshDirectoryData();
+    directoryLocale.current = language;
+    void refreshDirectoryData(language);
+  }, [language]);
+
+  useEffect(() => {
     void refreshJanazahAvailability();
     void refreshPublicServiceAvailability();
     if (!window.location.pathname.startsWith('/admin/teachers')) {
@@ -625,7 +636,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
     const refreshWhenAvailable = () => {
       if (document.visibilityState === 'visible') {
-        void refreshDirectoryData();
+        void refreshDirectoryData(directoryLocale.current);
         void refreshJanazahAvailability();
         void refreshPublicServiceAvailability();
       }

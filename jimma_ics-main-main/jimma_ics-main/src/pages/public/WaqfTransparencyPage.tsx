@@ -6,6 +6,7 @@ import { WaqfAsset, WaqfAssetType } from '../../types';
 import { fetchPublicWaqfAssets } from '../../services/waqfApi';
 import { usePagination } from '../../hooks/usePagination';
 import { PaginationControls } from '../../components/ui/PaginationControls';
+import { useLanguage } from '../../context/LanguageContext';
 
 const typeLabels: Record<WaqfAssetType, string> = {
   LAND: 'Endowed land',
@@ -16,6 +17,7 @@ const typeLabels: Record<WaqfAssetType, string> = {
 const districtLabel = (code: string) => code.replace(/[-_]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 
 export const WaqfTransparencyPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
+  const { language } = useLanguage();
   const [assets, setAssets] = useState<WaqfAsset[]>([]);
   const [search, setSearch] = useState('');
   const [selectedType, setSelectedType] = useState('All');
@@ -24,12 +26,14 @@ export const WaqfTransparencyPage: React.FC<{ embedded?: boolean }> = ({ embedde
 
   useEffect(() => {
     let active = true;
-    void fetchPublicWaqfAssets()
+    setIsLoading(true);
+    setLoadError('');
+    void fetchPublicWaqfAssets(language)
       .then((rows) => { if (active) setAssets(rows); })
       .catch(() => { if (active) setLoadError('Could not load the public waqf registry. Please try again.'); })
       .finally(() => { if (active) setIsLoading(false); });
     return () => { active = false; };
-  }, []);
+  }, [language]);
 
   const filtered = useMemo(() => assets.filter((asset) => {
     const term = search.trim().toLowerCase();

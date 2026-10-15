@@ -1,5 +1,5 @@
 import { apiRequest } from './authApi';
-import { WaqfAsset, WaqfAssetStatus, WaqfAssetType } from '../types';
+import { Language, WaqfAsset, WaqfAssetStatus, WaqfAssetType } from '../types';
 
 type ApiWaqfAsset = Omit<WaqfAsset, 'id'> & { id: number | string };
 export type WaqfAssetInput = {
@@ -17,17 +17,17 @@ export type WaqfAssetInput = {
 
 const mapAsset = (asset: ApiWaqfAsset): WaqfAsset => ({ ...asset, id: String(asset.id) });
 
-async function fetchAll(path: string) {
+async function fetchAll(path: string, locale: Language = 'en') {
   const assets: WaqfAsset[] = [];
   for (let page = 1; page <= 50; page += 1) {
-    const rows = await apiRequest<ApiWaqfAsset[]>(`${path}?page=${page}&pageSize=100&locale=en`);
+    const rows = await apiRequest<ApiWaqfAsset[]>(`${path}?page=${page}&pageSize=100&locale=${locale}`);
     assets.push(...rows.map(mapAsset));
     if (rows.length < 100) break;
   }
   return assets;
 }
 
-export const fetchPublicWaqfAssets = () => fetchAll('/transparency/waqf');
+export const fetchPublicWaqfAssets = (locale: Language = 'en') => fetchAll('/transparency/waqf', locale);
 export const fetchAdminWaqfAssets = () => fetchAll('/admin/waqf');
 
 export async function uploadWaqfAssetImage(id: string, file: File) {
