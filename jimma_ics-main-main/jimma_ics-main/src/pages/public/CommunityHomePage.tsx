@@ -135,7 +135,7 @@ export const CommunityHomePage: React.FC = () => {
                 <img src={mosque.image} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-16 w-16 shrink-0 rounded-xl bg-stone-200 object-cover dark:bg-stone-700" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-bold text-stone-900 dark:text-stone-100">{mosque.name}</span>
-                  <span className="mt-1 block truncate text-xs text-stone-500 dark:text-stone-400">{mosque.district} · {mosque.capacity.toLocaleString()} worshippers</span>
+                  <span className="mt-1 block truncate text-xs text-stone-500 dark:text-stone-400">{mosque.district} · {mosque.capacity.toLocaleString()} <span>worshippers</span></span>
                 </span>
                 <ArrowRight className="h-4 w-4 shrink-0 text-emerald-800 dark:text-emerald-300" />
               </Link>
@@ -145,7 +145,7 @@ export const CommunityHomePage: React.FC = () => {
                 <span className="grid h-16 w-16 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-300"><BookOpen className="h-6 w-6" /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-bold text-stone-900 dark:text-stone-100">{madrasa.name}</span>
-                  <span className="mt-1 block truncate text-xs text-stone-500 dark:text-stone-400">{madrasa.district} · {madrasa.totalStudents.toLocaleString()} students</span>
+                  <span className="mt-1 block truncate text-xs text-stone-500 dark:text-stone-400">{madrasa.district} · {madrasa.totalStudents.toLocaleString()} <span>students</span></span>
                 </span>
                 <ArrowRight className="h-4 w-4 shrink-0 text-emerald-800 dark:text-emerald-300" />
               </Link>

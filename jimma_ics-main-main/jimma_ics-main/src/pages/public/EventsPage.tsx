@@ -206,7 +206,7 @@ export const EventsPage: React.FC = () => {
               }`}
             >
               <Ticket className="w-4 h-4 text-amber-400" />
-              <span>My Registrations & Passes ({eventRegistrations.length})</span>
+              <span>My Registrations &amp; Passes</span> ({eventRegistrations.length})
             </button>
           </div>
         </div>
@@ -229,7 +229,7 @@ export const EventsPage: React.FC = () => {
           </div>
           <div className="space-y-0.5">
             <p className="text-stone-400 font-medium">Quranic Competitions</p>
-            <p className="text-xl sm:text-2xl font-bold font-serif text-blue-400">{quranCompsCount} Active</p>
+            <p className="text-xl sm:text-2xl font-bold font-serif text-blue-400">{quranCompsCount} <span>Active</span></p>
           </div>
         </div>
       </div>
@@ -556,8 +556,8 @@ export const EventsPage: React.FC = () => {
                   {/* Capacity Bar */}
                   <div className="mt-3 space-y-1">
                     <div className="flex items-center justify-between text-[11px] text-stone-500 dark:text-stone-400">
-                      <span>Capacity ({capacityPercent}%)</span>
-                      <span>{event.attendeesCount?.toLocaleString()} / {event.maxCapacity?.toLocaleString()} Seats</span>
+                      <span>Capacity <span>({capacityPercent}%)</span></span>
+                      <span>{event.attendeesCount?.toLocaleString()} / {event.maxCapacity?.toLocaleString()} <span>Seats</span></span>
                     </div>
                     <div className="w-full bg-stone-100 dark:bg-stone-800 h-1.5 rounded-full overflow-hidden">
                       <div
