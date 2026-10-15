@@ -46,7 +46,8 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
         <div className="flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
           <ShieldCheck className="h-4 w-4 text-emerald-600" />
-          <span>{currentUser.permissions.length} server-assigned permissions</span>
+          <span>{currentUser.permissions.length} </span>
+          <span>server-assigned permissions</span>
         </div>
       </div>
       <div className="animate-in fade-in duration-300">{workspace}</div>

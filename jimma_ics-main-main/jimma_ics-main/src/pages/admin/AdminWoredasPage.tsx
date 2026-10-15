@@ -223,7 +223,7 @@ export const AdminWoredasPage: React.FC = () => {
             <div>
               <h2 className="font-bold text-stone-900 dark:text-stone-100">Registered locations</h2>
               <p className="mt-1 text-xs text-stone-500">
-                {woredas.filter((woreda) => woreda.isActive).length} active · {woredas.length} total kebeles
+                {woredas.filter((woreda) => woreda.isActive).length} <span>active</span> · {woredas.length} <span>total kebeles</span>
               </p>
             </div>
             <label className="relative block sm:w-64">

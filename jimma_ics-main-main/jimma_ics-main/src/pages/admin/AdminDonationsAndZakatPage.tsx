@@ -558,7 +558,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
             ETB {(totalCollectedETB / 1000000).toFixed(2)}M
           </div>
           <div className="flex items-center justify-between text-xs text-stone-500">
-            <span>{donationLogs.length} Donation Records</span>
+            <span>{donationLogs.length} <span>Donation Records</span></span>
             <Badge variant="blue">Live Ledger</Badge>
           </div>
         </Card>
@@ -600,7 +600,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
             <Users className="w-4 h-4 text-indigo-600" />
           </div>
           <div className="text-2xl font-serif font-bold text-indigo-700 dark:text-indigo-400 font-mono">
-            {totalBeneficiariesCount.toLocaleString()} Families
+            {totalBeneficiariesCount.toLocaleString()} <span>Families</span>
           </div>
           <div className="flex items-center justify-between text-xs text-stone-500">
             <span>Disbursed: ETB {(totalAsnafDisbursedETB / 1000000).toFixed(2)}M</span>
@@ -630,7 +630,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
             }`}
           >
             <HeartHandshake className="w-4 h-4" />
-            <span>All Contributions ({donationLogs.length})</span>
+            <span>All Contributions</span> ({donationLogs.length})
           </button>
 
           <button
@@ -654,7 +654,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Asnaf Beneficiary Disbursals ({zakatDistributions.length})</span>
+            <span>Asnaf Beneficiary Disbursals</span> ({zakatDistributions.length})
           </button>
 
           <button
