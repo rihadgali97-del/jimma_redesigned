@@ -8,7 +8,6 @@ import {
   Wallet,
   Users,
   Radio,
-  FileText,
   Activity,
   ArrowUpRight,
   Sparkles,
@@ -24,7 +23,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Link } from 'react-router-dom';
-import { IncomeExpenseChart, FundDistributionCard } from '../charts/FinancialCharts';
+import { CommunityOperationsChart } from '../charts/CommunityOperationsChart';
 import { LiveOperationalSnapshot } from './LiveOperationalSnapshot';
 
 export const SuperAdminDashboard: React.FC = () => {
@@ -138,47 +137,36 @@ export const SuperAdminDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Main Row: Financial Flow & Zone GIS Quick Action */}
+      {/* Main Row: Community Operations & Zone GIS Quick Action */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left 7 cols: Financial Health & Pending Executive Approvals */}
+        {/* Left 7 cols: Community Operations & Pending Executive Approvals */}
         <div className="lg:col-span-7 space-y-6">
           <Card className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100">
-                  Revenue & Expenditure Overview (2026)
+                  Community & Education Overview
                 </h3>
-                <p className="text-xs text-stone-500">Zone-wide operational cash flow trajectory</p>
+                <p className="text-xs text-stone-500">
+                  Registered mosques, madrasas, students and teachers
+                </p>
               </div>
-              <Link to="/admin/finance">
-                <Button variant="ghost" size="sm" className="text-xs">
-                  Finance Center →
-                </Button>
-              </Link>
+              <div className="flex shrink-0 items-center gap-1">
+                <Link to="/admin/mosques">
+                  <Button variant="ghost" size="sm" className="text-xs">
+                    Mosques →
+                  </Button>
+                </Link>
+                <Link to="/admin/madrasas">
+                  <Button variant="ghost" size="sm" className="text-xs">
+                    Madrasas →
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <IncomeExpenseChart />
+            <CommunityOperationsChart mosques={mosques} madrasas={madrasas} />
           </Card>
 
-          {/* Pending Level 1 & 2 Approvals */}
-          <Card className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-amber-600" />
-                <span>Expense Approvals</span>
-              </h3>
-              <Badge variant="gold">Not connected</Badge>
-            </div>
-
-            <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4 text-xs leading-relaxed text-stone-500 dark:border-stone-700 dark:bg-stone-800/50 dark:text-stone-400">
-              Expense requests and approval actions are not currently saved by the backend. Demo requests are hidden, so no pending count or approval status is shown.
-            </div>
-
-            <Link to="/admin/finance/approvals" className="block pt-1">
-              <Button variant="outline" size="sm" className="w-full justify-center text-xs">
-                Open Expense Approvals
-              </Button>
-            </Link>
-          </Card>
         </div>
 
         {/* Right 5 cols: GIS Map Shortcut & Security Event Stream */}
