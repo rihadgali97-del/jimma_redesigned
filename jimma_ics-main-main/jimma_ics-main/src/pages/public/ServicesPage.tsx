@@ -27,7 +27,7 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
-import { ServiceItem } from '../../data/mockServices';
+import { ServiceItem } from '../../constants/serviceCatalog';
 import { ZakatCalculator } from '../../components/services/ZakatCalculator';
 import { IslamicPattern } from '../../components/common/IslamicPattern';
 import { DirectoryWoreda, fetchDirectoryWoredas } from '../../services/directoryApi';
@@ -54,7 +54,6 @@ export const ServicesPage: React.FC = () => {
     publicServices,
     publicServiceAvailability,
     serviceRequests,
-    submitServiceRequest,
     upsertServiceRequest,
     addToast,
     janazahPublicEnabled,
@@ -400,42 +399,7 @@ export const ServicesPage: React.FC = () => {
       return;
     }
 
-    const serviceCategoryMap: Record<string, any> = {
-      'Zakat Assistance': 'Zakat Assistance',
-      'Janazah': 'Janazah Support',
-      'Counselling': 'Islamic Counselling',
-      'Halal': 'Halal Certification Guidance',
-      'Madrasa': 'Madrasa Registration',
-      'Waqf': 'Mosque Land & Waqf Support',
-      'Orphan': 'Orphan Sponsorship',
-    };
-
-    let resolvedType: any = 'Islamic Counselling';
-    for (const key of Object.keys(serviceCategoryMap)) {
-      if (selectedService.title.includes(key)) {
-        resolvedType = serviceCategoryMap[key];
-        break;
-      }
-    }
-
-    const newReq = submitServiceRequest({
-      serviceType: resolvedType,
-      applicantName,
-      applicantPhone: phone,
-      applicantDistrict: district,
-      notes: details || `Standard application for ${selectedService.title} by ${applicantName}`,
-      documentsCount: (selectedService.requiredDocs || []).length,
-      priority: selectedService.category === 'Funeral & Bereavement' ? 'Urgent' : 'Normal',
-    });
-
-    setIsApplyModalOpen(false);
-    setApplicantName('');
-    setPhone('');
-    setDetails('');
-    setTrackQuery(newReq.trackingNo);
-    setTrackPhone(newReq.applicantPhone);
-    handleTabChange('track');
-    setSearchedRequest(null);
+    addToast('Service unavailable', 'This service is not connected to a persistent submission route.', 'error');
   };
 
   const handleTrack = async (e: React.FormEvent) => {
@@ -777,7 +741,7 @@ export const ServicesPage: React.FC = () => {
       {activeTab === 'zakat' && (
         <ZakatCalculator
           onProceedToPaymentGateway={(amount) => {
-            navigate(`/donate?tab=donate&amount=${amount}&fund=fund-4`);
+            navigate(`/donate?tab=donate&amount=${amount}&fund=Zakat`);
           }}
           gatewayButtonText="Proceed to Donation Gateway with Calculated Zakat →"
         />
@@ -825,23 +789,9 @@ export const ServicesPage: React.FC = () => {
               </Button>
             </form>
 
-            {/* Quick Demo Reference Numbers */}
-            <div className="pt-2 border-t border-stone-100 dark:border-stone-800 flex items-center gap-2 flex-wrap text-xs text-stone-500">
-              <span className="text-[11px] font-medium text-stone-400">Quick Test Codes:</span>
-              {serviceRequests.slice(0, 3).map((req) => (
-                <button
-                  key={req.id}
-                  type="button"
-                  onClick={() => {
-                    setTrackQuery(req.trackingNo);
-                    setSearchedRequest(null);
-                  }}
-                  className="px-2 py-0.5 bg-stone-100 dark:bg-stone-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-mono text-[11px] rounded-md transition-colors cursor-pointer border border-stone-200 dark:border-stone-700"
-                >
-                  {req.trackingNo}
-                </button>
-              ))}
-            </div>
+            <p className="pt-2 border-t border-stone-100 dark:border-stone-800 text-xs text-stone-500">
+              Enter the reference number and contact phone provided when the application was submitted.
+            </p>
           </Card>
 
           {searchedRequest && (

@@ -217,7 +217,7 @@ export const GlobalSearchModal: React.FC = () => {
                       <div>
                         <div className="font-semibold text-sm">{m.name}</div>
                         <div className="text-xs text-stone-500 dark:text-stone-400">
-                          {m.district} • {m.totalStudents} Students
+                          {m.district} • Capacity {m.capacity ?? 'not listed'}
                         </div>
                       </div>
                       <ArrowRight className="w-4 h-4 text-stone-400" />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { MessageChannel, MessageCategory, Student, Mosque } from '../../types';
-import { gatewayTemplates, MessageTemplate } from '../../data/mockGatewayData';
+import { gatewayTemplates, GatewayMessageTemplate } from '../../constants/gatewayTemplates';
 import {
   Send,
   Sparkles,

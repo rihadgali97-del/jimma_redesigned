@@ -5,51 +5,35 @@ import {
   BookOpen,
   MapPin,
   Users,
-  Award,
-  Calendar,
   Building,
   GraduationCap,
   ArrowLeft,
   CheckCircle2,
-  Phone,
   HeartHandshake,
 } from 'lucide-react';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
-import type { Madrasa } from '../../types';
 
 export const MadrasaDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { madrasas = [], students = [], teachers = [], mosques = [] } = useApp();
   const navigate = useNavigate();
 
-  const madrasa: Madrasa =
-    (madrasas || []).find((m) => m.id === id) ||
-    (madrasas || [])[0] || {
-      id: 'madrasa-1',
-      name: 'Dar Al-Quran & Hifz Academy (Grand Anwar)',
-      arabicName: 'دار القرآن وأكاديمية التحفيظ بجامع الأنوار',
-      mosqueId: 'mosque-1',
-      mosqueName: 'Grand Anwar Mosque of Jimma',
-      district: 'Jimma Central',
-      headTeacher: 'Sheikh Abdullah Ahmed Al-Jimmawi',
-      establishedYear: 1945,
-      totalStudents: 240,
-      totalTeachers: 12,
-      levels: [
-        'Level 1 (Tahfeez & Arabic Alphabet)',
-        'Level 2 (Tajweed & Hadith Basics)',
-        'Level 3 (Alimiyyah & Fiqh Pre-Specialization)',
-      ],
-      programs: ['Full-Time Hifz', 'Afternoon Tajweed', 'Weekend Islamic Literacy'],
-      status: 'active',
-      shifts: ['Morning', 'Afternoon', 'Weekend'],
-      contactPhone: '+251 47 111 8290',
-      image: '',
-      description: 'The premier Islamic educational institution in Jimma City.',
-      accreditationStatus: 'Fully Accredited',
-    };
+  const madrasa = madrasas.find((record) => record.id === id);
+
+  if (!madrasa) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-20 text-center">
+        <BookOpen className="mx-auto h-10 w-10 text-stone-300" />
+        <h1 className="mt-4 font-serif text-2xl font-bold text-stone-900 dark:text-stone-100">Madrasa record unavailable</h1>
+        <p className="mt-2 text-sm text-stone-500">This institution is not listed in the currently loaded public directory.</p>
+        <Link to="/madrasas" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+          <ArrowLeft className="h-4 w-4" /> Back to Madrasas Directory
+        </Link>
+      </div>
+    );
+  }
 
   const linkedMosque = (mosques || []).find(
     (mos) => mos.id === madrasa.mosqueId || mos.name === madrasa.mosqueName
@@ -65,10 +49,6 @@ export const MadrasaDetailPage: React.FC = () => {
   const levelsList = madrasa.levels || [];
   const curriculumItems = programsList.length > 0 ? programsList : levelsList;
   const shiftsList = madrasa.shifts || [];
-
-  const totalBoys = Math.round((madrasa.totalStudents || 100) * 0.58);
-  const totalGirls = Math.round((madrasa.totalStudents || 100) * 0.42);
-  const huffazCount = Math.round((madrasa.totalStudents || 100) * 0.22) || 28;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -100,7 +80,7 @@ export const MadrasaDetailPage: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-stone-100 dark:border-stone-800 pb-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Badge variant="gold">{madrasa.accreditationStatus || 'Accredited'}</Badge>
+              <Badge variant="gold">{madrasa.accreditationStatus || 'Accreditation not recorded'}</Badge>
               <span className="text-xs text-stone-400 font-mono">ID: {madrasa.id}</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-serif font-bold text-stone-900 dark:text-stone-100">
@@ -114,10 +94,14 @@ export const MadrasaDetailPage: React.FC = () => {
             <div className="flex items-center gap-2 text-xs text-stone-500">
               <MapPin className="w-3.5 h-3.5 text-amber-500" />
               <span>
-                {madrasa.mosqueName || 'Central Mosque Area'}, {madrasa.district}
+                {[linkedMosque?.name || madrasa.mosqueName, madrasa.district].filter(Boolean).join(', ') || 'Location not listed'}
               </span>
-              <span>•</span>
-              <span>Established {madrasa.establishedYear || '1975'} CE</span>
+              {madrasa.establishedYear > 0 && (
+                <>
+                  <span>•</span>
+                  <span>Established {madrasa.establishedYear} CE</span>
+                </>
+              )}
             </div>
             <p className="text-stone-600 dark:text-stone-300 text-sm max-w-3xl leading-relaxed pt-2">
               {madrasa.description}
@@ -150,22 +134,22 @@ export const MadrasaDetailPage: React.FC = () => {
               Total Students
             </span>
             <span className="text-2xl font-bold font-mono text-stone-900 dark:text-stone-100">
-              {madrasa.totalStudents || 0}
+              {enrolledStudents.length ? enrolledStudents.length.toLocaleString() : '—'}
             </span>
             <span className="text-[11px] text-stone-500 block mt-0.5">
-              {totalBoys} Boys • {totalGirls} Girls
+              {enrolledStudents.length ? 'Student records available' : 'Enrollment data not listed'}
             </span>
           </div>
 
           <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/40 text-center sm:text-left">
             <span className="text-[10px] uppercase font-bold text-emerald-800 dark:text-emerald-300 block">
-              Huffaz Produced
+              Reported Hifz Graduates
             </span>
             <span className="text-2xl font-bold font-mono text-emerald-950 dark:text-emerald-100">
-              {huffazCount}+
+              {madrasa.hifzGraduatesCount == null ? '—' : madrasa.hifzGraduatesCount.toLocaleString()}
             </span>
             <span className="text-[11px] text-stone-500 block mt-0.5">
-              Verified Sanads
+              Reported by the directory
             </span>
           </div>
 
@@ -174,10 +158,10 @@ export const MadrasaDetailPage: React.FC = () => {
               Faculty Size
             </span>
             <span className="text-2xl font-bold font-mono text-stone-900 dark:text-stone-100">
-              {madrasa.totalTeachers || 0} Asatidhah
+              {facultyTeachers.length ? facultyTeachers.length.toLocaleString() : '—'}
             </span>
             <span className="text-[11px] text-stone-500 block mt-0.5 truncate">
-              Head: {madrasa.headTeacher}
+              Head: {madrasa.headTeacher || 'Not listed'}
             </span>
           </div>
 
@@ -186,18 +170,16 @@ export const MadrasaDetailPage: React.FC = () => {
               Session Shifts
             </span>
             <span className="text-sm font-bold text-stone-900 dark:text-stone-100 block mt-1">
-              {shiftsList.join(', ') || 'Morning, Afternoon'}
+              {shiftsList.join(', ') || 'Not recorded'}
             </span>
-            <span className="text-[11px] text-stone-500 block mt-0.5">
-              Operating All Week
-            </span>
+            <span className="text-[11px] text-stone-500 block mt-0.5">Schedule information, if available</span>
           </div>
         </div>
       </div>
 
       {/* Curriculum & Faculty Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left: Curriculum & Sample Students */}
+        {/* Curriculum & enrolled students */}
         <div className="lg:col-span-8 space-y-8">
           {/* Standardized Subjects */}
           <Card className="space-y-4">
@@ -215,15 +197,18 @@ export const MadrasaDetailPage: React.FC = () => {
                   <span>{item}</span>
                 </div>
               ))}
+              {curriculumItems.length === 0 && (
+                <p className="text-sm text-stone-500">Program and curriculum information is not listed.</p>
+              )}
             </div>
           </Card>
 
-          {/* Sample Students Enrolled at this Madrasa */}
+          {/* Enrolled students listed for this madrasa */}
           <Card className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
                 <GraduationCap className="w-5 h-5 text-emerald-600" />
-                <span>Enrolled Students in Active Tahfeez ({enrolledStudents.length})</span>
+                <span>Enrolled Student Records ({enrolledStudents.length})</span>
               </h3>
               <Link to="/admin/students" className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold hover:underline">
                 View All in Registry →
@@ -270,7 +255,7 @@ export const MadrasaDetailPage: React.FC = () => {
 
               {enrolledStudents.length === 0 && (
                 <div className="p-6 text-center text-xs text-stone-400">
-                  Student enrollment records are loaded from the centralized council database.
+                  No student records are available for this institution.
                 </div>
               )}
             </div>
@@ -309,7 +294,7 @@ export const MadrasaDetailPage: React.FC = () => {
 
               {facultyTeachers.length === 0 && (
                 <div className="p-4 rounded-xl bg-stone-50 dark:bg-stone-800/60 text-xs text-stone-500">
-                  Head Teacher: {madrasa.headTeacher} (Overseeing {madrasa.totalTeachers} teachers)
+                  No public teacher records are listed for this institution.
                 </div>
               )}
             </div>

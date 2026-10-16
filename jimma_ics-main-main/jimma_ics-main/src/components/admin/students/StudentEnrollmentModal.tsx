@@ -20,29 +20,28 @@ export const StudentEnrollmentModal: React.FC<StudentEnrollmentModalProps> = ({
   onSubmit,
 }) => {
   const [name, setName] = useState('');
-  const [age, setAge] = useState(14);
-  const [gender, setGender] = useState<'Male' | 'Female'>('Male');
-  const [madrasaId, setMadrasaId] = useState(madrasas[0]?.id || '');
+  const [age, setAge] = useState<number | ''>('');
+  const [gender, setGender] = useState<'Male' | 'Female' | ''>('');
+  const [madrasaId, setMadrasaId] = useState('');
   const [guardianName, setGuardianName] = useState('');
   const [guardianPhone, setGuardianPhone] = useState('');
   const [currentJuz, setCurrentJuz] = useState(1);
   const [quranJuzCompleted, setQuranJuzCompleted] = useState(0);
-  const [level, setLevel] = useState('Intermediate Tahfeez');
-  const [tajweedRating, setTajweedRating] =
-    useState<Student['tajweedRating']>('Very Good');
+  const [level, setLevel] = useState('');
+  const [tajweedRating, setTajweedRating] = useState<Student['tajweedRating'] | ''>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const resetForm = () => {
     setName('');
-    setAge(14);
-    setGender('Male');
-    setMadrasaId(madrasas[0]?.id || '');
+    setAge('');
+    setGender('');
+    setMadrasaId('');
     setGuardianName('');
     setGuardianPhone('');
     setCurrentJuz(1);
     setQuranJuzCompleted(0);
-    setLevel('Intermediate Tahfeez');
-    setTajweedRating('Very Good');
+    setLevel('');
+    setTajweedRating('');
   };
 
   const handleClose = () => {
@@ -52,23 +51,18 @@ export const StudentEnrollmentModal: React.FC<StudentEnrollmentModalProps> = ({
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const selectedMadrasa = madrasas.find((madrasa) => madrasa.id === madrasaId);
-    if (!selectedMadrasa) {
+    if (!selectedMadrasa || age === '' || gender === '' || level === '' || tajweedRating === '') {
       return;
     }
 
     const normalizedGuardianName = guardianName.trim();
     const normalizedGuardianPhone = guardianPhone.trim();
-    const sabaqSurah = 'Surah Al-Baqarah';
-    const sabaqAyahStart = 1;
-    const sabaqAyahEnd = 25;
-    const sabaqiJuz = Math.max(1, quranJuzCompleted);
-    const manzilJuz = 'Juz 1';
 
     setIsSubmitting(true);
     try {
       const savedStudent = await onSubmit({
         name: name.trim(),
-        age,
+        age: Number(age),
         gender,
         madrasaId: selectedMadrasa.id,
         madrasaName: selectedMadrasa.name,
@@ -76,21 +70,15 @@ export const StudentEnrollmentModal: React.FC<StudentEnrollmentModalProps> = ({
         teacherId: '',
         teacherName: 'Not assigned',
         enrollmentDate: new Date().toISOString().split('T')[0],
-        attendanceRate: 100,
+        attendanceRate: 0,
         currentJuz,
-        currentJuzProgress: 20,
+        currentJuzProgress: 0,
         quranJuzCompleted,
         hifzStatus: {
-          sabaq: `${sabaqSurah}: ${sabaqAyahStart}-${sabaqAyahEnd}`,
-          sabqi: `Juz ${sabaqiJuz}`,
-          manzil: manzilJuz,
+          sabaq: '',
+          sabqi: '',
+          manzil: '',
         },
-        sabaqSurah,
-        sabaqAyahStart,
-        sabaqAyahEnd,
-        sabaqiJuz,
-        manzilJuz,
-        dailyAttendance: 'Present',
         tajweedRating,
         examScoreAvg: 0,
         parentName: normalizedGuardianName,
@@ -143,7 +131,7 @@ export const StudentEnrollmentModal: React.FC<StudentEnrollmentModalProps> = ({
               max="30"
               required
               value={age}
-              onChange={(event) => setAge(Number(event.target.value))}
+              onChange={(event) => setAge(event.target.value === '' ? '' : Number(event.target.value))}
               className={`${inputClassName} font-mono`}
             />
           </div>
@@ -152,10 +140,12 @@ export const StudentEnrollmentModal: React.FC<StudentEnrollmentModalProps> = ({
               Gender *
             </label>
             <select
+              required
               value={gender}
-              onChange={(event) => setGender(event.target.value as 'Male' | 'Female')}
+              onChange={(event) => setGender(event.target.value as 'Male' | 'Female' | '')}
               className={inputClassName}
             >
+              <option value="">Select gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
             </select>
@@ -170,6 +160,7 @@ export const StudentEnrollmentModal: React.FC<StudentEnrollmentModalProps> = ({
               onChange={(event) => setMadrasaId(event.target.value)}
               className={inputClassName}
             >
+              <option value="">Select a madrasa</option>
               {madrasas.map((madrasa) => (
                 <option key={madrasa.id} value={madrasa.id}>
                   {madrasa.name}
@@ -240,10 +231,12 @@ export const StudentEnrollmentModal: React.FC<StudentEnrollmentModalProps> = ({
               Tajweed Proficiency
             </label>
             <select
+              required
               value={tajweedRating}
-              onChange={(event) => setTajweedRating(event.target.value as Student['tajweedRating'])}
+              onChange={(event) => setTajweedRating(event.target.value as Student['tajweedRating'] | '')}
               className={inputClassName}
             >
+              <option value="">Select rating</option>
               <option value="Excellent">Excellent</option>
               <option value="Very Good">Very Good</option>
               <option value="Good">Good</option>
@@ -258,6 +251,7 @@ export const StudentEnrollmentModal: React.FC<StudentEnrollmentModalProps> = ({
             Hifz Level
           </label>
           <select
+            required
             value={level}
             onChange={(event) => setLevel(event.target.value)}
             className={inputClassName}

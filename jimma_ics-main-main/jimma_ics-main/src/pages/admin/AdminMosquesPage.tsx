@@ -74,7 +74,7 @@ export const AdminMosquesPage: React.FC = () => {
   const [district, setDistrict] = useState('');
   const [selectedWoredaId, setSelectedWoredaId] = useState<number | null>(null);
   const [imam, setImam] = useState('');
-  const [capacity, setCapacity] = useState(1000);
+  const [capacity, setCapacity] = useState(0);
   const [description, setDescription] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoRetry, setPhotoRetry] = useState<{ id: number; file: File; mosqueName: string } | null>(null);
@@ -171,7 +171,7 @@ export const AdminMosquesPage: React.FC = () => {
     setDistrict(selectedWoreda?.name || mosque.district);
     setSelectedWoredaId(selectedWoreda?.id || null);
     setImam(mosque.imam === 'Not listed' ? '' : mosque.imam);
-    setCapacity(mosque.capacity || 1000);
+    setCapacity(mosque.capacity || 0);
     setDescription(mosque.description);
     setPhoto(null);
     setSelectedMadrasaId(mosque.madrasaId || '');
@@ -304,7 +304,7 @@ export const AdminMosquesPage: React.FC = () => {
             Mosque Registry & Operations
           </h1>
           <p className="text-stone-500 dark:text-stone-400 text-xs sm:text-sm">
-            Manage all 128+ registered mosques, prayer halls, and administrative profiles in Jimma City.
+            Manage mosque and prayer hall records registered in Jimma City.
           </p>
         </div>
 

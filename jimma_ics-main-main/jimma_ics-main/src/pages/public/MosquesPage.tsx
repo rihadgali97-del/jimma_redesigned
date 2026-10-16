@@ -42,7 +42,7 @@ export const MosquesPage: React.FC = () => {
           Mosques Directory of Jimma City
         </h1>
         <p className="text-stone-500 dark:text-stone-400 text-sm sm:text-base mt-1 max-w-3xl">
-          Comprehensive directory of 128+ registered Jumu'ah mosques, prayer centers, and linked madrasas
+          Browse published Jumu'ah mosques, prayer centers, and linked madrasas
           across the 18 administrative kebeles of Jimma City.
         </p>
       </div>

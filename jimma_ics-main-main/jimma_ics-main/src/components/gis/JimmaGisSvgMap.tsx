@@ -119,46 +119,38 @@ export const JimmaGisSvgMap: React.FC<JimmaGisSvgMapProps> = ({
     }
   };
 
-  // Heatmap Color Calculation
+  const getHeatmapFill = (value: number, maximum: number, colors: string[]) => {
+    if (value <= 0 || maximum <= 0) return '#334155';
+    const ratio = value / maximum;
+    if (ratio > 0.75) return colors[0];
+    if (ratio > 0.5) return colors[1];
+    if (ratio > 0.25) return colors[2];
+    return colors[3];
+  };
+
+  const maxMosques = Math.max(0, ...woredas.map((woreda) => woreda.totalMosques));
+  const maxStudents = Math.max(0, ...woredas.map((woreda) => woreda.tahfeezStudents));
+  const maxZakat = Math.max(0, ...woredas.map((woreda) => woreda.annualZakatETB));
+
   const getWoredaFill = (woreda: WoredaGisData, isSelected: boolean, isHovered: boolean) => {
     if (isSelected) return '#10b981'; // Emerald highlight
     if (isHovered) return '#34d399';
 
     if (heatmapMode === 'mosques') {
-      // 30 to 85 range
-      const ratio = (woreda.totalMosques - 30) / (85 - 30);
-      if (ratio > 0.75) return '#047857'; // Deep emerald
-      if (ratio > 0.5) return '#059669';
-      if (ratio > 0.25) return '#10b981';
-      return '#6ee7b7';
+      return getHeatmapFill(woreda.totalMosques, maxMosques, ['#047857', '#059669', '#10b981', '#6ee7b7']);
     }
 
     if (heatmapMode === 'students') {
-      // 1000 to 4000
-      const ratio = (woreda.tahfeezStudents - 1000) / 3000;
-      if (ratio > 0.75) return '#b45309'; // Deep amber
-      if (ratio > 0.5) return '#d97706';
-      if (ratio > 0.25) return '#f59e0b';
-      return '#fde68a';
+      return getHeatmapFill(woreda.tahfeezStudents, maxStudents, ['#b45309', '#d97706', '#f59e0b', '#fde68a']);
     }
 
     if (heatmapMode === 'zakat') {
-      // 4M to 19M
-      const ratio = (woreda.annualZakatETB - 4000000) / 15000000;
-      if (ratio > 0.75) return '#0f766e'; // Deep teal
-      if (ratio > 0.5) return '#0d9488';
-      if (ratio > 0.25) return '#14b8a6';
-      return '#99f6e4';
+      return getHeatmapFill(woreda.annualZakatETB, maxZakat, ['#0f766e', '#0d9488', '#14b8a6', '#99f6e4']);
     }
 
     if (heatmapMode === 'muslim_ratio') {
       if (woreda.muslimPercentage == null) return '#334155';
-      // 75% to 88%
-      const ratio = (woreda.muslimPercentage - 75) / 13;
-      if (ratio > 0.75) return '#1d4ed8'; // Blue
-      if (ratio > 0.5) return '#2563eb';
-      if (ratio > 0.25) return '#3b82f6';
-      return '#93c5fd';
+      return getHeatmapFill(woreda.muslimPercentage, 100, ['#1d4ed8', '#2563eb', '#3b82f6', '#93c5fd']);
     }
 
     // Default Topographical Scheme based on elevation & climate

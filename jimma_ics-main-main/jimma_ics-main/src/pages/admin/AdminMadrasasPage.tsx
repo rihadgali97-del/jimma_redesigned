@@ -42,7 +42,7 @@ const madrasaExportColumns: RegistryExportColumn<Madrasa>[] = [
   { header: 'Head Teacher', value: (madrasa) => madrasa.headTeacher },
   { header: 'Head Teacher ID', value: (madrasa) => madrasa.headTeacherId },
   { header: 'Established Year', value: (madrasa) => madrasa.establishedYear },
-  { header: 'Enrolled Students', value: (madrasa) => madrasa.totalStudents },
+  { header: 'Capacity', value: (madrasa) => madrasa.capacity },
   { header: 'Graduated Huffaz', value: (madrasa) => madrasa.hifzGraduatesCount },
   { header: 'Faculty', value: (madrasa) => madrasa.totalTeachers },
   { header: 'Levels', value: (madrasa) => madrasa.levels.join(', ') },
@@ -70,7 +70,7 @@ export const AdminMadrasasPage: React.FC = () => {
   const [name, setName] = useState('');
   const [district, setDistrict] = useState('');
   const [selectedWoredaId, setSelectedWoredaId] = useState<number | null>(null);
-  const [totalStudents, setTotalStudents] = useState(150);
+  const [totalStudents, setTotalStudents] = useState(0);
   const [description, setDescription] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoRetry, setPhotoRetry] = useState<{ id: number; file: File; madrasaName: string } | null>(null);
@@ -146,7 +146,7 @@ export const AdminMadrasasPage: React.FC = () => {
     const firstActiveWoreda = woredas.find((woreda) => woreda.isActive);
     setDistrict(firstActiveWoreda?.name || '');
     setSelectedWoredaId(firstActiveWoreda?.id || null);
-    setTotalStudents(150);
+    setTotalStudents(0);
     setDescription('');
     setPhoto(null);
     setHeadTeacherId('');
@@ -161,7 +161,7 @@ export const AdminMadrasasPage: React.FC = () => {
     const selectedWoreda = woredas.find((woreda) => woreda.id === madrasa.woredaId);
     setDistrict(selectedWoreda?.name || madrasa.district);
     setSelectedWoredaId(selectedWoreda?.id || null);
-    setTotalStudents(madrasa.totalStudents || 150);
+    setTotalStudents(madrasa.capacity ?? 0);
     setDescription(madrasa.description);
     setPhoto(null);
     setHeadTeacherId(madrasa.headTeacherId || '');
@@ -197,7 +197,7 @@ export const AdminMadrasasPage: React.FC = () => {
           name: name.trim(),
           woredaId: Number(selectedWoredaId),
           capacity: Number(totalStudents),
-          description: description || 'Islamic education institution registered with Jimma Islamic Council.',
+          description: description.trim(),
           headTeacherId: headTeacherId ? Number(headTeacherId) : null,
           hifzGraduatesCount: hifzGraduatesCount === '' ? null : Number(hifzGraduatesCount),
         })
@@ -205,7 +205,7 @@ export const AdminMadrasasPage: React.FC = () => {
           name: name.trim(),
           woredaId: Number(selectedWoredaId),
           capacity: Number(totalStudents),
-          description: description || 'Islamic education institution registered with Jimma Islamic Council.',
+          description: description.trim(),
         });
       if (photo) {
         try {
@@ -381,7 +381,7 @@ export const AdminMadrasasPage: React.FC = () => {
                     {m.headTeacher || 'Not listed'}
                   </td>
                   <td className="p-3.5 font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                    {m.totalStudents}
+                    {m.capacity ?? 'Not recorded'}
                   </td>
                   <td className="p-3.5 font-mono font-bold text-amber-600 dark:text-amber-400">
                     {m.hifzGraduatesCount ?? 'Not tracked'}
@@ -411,7 +411,7 @@ export const AdminMadrasasPage: React.FC = () => {
       <Modal
         isOpen={isAddModalOpen}
         onClose={closeModal}
-        title={editingMadrasa ? 'Edit Registered Madrasa' : 'Accredit New Madrasa / Quran Center'}
+        title={editingMadrasa ? 'Edit Registered Madrasa' : 'Register Madrasa / Quran Center'}
         subtitle="Manage the madrasa name, kebele, enrolled capacity, description, and photo."
       >
         <form onSubmit={handleAddSubmit} className="space-y-4">
@@ -466,11 +466,11 @@ export const AdminMadrasasPage: React.FC = () => {
           <div className="grid grid-cols-1 gap-3">
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                Total Enrolled
+                Maximum Capacity
               </label>
               <input
                 type="number"
-                min="10"
+                min="0"
                 value={totalStudents}
                 onChange={(e) => setTotalStudents(Number(e.target.value))}
                 className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-hidden font-mono"

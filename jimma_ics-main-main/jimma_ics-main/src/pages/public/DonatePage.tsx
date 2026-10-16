@@ -33,7 +33,7 @@ import { Donation } from '../../types';
 import { apiRequest } from '../../services/authApi';
 
 export const DonatePage: React.FC = () => {
-  const { funds, addDonation, addToast, currentUser, isLoggedIn, zakatCalculations } = useApp();
+  const { funds, addToast, currentUser, isLoggedIn, zakatCalculations } = useApp();
   const { t, language } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -46,7 +46,8 @@ export const DonatePage: React.FC = () => {
       : 'donate';
   const [activeTab, setActiveTab] = useState<'donate' | 'zakat-calculator' | 'zakat-history'>(initialTab);
 
-  const [selectedFundId, setSelectedFundId] = useState(funds[0]?.id || 'fund-1');
+  const [selectedFundId, setSelectedFundId] = useState(funds[0]?.id || '');
+  const [fundDesignation, setFundDesignation] = useState('');
   const [amount, setAmount] = useState<number>(1000);
   const [customAmount, setCustomAmount] = useState('');
   const [donorName, setDonorName] = useState('');
@@ -67,9 +68,8 @@ export const DonatePage: React.FC = () => {
     if (!isLoggedIn) return 0;
     return zakatCalculations.filter((calc) => {
       return (
-        calc.userEmail.toLowerCase() === currentUser.email.toLowerCase() ||
-        calc.userName.toLowerCase() === currentUser.name.toLowerCase() ||
-        (currentUser.role === 'Super Admin' && calc.userEmail.includes('admin@jimma'))
+        calc.userId === currentUser.id ||
+        calc.userEmail.toLowerCase() === currentUser.email.toLowerCase()
       );
     }).length;
   }, [zakatCalculations, currentUser, isLoggedIn]);
@@ -95,9 +95,11 @@ export const DonatePage: React.FC = () => {
       const matched = funds.find((f) => f.id === fundParam || f.name.toLowerCase().includes(fundParam.toLowerCase()));
       if (matched) {
         setSelectedFundId(matched.id);
-        if (matched.id === 'fund-4' || matched.name.toLowerCase().includes('zakat')) {
+        if (matched.name.toLowerCase().includes('zakat')) {
           setImportedFromZakat(true);
         }
+      } else {
+        setFundDesignation(fundParam === 'fund-4' ? 'Zakat' : fundParam === 'fund-1' ? '' : fundParam);
       }
     }
   }, [searchParams, funds]);
@@ -138,8 +140,8 @@ export const DonatePage: React.FC = () => {
     setAmount(finalAmount);
     setCustomAmount(finalAmount.toString());
 
-    // Automatically select the Zakat & Social Welfare Fund (fund-4)
-    const zakatFund = funds.find((f) => f.id === 'fund-4' || f.name.toLowerCase().includes('zakat')) || funds[0];
+    // Prefer a configured Zakat fund when one is available.
+    const zakatFund = funds.find((f) => f.name.toLowerCase().includes('zakat')) || funds[0];
     if (zakatFund) {
       setSelectedFundId(zakatFund.id);
     }
@@ -149,9 +151,9 @@ export const DonatePage: React.FC = () => {
     setSearchParams({});
 
     addToast(
-      'Zakat Obligation Transferred!',
-      `ETB ${finalAmount.toLocaleString()} loaded into donation payment gateway for ${zakatFund?.name || 'Zakat Fund'}.`,
-      'success'
+      'Zakat Amount Added',
+      `ETB ${finalAmount.toLocaleString()} was added to the donation form for ${zakatFund?.name || 'the selected designation'}. No payment was made.`,
+      'info'
     );
 
     setTimeout(() => {
@@ -167,7 +169,7 @@ export const DonatePage: React.FC = () => {
       setAmount(calculatedZakat);
       setCustomAmount(calculatedZakat.toString());
 
-      const zakatFund = funds.find((f) => f.id === 'fund-4' || f.name.toLowerCase().includes('zakat')) || funds[0];
+      const zakatFund = funds.find((f) => f.name.toLowerCase().includes('zakat')) || funds[0];
       if (zakatFund) setSelectedFundId(zakatFund.id);
 
       setImportedFromZakat(true);
@@ -186,13 +188,19 @@ export const DonatePage: React.FC = () => {
       addToast('Details required', 'Enter a valid phone number and donation amount to create a payment request.', 'error');
       return;
     }
+    const fundName = selectedFund?.name || fundDesignation.trim();
+    if (fundName.length < 2) {
+      addToast('Donation designation required', 'Select a configured fund or enter the council-provided designation.', 'error');
+      return;
+    }
     const methodMap = { Telebirr: 'TELEBIRR', 'CBE Birr': 'CBE_BIRR', 'Awash Bank': 'AWASH_BANK', 'Bank Transfer': 'BANK_TRANSFER' } as const;
     try {
       const intent = await apiRequest<{ reference: string; status: string; amountETB: number; fundName: string; paymentMethod: string; createdAt: string }>('/donations/intents', {
         method: 'POST',
-        body: JSON.stringify({ donorName: donorName.trim() || undefined, donorPhone: donorPhone.trim(), anonymous: isAnonymous, amountETB: amount, fundName: selectedFund.name, category: selectedFund.name.toLowerCase().includes('zakat') ? 'Zakat' : 'General Donation', paymentMethod: methodMap[paymentMethod] }),
+        body: JSON.stringify({ donorName: donorName.trim() || undefined, donorPhone: donorPhone.trim(), anonymous: isAnonymous, amountETB: amount, fundName, category: fundName.toLowerCase().includes('zakat') ? 'Zakat' : 'General Donation', paymentMethod: methodMap[paymentMethod] }),
       });
-      setCompletedDonation({ id: intent.reference, receiptNo: intent.reference, donorName: isAnonymous ? 'Anonymous Donor' : (donorName.trim() || 'Donor'), isAnonymous, phone: donorPhone.trim(), amountETB: intent.amountETB, fundId: selectedFund.id, fundName: intent.fundName, date: new Date(intent.createdAt).toLocaleDateString(), paymentMethod, status: 'Processing', certificateIssued: false, transactionRef: intent.reference });
+      setCompletedDonation({ id: intent.reference, receiptNo: intent.reference, donorName: isAnonymous ? 'Anonymous Donor' : (donorName.trim() || 'Donor'), isAnonymous, phone: donorPhone.trim(), amountETB: intent.amountETB, fundId: selectedFund?.id || '', fundName: intent.fundName, date: new Date(intent.createdAt).toLocaleDateString(), paymentMethod, status: 'Processing', certificateIssued: false, transactionRef: intent.reference });
+      addToast('Donation request recorded', `Request ${intent.reference} was saved. Payment has not been processed yet.`, 'info');
     } catch (error) {
       addToast('Donation request failed', error instanceof Error ? error.message : 'Please try again.', 'error');
     }
@@ -458,7 +466,7 @@ export const DonatePage: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-xs text-stone-600 dark:text-stone-300 mt-0.5">
-                      Assigned to the 100% audited Zakat & Social Welfare Fund (8 Asnaf). Select your Ethiopian payment channel below.
+                      This is a payment request for the selected designation. The application does not confirm a payment until the provider reports it as confirmed.
                     </p>
                   </div>
                 </div>
@@ -511,10 +519,11 @@ export const DonatePage: React.FC = () => {
                 1. Select Designated Council Fund
               </h3>
 
+              {funds.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {funds.map((f) => {
                   const isSelected = selectedFundId === f.id;
-                  const isZakat = f.id === 'fund-4' || f.name.toLowerCase().includes('zakat');
+                  const isZakat = f.name.toLowerCase().includes('zakat');
                   return (
                     <button
                       key={f.id}
@@ -549,6 +558,20 @@ export const DonatePage: React.FC = () => {
                   );
                 })}
               </div>
+              ) : (
+                <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/20">
+                  <p className="text-sm text-stone-700 dark:text-stone-300">
+                    The council has not configured a fund catalogue. Enter the designation provided by the council.
+                  </p>
+                  <input
+                    type="text"
+                    value={fundDesignation}
+                    onChange={(event) => setFundDesignation(event.target.value)}
+                    placeholder="Council-provided fund designation"
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm dark:border-stone-700 dark:bg-stone-900"
+                  />
+                </div>
+              )}
 
               {/* Amount Selection */}
               <div className="space-y-3 pt-2">
@@ -690,7 +713,7 @@ export const DonatePage: React.FC = () => {
                 {/* Payment Gateway selector */}
                 <div className="pt-2 space-y-3">
                   <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300">
-                    Select Ethiopian Payment Gateway
+                    Payment method preference
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {(['Telebirr', 'CBE Birr', 'Awash Bank', 'Bank Transfer'] as const).map((method) => (
@@ -709,32 +732,14 @@ export const DonatePage: React.FC = () => {
                     ))}
                   </div>
 
-                  {/* Payment Gateway Instructions Box */}
                   <div className="p-3.5 rounded-xl bg-stone-100 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 text-xs text-stone-700 dark:text-stone-300 space-y-1.5">
                     <div className="flex items-center gap-2 font-bold text-stone-900 dark:text-stone-100">
-                      <Smartphone className="w-4 h-4 text-emerald-600" />
-                      <span>{paymentMethod} Payment Instructions</span>
+                      <Info className="w-4 h-4 text-emerald-600" />
+                      <span>Payment is not processed on this page</span>
                     </div>
-                    {paymentMethod === 'Telebirr' && (
-                      <p className="leading-relaxed">
-                        Open Telebirr SuperApp → <strong className="text-emerald-700 dark:text-emerald-400">Pay Merchant</strong> → Enter Council Merchant Code: <span className="font-mono font-bold bg-white dark:bg-stone-900 px-1.5 py-0.5 rounded-sm border">88219</span> or dial <span className="font-mono font-bold">*127#</span>.
-                      </p>
-                    )}
-                    {paymentMethod === 'CBE Birr' && (
-                      <p className="leading-relaxed">
-                        Commercial Bank of Ethiopia: Transfer to Council Account <span className="font-mono font-bold bg-white dark:bg-stone-900 px-1.5 py-0.5 rounded-sm border">1000-2345-89012</span> (Jimma City Islamic Affairs) or use CBE Birr USSD <span className="font-mono font-bold">*847#</span>.
-                      </p>
-                    )}
-                    {paymentMethod === 'Awash Bank' && (
-                      <p className="leading-relaxed">
-                        Awash Bank / Awash Birr: Transfer to Council Account <span className="font-mono font-bold bg-white dark:bg-stone-900 px-1.5 py-0.5 rounded-sm border">0132-0495-810200</span> (Jimma Supreme Council Shari'ah Fund).
-                      </p>
-                    )}
-                    {paymentMethod === 'Bank Transfer' && (
-                      <p className="leading-relaxed">
-                        Direct electronic transfer or branch cash deposit to CBE Jimma Aba Jifar Branch, Account 1000-2345-89012. Reference your receipt number upon completion.
-                      </p>
-                    )}
+                    <p className="leading-relaxed">
+                      This form records a request and reference only. Confirm payment instructions with the council before transferring funds.
+                    </p>
                   </div>
                 </div>
 
@@ -745,61 +750,33 @@ export const DonatePage: React.FC = () => {
                     type="submit"
                     icon={<HeartHandshake className="w-5 h-5" />}
                     className="w-full justify-center text-base font-bold shadow-lg"
+                    disabled={!selectedFund && fundDesignation.trim().length < 2}
                   >
-                    Confirm Donation of {amount.toLocaleString()} ETB via {paymentMethod}
+                    Submit {amount.toLocaleString()} ETB Donation Request
                   </Button>
                 </div>
               </form>
             </Card>
           </div>
 
-          {/* Right 5 cols: Transparency Guarantee & Impact breakdown */}
+          {/* Donation request status */}
           <div className="lg:col-span-5 space-y-6">
             <Card className="bg-emerald-950 text-emerald-100 border-emerald-800 space-y-4">
               <div className="flex items-center gap-2 text-amber-300 text-xs font-bold uppercase tracking-wider">
                 <ShieldCheck className="w-4 h-4" />
-                <span>100% Shari'ah Trust Policy</span>
+                <span>Donation request</span>
               </div>
               <h3 className="font-serif font-bold text-xl text-white">
-                Council Waqf & Zakat Guarantee
+                What happens next
               </h3>
               <p className="text-xs text-stone-300 leading-relaxed">
-                All donations to Jimma Islamic Council are ring-fenced and audited quarterly by an independent
-                Shari'ah board and financial auditors.
+                Submitting this form saves a payment request and reference. It does not transfer money or confirm a donation.
               </p>
 
               <div className="space-y-2 pt-2 text-xs border-t border-emerald-900">
                 <div className="flex items-center gap-2 text-emerald-200">
                   <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
-                  <span>Direct allocation with zero administrative skimming on Zakat</span>
-                </div>
-                <div className="flex items-center gap-2 text-emerald-200">
-                  <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
-                  <span>Instant verified digital receipt with Shari'ah tracking code</span>
-                </div>
-                <div className="flex items-center gap-2 text-emerald-200">
-                  <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
-                  <span>Your donation request receives a reference for follow-up</span>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="space-y-4">
-              <h4 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100">
-                Direct Impact of Your Contribution
-              </h4>
-              <div className="space-y-3 text-xs text-stone-600 dark:text-stone-300">
-                <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-100 dark:border-stone-700/60">
-                  <span className="font-bold text-emerald-700 dark:text-emerald-400">500 ETB:</span> Provides Quran copies and textbooks for two madrasa students in Jimma.
-                </div>
-                <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-100 dark:border-stone-700/60">
-                  <span className="font-bold text-amber-700 dark:text-amber-400">2,500 ETB:</span> One month full sponsorship (meals + boarding) for an orphan Hifz student.
-                </div>
-                <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-100 dark:border-stone-700/60">
-                  <span className="font-bold text-blue-700 dark:text-blue-400">10,000 ETB:</span> Acoustic system maintenance and clean prayer carpet for rural kebele mosque.
-                </div>
-                <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-100 dark:border-stone-700/60">
-                  <span className="font-bold text-purple-700 dark:text-purple-400">25,000+ ETB (Zakat):</span> Disbursed directly to certified destitute families under the 8 Qur'anic Asnaf across 18 kebeles.
+                  <span>A request reference is provided for follow-up.</span>
                 </div>
               </div>
             </Card>

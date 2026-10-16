@@ -31,8 +31,10 @@ export const MadrasasPage: React.FC = () => {
   });
   const pagination = usePagination(filtered, 12, `${searchTerm}|${selectedDistrict}|${selectedLevel}`);
 
-  const totalEnrolled = (madrasas || []).reduce((acc, m) => acc + (m.totalStudents || 0), 0);
-  const totalTeachers = (madrasas || []).reduce((acc, m) => acc + (m.totalTeachers || 0), 0);
+  const reportedGraduates = (madrasas || [])
+    .filter((madrasa) => madrasa.hifzGraduatesCount != null)
+    .reduce((acc, madrasa) => acc + (madrasa.hifzGraduatesCount ?? 0), 0);
+  const hasReportedGraduates = madrasas.some((madrasa) => madrasa.hifzGraduatesCount != null);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -47,23 +49,23 @@ export const MadrasasPage: React.FC = () => {
             Madrasas & Quranic Centers
           </h1>
           <p className="text-stone-500 dark:text-stone-400 text-sm sm:text-base mt-1 max-w-2xl">
-            Accredited Islamic education institutions, Tahfeez halaqat, and Arabic language academies across Jimma City.
+            Browse published Islamic education institutions and the information currently recorded for each.
           </p>
         </div>
 
         {/* Quick summary numbers */}
         <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-950/40 p-3 rounded-2xl border border-amber-200 dark:border-amber-900/60 text-xs">
           <div>
-            <span className="text-stone-500 block text-[10px] uppercase">Total Enrolled</span>
+            <span className="text-stone-500 block text-[10px] uppercase">Listed Madrasas</span>
             <span className="font-bold text-stone-900 dark:text-stone-100 font-mono text-sm">
-              {totalEnrolled.toLocaleString()} Students
+              {madrasas.length.toLocaleString()}
             </span>
           </div>
           <div className="h-6 w-px bg-amber-300 dark:bg-amber-800" />
           <div>
-            <span className="text-stone-500 block text-[10px] uppercase">Certified Asatidhah</span>
+            <span className="text-stone-500 block text-[10px] uppercase">Reported Hifz Graduates</span>
             <span className="font-bold text-emerald-600 font-mono text-sm">
-              {totalTeachers}+ Faculty
+              {hasReportedGraduates ? reportedGraduates.toLocaleString() : '—'}
             </span>
           </div>
         </div>
@@ -131,7 +133,7 @@ export const MadrasasPage: React.FC = () => {
                   </div>
                 )}
                 <div className="flex items-center justify-between mb-2">
-                  <Badge variant="gold">{madrasa.accreditationStatus || 'Accredited'}</Badge>
+                  <Badge variant="gold">{madrasa.accreditationStatus || 'Accreditation not recorded'}</Badge>
                   <span className="text-xs text-stone-400 flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5 text-amber-500" />
                     {madrasa.district}
@@ -159,15 +161,15 @@ export const MadrasasPage: React.FC = () => {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-stone-500">Students Enrolled:</span>
+                    <span className="text-stone-500">Enrollment:</span>
                     <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                      {(madrasa.totalStudents || 0).toLocaleString()} Students ({madrasa.totalTeachers || 0} Teachers)
+                      {madrasa.totalStudents == null ? 'Not listed' : madrasa.totalStudents.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-stone-500">Operating Shifts:</span>
                     <span className="text-stone-800 dark:text-stone-200 font-medium">
-                      {shiftsList.join(', ') || 'Morning, Afternoon'}
+                      {shiftsList.join(', ') || 'Not recorded'}
                     </span>
                   </div>
                 </div>

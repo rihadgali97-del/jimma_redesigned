@@ -327,7 +327,7 @@ export const AdminResourcesPage: React.FC = () => {
         uploadedBy: 'Current Council Officer',
         author: formData.author,
         department: formData.department,
-        hijriDate: '18 Safar 1448 AH',
+        hijriDate: '',
         isFeatured: formData.isFeatured,
         isPinnedForJummah: formData.isPinnedForJummah,
         seasonOrOccasion: formData.seasonOrOccasion || undefined,

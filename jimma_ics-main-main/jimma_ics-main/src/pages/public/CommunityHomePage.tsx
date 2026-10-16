@@ -33,7 +33,7 @@ const shortcuts = [
 const sectionClass = 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8';
 
 export const CommunityHomePage: React.FC = () => {
-  const { mosques, madrasas, ulema, students, publicServices } = useApp();
+  const { mosques, madrasas, ulema, ulemaLoading, publicServices } = useApp();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
 
@@ -73,7 +73,7 @@ export const CommunityHomePage: React.FC = () => {
             </div>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-stone-600 dark:text-stone-300">
               <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" /> Serving Jimma City communities</span>
-              <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-amber-700 dark:text-amber-400" /> 13 kebeles</span>
+              <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-amber-700 dark:text-amber-400" /> Jimma City</span>
             </div>
           </div>
         </div>
@@ -82,9 +82,9 @@ export const CommunityHomePage: React.FC = () => {
       <section aria-label="Community overview" className={`${sectionClass} -mt-10 relative z-10`}>
         <div className="grid grid-cols-2 divide-x divide-y divide-stone-200 overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm dark:divide-stone-700 dark:border-stone-700 dark:bg-stone-900 sm:grid-cols-3 sm:divide-y-0">
           {[
-            { label: 'Mosques', value: '128+', detail: 'Across 13 kebeles', icon: Building },
-            { label: 'Students enrolled', value: `${Math.max(4_850, students.length).toLocaleString()}+`, detail: 'In Quranic education', icon: BookOpen },
-            { label: 'Ulema & teachers', value: `${Math.max(142, ulema.length)}+`, detail: 'Community educators', icon: Users },
+            { label: 'Mosques', value: mosques.length ? mosques.length.toLocaleString() : '—', detail: 'Published directory records', icon: Building },
+            { label: 'Madrasas', value: madrasas.length ? madrasas.length.toLocaleString() : '—', detail: 'Published directory records', icon: BookOpen },
+            { label: 'Ulema', value: ulemaLoading ? '…' : ulema.length ? ulema.length.toLocaleString() : '—', detail: 'Public scholar records', icon: Users },
           ].map(({ label, value, detail, icon: Icon }) => (
             <div key={label} className="p-4 sm:p-5">
               <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 dark:text-emerald-300">
@@ -145,7 +145,7 @@ export const CommunityHomePage: React.FC = () => {
                 <span className="grid h-16 w-16 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-300"><BookOpen className="h-6 w-6" /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-bold text-stone-900 dark:text-stone-100">{madrasa.name}</span>
-                  <span className="mt-1 block truncate text-xs text-stone-500 dark:text-stone-400">{madrasa.district} · {madrasa.totalStudents.toLocaleString()} <span>students</span></span>
+                  <span className="mt-1 block truncate text-xs text-stone-500 dark:text-stone-400">{madrasa.district} · Capacity {madrasa.capacity == null ? 'not listed' : madrasa.capacity.toLocaleString()}</span>
                 </span>
                 <ArrowRight className="h-4 w-4 shrink-0 text-emerald-800 dark:text-emerald-300" />
               </Link>

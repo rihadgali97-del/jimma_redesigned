@@ -32,29 +32,35 @@ export const ZakatWelfareDashboard: React.FC = () => {
 
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
-  const [isOrphanModalOpen, setIsOrphanModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
 
-  // Assessment Form states
   const [assessedName, setAssessedName] = useState('');
   const [assessedCategory, setAssessedCategory] = useState<'Destitute' | 'Widows' | 'Orphans' | 'Medical Relief' | 'Emergency'>('Destitute');
-  const [assessedDistrict, setAssessedDistrict] = useState(KEBELE_NAMES[0]);
-  const [assessedDependents, setAssessedDependents] = useState('4');
-  const [assessedIncome, setAssessedIncome] = useState('1200');
+  const [assessedDistrict, setAssessedDistrict] = useState('');
+  const [assessedDependents, setAssessedDependents] = useState('');
+  const [assessedIncome, setAssessedIncome] = useState('');
+  const [assessedAmount, setAssessedAmount] = useState('');
   const [assessedNotes, setAssessedNotes] = useState('');
 
-  // Emergency Disbursal state
   const [emergBeneficiary, setEmergBeneficiary] = useState('');
-  const [emergAmount, setEmergAmount] = useState('10000');
+  const [emergAmount, setEmergAmount] = useState('');
   const [emergCategory, setEmergCategory] = useState<'Medical Relief' | 'Emergency' | 'Destitute'>('Emergency');
-  const [emergReason, setEmergReason] = useState('Urgent hospital surgery subsidy at Jimma University Medical Center.');
+  const [emergDistrict, setEmergDistrict] = useState('');
+  const [emergReason, setEmergReason] = useState('');
 
-  const totalZakatFund = funds.find((f) => f.id === 'fund-zakat')?.allocatedETB || 1450000;
+  const totalZakatFund = funds.find((fund) => fund.name.toLowerCase().includes('zakat'))?.allocatedETB;
   const totalDisbursedETB = zakatDistributions.reduce(
     (acc, z) => acc + (z.amountETB ?? z.totalDisbursedETB ?? 0),
     0
   );
+  const totalBeneficiaries = zakatDistributions.reduce(
+    (total, distribution) => total + (distribution.beneficiaryCount ?? 0),
+    0
+  );
+  const orphanBeneficiaries = zakatDistributions
+    .filter((distribution) => /orphan/i.test(`${distribution.category} ${distribution.asnafCategory}`))
+    .reduce((total, distribution) => total + (distribution.beneficiaryCount ?? 0), 0);
 
   const filteredDistributions = zakatDistributions.filter((item) => {
     const q = (searchQuery || '').toLowerCase();
@@ -70,40 +76,55 @@ export const ZakatWelfareDashboard: React.FC = () => {
 
   const handleSaveAssessment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!assessedName.trim()) return;
+    const amount = Number(assessedAmount);
+    if (!assessedName.trim() || !assessedDistrict || !(amount > 0)) {
+      addToast('Required details missing', 'Enter a beneficiary, area, and actual distribution amount.', 'warning');
+      return;
+    }
 
     const saved = await addZakatDistribution({
-      asnafCategory: assessedCategory === 'Destitute' ? 'Al-Fuqara (The Destitute)' : 'Al-Masakeen (The Needy)',
+      asnafCategory: assessedCategory,
       beneficiaryName: assessedName,
       category: assessedCategory,
-      amountETB: 8500,
-      totalDisbursedETB: 8500,
+      amountETB: amount,
+      totalDisbursedETB: amount,
       beneficiaryCount: 1,
       district: assessedDistrict,
       woredaDistrict: assessedDistrict,
       verificationStatus: 'Verified',
       disbursementDate: new Date().toISOString().split('T')[0],
       lastDisbursalDate: new Date().toISOString().split('T')[0],
-      notes: `Field assessment score: 94/100. Dependents: ${assessedDependents}, Monthly Income: ${assessedIncome} ETB. ${assessedNotes}`,
+      notes: [
+        assessedDependents ? `Dependents: ${assessedDependents}` : '',
+        assessedIncome ? `Monthly income (ETB): ${assessedIncome}` : '',
+        assessedNotes.trim(),
+      ].filter(Boolean).join('. '),
       approvedBy: currentUser.name,
       leadOfficer: currentUser.name,
     });
 
     if (!saved) return;
     addToast(
-      'Field Assessment Certified',
-      `Beneficiary ${assessedName} verified for monthly Zakat relief allocation.`,
-      'success'
+      'Distribution record saved',
+      'This records the reported distribution; the application does not transfer funds.',
+      'info'
     );
     setIsAssessmentModalOpen(false);
     setAssessedName('');
+    setAssessedDistrict('');
     setAssessedNotes('');
+    setAssessedAmount('');
+    setAssessedDependents('');
+    setAssessedIncome('');
   };
 
   const handleEmergencyDisburse = async (e: React.FormEvent) => {
     e.preventDefault();
     const amountNum = parseFloat(emergAmount);
-    if (!amountNum || isNaN(amountNum) || !emergBeneficiary.trim()) return;
+    if (!amountNum || isNaN(amountNum) || !emergBeneficiary.trim() || !emergDistrict || !emergReason.trim()) {
+      addToast('Required details missing', 'Enter the beneficiary, area, actual amount, and reason.', 'warning');
+      return;
+    }
 
     const saved = await addZakatDistribution({
       asnafCategory: 'Al-Fuqara (The Destitute)',
@@ -112,8 +133,8 @@ export const ZakatWelfareDashboard: React.FC = () => {
       amountETB: amountNum,
       totalDisbursedETB: amountNum,
       beneficiaryCount: 1,
-      district: KEBELE_NAMES[0],
-      woredaDistrict: KEBELE_NAMES[0],
+      district: emergDistrict,
+      woredaDistrict: emergDistrict,
       verificationStatus: 'Disbursed',
       disbursementDate: new Date().toISOString().split('T')[0],
       lastDisbursalDate: new Date().toISOString().split('T')[0],
@@ -124,12 +145,15 @@ export const ZakatWelfareDashboard: React.FC = () => {
 
     if (!saved) return;
     addToast(
-      'Emergency Disbursal Authorized',
-      `Transferred ETB ${(amountNum || 0).toLocaleString()} to ${emergBeneficiary}.`,
-      'success'
+      'Distribution record saved',
+      'This records the reported distribution; the application does not transfer funds.',
+      'info'
     );
     setIsEmergencyModalOpen(false);
     setEmergBeneficiary('');
+    setEmergAmount('');
+    setEmergDistrict('');
+    setEmergReason('');
   };
 
   const handleExportWelfare = () => {
@@ -139,7 +163,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
       zakatDistributions
         .map(
           (z) =>
-            `${z.id},"${z.beneficiaryName || z.asnafCategory}","${z.category || z.asnafCategory}",${z.amountETB ?? z.totalDisbursedETB ?? 0},"${z.district || z.woredaDistrict || 'Jimma'}","${z.verificationStatus || 'Disbursed'}","${z.disbursementDate || z.lastDisbursalDate || ''}"`
+            `${z.id},"${z.beneficiaryName || z.asnafCategory}","${z.category || z.asnafCategory}",${z.amountETB ?? z.totalDisbursedETB ?? 0},"${z.district || z.woredaDistrict || 'Area not recorded'}","${z.verificationStatus || 'Status unavailable'}","${z.disbursementDate || z.lastDisbursalDate || ''}"`
         )
         .join('\n');
     const encodedUri = encodeURI(csvContent);
@@ -165,7 +189,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
             Zakat & Social Welfare Operations
           </h2>
           <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-            Conduct home poverty assessments, verify vulnerable families (Fuqara, Orphans, Widows), and execute direct Shari'ah relief disbursements.
+            Review recorded Zakat distributions. Fund balances and payment transfers are not managed by this application.
           </p>
         </div>
 
@@ -185,7 +209,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
             icon={<ShieldCheck className="w-4 h-4 text-purple-600" />}
             onClick={() => setIsEmergencyModalOpen(true)}
           >
-            Emergency Disbursal
+            Record Emergency Distribution
           </Button>
 
           <Button
@@ -194,7 +218,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
             icon={<Home className="w-4 h-4" />}
             onClick={() => setIsAssessmentModalOpen(true)}
           >
-            Log Field Assessment
+            Record Welfare Distribution
           </Button>
         </div>
       </div>
@@ -211,11 +235,11 @@ export const ZakatWelfareDashboard: React.FC = () => {
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-serif font-bold text-purple-800 dark:text-purple-400 font-mono">
-            ETB {(totalZakatFund / 1000).toFixed(0)}k
+            {totalZakatFund === undefined ? 'Not configured' : `ETB ${(totalZakatFund / 1000).toFixed(0)}k`}
           </div>
           <div className="text-xs text-stone-400 flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800">
-            <span>Available for Masarif</span>
-            <Badge variant="purple">Ready</Badge>
+            <span>Fund balance data is unavailable</span>
+            <Badge variant="gold">Unavailable</Badge>
           </div>
         </Card>
 
@@ -229,17 +253,17 @@ export const ZakatWelfareDashboard: React.FC = () => {
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100 font-mono">
-            {zakatDistributions.length + 85} <span className="text-sm font-sans font-normal text-stone-500">families</span>
+            {totalBeneficiaries.toLocaleString()} <span className="text-sm font-sans font-normal text-stone-500">recorded</span>
           </div>
           <div className="text-xs text-stone-400 flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800">
-            <span>100% Home Inspected</span>
+            <span>{zakatDistributions.length} recorded distributions</span>
           </div>
         </Card>
 
         <Card className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">
-              Disbursed Relief (YTD)
+              Recorded Distributions
             </span>
             <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-blue-700">
               <FileCheck2 className="w-5 h-5" />
@@ -249,7 +273,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
             ETB {(totalDisbursedETB / 1000).toFixed(1)}k
           </div>
           <div className="text-xs text-stone-400 flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800">
-            <span>Direct Cash / Telebirr</span>
+            <span>Payment transfers are not processed here</span>
           </div>
         </Card>
 
@@ -263,10 +287,10 @@ export const ZakatWelfareDashboard: React.FC = () => {
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-serif font-bold text-amber-700 dark:text-amber-400 font-mono">
-            142 <span className="text-sm font-sans font-normal text-stone-500">orphans</span>
+            {orphanBeneficiaries.toLocaleString()} <span className="text-sm font-sans font-normal text-stone-500">recorded</span>
           </div>
           <div className="text-xs text-stone-400 flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800">
-            <span>Monthly Kafala Active</span>
+            <span>From saved distribution records</span>
           </div>
         </Card>
       </div>
@@ -318,10 +342,10 @@ export const ZakatWelfareDashboard: React.FC = () => {
             const distBeneficiary =
               dist.beneficiaryName ||
               `${dist.beneficiaryCount ? `${dist.beneficiaryCount} Registered Families` : 'Beneficiary Household'} (${dist.asnafCategory || 'Asnaf'})`;
-            const distDistrict = dist.district || dist.woredaDistrict || 'Jimma City';
+            const distDistrict = dist.district || dist.woredaDistrict || 'Area not recorded';
             const distCategory = dist.category || dist.asnafCategory || 'Masarif';
-            const distDate = dist.disbursementDate || dist.lastDisbursalDate || '2026-08-20';
-            const distStatus = dist.verificationStatus || 'Disbursed';
+            const distDate = dist.disbursementDate || dist.lastDisbursalDate || 'Date not recorded';
+            const distStatus = dist.verificationStatus || 'Status unavailable';
 
             return (
               <div
@@ -368,7 +392,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
                     </span>
                   </span>
                   <span className="text-emerald-600 font-semibold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Shari'ah Compliant (Masarif)
+                    <CheckCircle2 className="w-3 h-3" /> Recorded distribution
                   </span>
                 </div>
               </div>
@@ -384,9 +408,9 @@ export const ZakatWelfareDashboard: React.FC = () => {
             <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
               <div>
                 <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100">
-                  Log Field Poverty Assessment
+                  Record Beneficiary Distribution
                 </h3>
-                <p className="text-stone-500">Record on-site household inspection findings</p>
+                <p className="text-stone-500">Enter details from an actual distribution record</p>
               </div>
               <button
                 onClick={() => setIsAssessmentModalOpen(false)}
@@ -436,9 +460,25 @@ export const ZakatWelfareDashboard: React.FC = () => {
                     onChange={(e) => setAssessedDistrict(e.target.value)}
                     className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
                   >
+                    <option value="">Select area</option>
                     {KEBELE_NAMES.map((kebele) => <option key={kebele} value={kebele}>{kebele}</option>)}
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                  Actual Distribution Amount (ETB)
+                </label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  required
+                  value={assessedAmount}
+                  onChange={(e) => setAssessedAmount(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 font-mono"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -489,7 +529,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
                   Cancel
                 </Button>
                 <Button variant="primary" size="sm" type="submit">
-                  Verify & Register Case
+                  Save Distribution Record
                 </Button>
               </div>
             </form>
@@ -504,9 +544,9 @@ export const ZakatWelfareDashboard: React.FC = () => {
             <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
               <div>
                 <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100">
-                  Authorize Urgent Relief Grant
+                  Record Emergency Distribution
                 </h3>
-                <p className="text-stone-500">Fast-track hardship payout</p>
+                <p className="text-stone-500">Enter an actual distribution record; no payment is processed here.</p>
               </div>
               <button
                 onClick={() => setIsEmergencyModalOpen(false)}
@@ -534,7 +574,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                    Grant Amount (ETB)
+                    Distribution Amount (ETB)
                   </label>
                   <input
                     type="number"
@@ -562,11 +602,27 @@ export const ZakatWelfareDashboard: React.FC = () => {
 
               <div>
                 <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                  Kebele
+                </label>
+                <select
+                  required
+                  value={emergDistrict}
+                  onChange={(e) => setEmergDistrict(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
+                >
+                  <option value="">Select area</option>
+                  {KEBELE_NAMES.map((kebele) => <option key={kebele} value={kebele}>{kebele}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
                   Reason & Hospital / Incident Reference
                 </label>
                 <textarea
                   rows={2}
                   required
+                  placeholder="Enter the actual reason or incident reference"
                   value={emergReason}
                   onChange={(e) => setEmergReason(e.target.value)}
                   className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
@@ -578,7 +634,7 @@ export const ZakatWelfareDashboard: React.FC = () => {
                   Cancel
                 </Button>
                 <Button variant="purple" size="sm" type="submit">
-                  Authorize Payout
+                  Save Distribution Record
                 </Button>
               </div>
             </form>

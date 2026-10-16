@@ -477,7 +477,7 @@ export const ContactPage: React.FC = () => {
               required
               value={trackReference}
               onChange={(event) => setTrackReference(event.target.value)}
-              placeholder="INQ-2026-A8237DF2E0874247"
+              placeholder="Enter your inquiry reference"
               className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2.5 text-sm font-mono text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
             />
           </label>

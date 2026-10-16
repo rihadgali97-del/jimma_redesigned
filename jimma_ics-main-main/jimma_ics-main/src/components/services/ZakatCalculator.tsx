@@ -84,12 +84,10 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
 
   // Settings & Parameters
   const [nisabStandard, setNisabStandard] = useState<'gold' | 'silver'>('gold');
-  const [goldPricePerGram, setGoldPricePerGram] = useState<number>(12500); // ETB per gram
-  const [silverPricePerGram, setSilverPricePerGram] = useState<number>(160); // ETB per gram
+  const [goldPricePerGram, setGoldPricePerGram] = useState<number>(0);
+  const [silverPricePerGram, setSilverPricePerGram] = useState<number>(0);
   const [calendarType, setCalendarType] = useState<'hijri' | 'gregorian'>('hijri');
-  const [hasHawlPassed, setHasHawlPassed] = useState<boolean>(true);
-  const [currency, setCurrency] = useState<'ETB' | 'USD'>('ETB');
-  const usdRate = 125; // 1 USD = 125 ETB approx
+  const [hasHawlPassed, setHasHawlPassed] = useState<boolean>(false);
 
   // Category Tab in inputs
   const [activeCategory, setActiveCategory] = useState<
@@ -125,7 +123,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
   // 5. Agricultural Produce & Coffee (Ushr)
   const [cropType, setCropType] = useState<string>('Jimma Arabica Coffee');
   const [harvestQuintals, setHarvestQuintals] = useState<number>(0); // 1 Quintal = 100 kg
-  const [cropPricePerQuintal, setCropPricePerQuintal] = useState<number>(14000); // ETB per quintal for coffee
+  const [cropPricePerQuintal, setCropPricePerQuintal] = useState<number>(0);
   const [irrigationType, setIrrigationType] = useState<'rain' | 'irrigated' | 'mixed'>('rain');
 
   // 6. Livestock (An'am)
@@ -138,67 +136,31 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
   const [overdueSupplierInvoices, setOverdueSupplierInvoices] = useState<number>(0);
   const [dueWagesAndTax, setDueWagesAndTax] = useState<number>(0);
 
-  // Quick Preset Scenarios
-  const handleLoadPreset = (preset: 'merchant' | 'farmer' | 'household' | 'clear') => {
-    if (preset === 'clear') {
-      setCashInHand(0);
-      setBankDeposits(0);
-      setDigitalWallets(0);
-      setForeignCurrencyETB(0);
-      setGoodDebtsReceivable(0);
-      setGold24kGrams(0);
-      setGold21kGrams(0);
-      setGold18kGrams(0);
-      setSilverGrams(0);
-      setOtherPreciousMetals(0);
-      setStockInventoryValue(0);
-      setRawMaterialsValue(0);
-      setGoodsInTransit(0);
-      setTradeReceivables(0);
-      setSharesLiquidValue(0);
-      setRetainedRentalIncome(0);
-      setAccessiblePension(0);
-      setHarvestQuintals(0);
-      setCattleCount(0);
-      setSheepGoatCount(0);
-      setShortTermDebts(0);
-      setImmediateLivingExpenses(0);
-      setOverdueSupplierInvoices(0);
-      setDueWagesAndTax(0);
-      return;
-    }
-
-    if (preset === 'merchant') {
-      setCashInHand(45000);
-      setBankDeposits(650000);
-      setDigitalWallets(120000);
-      setStockInventoryValue(1850000);
-      setTradeReceivables(320000);
-      setShortTermDebts(150000);
-      setOverdueSupplierInvoices(220000);
-      setDueWagesAndTax(45000);
-      setGold21kGrams(35);
-      setActiveCategory('business');
-    } else if (preset === 'farmer') {
-      setBankDeposits(380000);
-      setDigitalWallets(65000);
-      setCropType('Jimma Arabica Coffee (Limmu Grade 1)');
-      setHarvestQuintals(45); // 45 quintals of coffee
-      setCropPricePerQuintal(16500);
-      setIrrigationType('rain');
-      setCattleCount(12);
-      setSheepGoatCount(25);
-      setShortTermDebts(40000);
-      setActiveCategory('agriculture');
-    } else if (preset === 'household') {
-      setCashInHand(18000);
-      setBankDeposits(420000);
-      setDigitalWallets(35000);
-      setGold21kGrams(95); // 95 grams of 21k jewelry
-      setImmediateLivingExpenses(40000);
-      setShortTermDebts(25000);
-      setActiveCategory('metals');
-    }
+  const handleClearInputs = () => {
+    setCashInHand(0);
+    setBankDeposits(0);
+    setDigitalWallets(0);
+    setForeignCurrencyETB(0);
+    setGoodDebtsReceivable(0);
+    setGold24kGrams(0);
+    setGold21kGrams(0);
+    setGold18kGrams(0);
+    setSilverGrams(0);
+    setOtherPreciousMetals(0);
+    setStockInventoryValue(0);
+    setRawMaterialsValue(0);
+    setGoodsInTransit(0);
+    setTradeReceivables(0);
+    setSharesLiquidValue(0);
+    setRetainedRentalIncome(0);
+    setAccessiblePension(0);
+    setHarvestQuintals(0);
+    setCattleCount(0);
+    setSheepGoatCount(0);
+    setShortTermDebts(0);
+    setImmediateLivingExpenses(0);
+    setOverdueSupplierInvoices(0);
+    setDueWagesAndTax(0);
   };
 
   // Keep the monetary, crop, and livestock calculations in one pure function
@@ -208,7 +170,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
     totalGrossMonetaryAssets, totalDeductions, netZakatableWealth, nisabThresholdETB,
     isNisabMet, zakatAlMalDue, cropNisabQuintals, isCropNisabMet, totalCropMarketValue,
     ushrRate, agricultureUshrDue, livestockSummary, grandTotalZakatETB,
-    grandTotalZakatUSD, nisabPercentage,
+    nisabPercentage,
   } = calculateZakatFigures({
     cashInHand, bankDeposits, digitalWallets, foreignCurrencyETB, goodDebtsReceivable,
     gold24kGrams, gold21kGrams, gold18kGrams, silverGrams, otherPreciousMetals,
@@ -216,7 +178,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
     goodsInTransit, tradeReceivables, sharesLiquidValue, retainedRentalIncome,
     accessiblePension, shortTermDebts, immediateLivingExpenses, overdueSupplierInvoices,
     dueWagesAndTax, nisabStandard, calendarType, hasHawlPassed, harvestQuintals,
-    cropPricePerQuintal, irrigationType, cattleCount, sheepGoatCount, usdRate,
+    cropPricePerQuintal, irrigationType, cattleCount, sheepGoatCount, usdRate: 0,
   });
 
   // User calculations count
@@ -224,9 +186,8 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
     if (!isLoggedIn) return 0;
     return zakatCalculations.filter((calc) => {
       return (
-        calc.userEmail.toLowerCase() === currentUser.email.toLowerCase() ||
-        calc.userName.toLowerCase() === currentUser.name.toLowerCase() ||
-        (currentUser.role === 'Super Admin' && calc.userEmail.includes('admin@jimma'))
+        calc.userId === currentUser.id ||
+        calc.userEmail.toLowerCase() === currentUser.email.toLowerCase()
       );
     }).length;
   }, [zakatCalculations, currentUser, isLoggedIn]);
@@ -236,7 +197,13 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
       setMainTab('history');
       return;
     }
-    const defaultTitle = `${calendarType === 'hijri' ? '1448 AH' : '2026'} Zakat Assessment (${new Date().toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })})`;
+    if (nisabThresholdETB <= 0) {
+      addToast('Current Nisab rate required', 'Load or enter the current market rate for the selected Nisab standard before saving this assessment.', 'warning');
+      return;
+    }
+    const hijriYear = new Intl.DateTimeFormat('en-u-ca-islamic', { year: 'numeric' }).format(new Date());
+    const currentYear = calendarType === 'hijri' ? hijriYear : String(new Date().getFullYear());
+    const defaultTitle = `${currentYear} Zakat Assessment (${new Date().toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })})`;
     const title = assessmentTitleInput.trim() || defaultTitle;
 
     const assessment = {
@@ -245,7 +212,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
       userEmail: currentUser.email,
       title,
       date: new Date().toISOString().split('T')[0],
-      hijriYear: calendarType === 'hijri' ? '1448 AH' : '1447 AH',
+      hijriYear: currentYear,
       nisabStandard,
       nisabThresholdETB,
       totalAssetsETB: totalGrossMonetaryAssets + totalCropMarketValue,
@@ -413,7 +380,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
                     Jimma Majlis Shari'ah Compliance
                   </span>
                   <Badge variant="gold" className="text-xs">
-                    Updated for 1447 / 1448 AH
+                    Council rate date shown below
                   </Badge>
                 </div>
 
@@ -458,58 +425,11 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
                 </div>
               </div>
 
-          {/* Quick Scenario Preset Selector */}
-          <div className="lg:col-span-4 bg-stone-900/80 backdrop-blur-md p-4 rounded-2xl border border-stone-700/60 space-y-3">
-            <span className="text-[11px] uppercase font-bold tracking-wider text-amber-400 block">
-              Load Sample Profiles (1-Click)
-            </span>
-            <div className="grid grid-cols-1 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => handleLoadPreset('merchant')}
-                className="px-3 py-2 text-left rounded-xl bg-stone-800 hover:bg-emerald-950/70 border border-stone-700 hover:border-emerald-500 transition-all flex items-center justify-between"
-              >
-                <div className="flex items-center gap-2">
-                  <Package className="w-4 h-4 text-emerald-400" />
-                  <span className="font-semibold text-white">Jimma Merkato Merchant</span>
-                </div>
-                <span className="text-[10px] text-stone-400">Stock & Cash</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleLoadPreset('farmer')}
-                className="px-3 py-2 text-left rounded-xl bg-stone-800 hover:bg-emerald-950/70 border border-stone-700 hover:border-emerald-500 transition-all flex items-center justify-between"
-              >
-                <div className="flex items-center gap-2">
-                  <Coffee className="w-4 h-4 text-amber-400" />
-                  <span className="font-semibold text-white">Coffee Farmer & Grower</span>
-                </div>
-                <span className="text-[10px] text-stone-400">Ushr Harvest</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleLoadPreset('household')}
-                className="px-3 py-2 text-left rounded-xl bg-stone-800 hover:bg-emerald-950/70 border border-stone-700 hover:border-emerald-500 transition-all flex items-center justify-between"
-              >
-                <div className="flex items-center gap-2">
-                  <Coins className="w-4 h-4 text-yellow-400" />
-                  <span className="font-semibold text-white">Salaried Household & Gold</span>
-                </div>
-                <span className="text-[10px] text-stone-400">Jewelry & Bank</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleLoadPreset('clear')}
-                className="px-3 py-1.5 text-center rounded-xl bg-stone-800/40 hover:bg-rose-950/50 text-stone-400 hover:text-rose-300 border border-stone-700/50 transition-all text-[11px] flex items-center justify-center gap-1.5"
-              >
-                <RefreshCw className="w-3 h-3" />
-                <span>Reset All Fields to 0</span>
-              </button>
-            </div>
-          </div>
+              <div className="lg:col-span-4 flex items-end justify-start lg:justify-end">
+                <Button variant="outline" size="sm" icon={<RefreshCw className="w-4 h-4" />} onClick={handleClearInputs}>
+                  Reset entered values
+                </Button>
+              </div>
         </div>
       </div>
 
@@ -532,31 +452,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
                 </div>
               </div>
 
-              {/* Currency Selector */}
-              <div className="flex items-center bg-stone-100 dark:bg-stone-800 p-1 rounded-xl border border-stone-200 dark:border-stone-700 text-xs font-semibold">
-                <button
-                  type="button"
-                  onClick={() => setCurrency('ETB')}
-                  className={`px-3 py-1 rounded-lg transition-all ${
-                    currency === 'ETB'
-                      ? 'bg-white dark:bg-stone-900 text-emerald-700 dark:text-emerald-300 shadow-xs'
-                      : 'text-stone-500'
-                  }`}
-                >
-                  ETB (Ethiopian Birr)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCurrency('USD')}
-                  className={`px-3 py-1 rounded-lg transition-all ${
-                    currency === 'USD'
-                      ? 'bg-white dark:bg-stone-900 text-emerald-700 dark:text-emerald-300 shadow-xs'
-                      : 'text-stone-500'
-                  }`}
-                >
-                  USD ($)
-                </button>
-              </div>
+              <span className="text-xs font-semibold text-stone-500">Amounts in ETB</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
@@ -631,7 +527,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
             <p className="text-[11px] text-stone-500">
               {nisabRateDate
                 ? `Gold and silver reference rates supplied by Jimma Council, effective ${new Date(nisabRateDate).toLocaleDateString()}. You can adjust them for your valuation.`
-                : 'No current Council rate is published. The displayed gold and silver prices are estimates; update them to your local market prices.'}
+                : 'Current Council reference rates are unavailable. Enter verified local market rates before using this calculation.'}
             </p>
             {rateLoadError && <p role="status" className="text-xs text-rose-600 dark:text-rose-400">Could not load council Nisab rates: {rateLoadError}</p>}
 
@@ -1400,9 +1296,6 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
               <div className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
                 {grandTotalZakatETB.toLocaleString()} ETB
               </div>
-              <span className="text-xs text-stone-300 font-mono block">
-                (~${grandTotalZakatUSD.toLocaleString()} USD)
-              </span>
             </div>
 
             {/* Action Buttons */}
@@ -1467,7 +1360,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
             </div>
 
             <p className="text-[10px] text-center text-stone-400">
-              Audited by the Jimma City Islamic Affairs Supreme Council Shari'ah Committee.
+              Estimate based on the values entered and the Nisab rates loaded above. Verify your assessment with a qualified adviser.
             </p>
           </Card>
         </div>
@@ -1482,16 +1375,13 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
         isOpen={isAssessmentOpen}
         onClose={() => setIsAssessmentOpen(false)}
         assessmentData={{
-          referenceNo: `ZAKAT-JIMMA-${Math.floor(100000 + Math.random() * 900000)}`,
           date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
-          hijriDate: '1448 AH',
+          hijriDate: new Intl.DateTimeFormat('en-u-ca-islamic', { year: 'numeric' }).format(new Date()),
           nisabStandard,
           nisabThresholdETB,
           goldRatePerGram: goldPricePerGram,
           silverRatePerGram: silverPricePerGram,
           calendarType,
-          currency,
-          usdExchangeRate: usdRate,
           grossAssets: {
             cash: cashTotal,
             goldSilver: metalsTotal,
@@ -1511,7 +1401,6 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
           agricultureUshrDue,
           livestockZakatDue: livestockSummary.totalLivestockCash,
           grandTotalZakatETB,
-          grandTotalZakatUSD,
         }}
       />
 
@@ -1554,7 +1443,7 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
               type="text"
               value={assessmentTitleInput}
               onChange={(e) => setAssessmentTitleInput(e.target.value)}
-              placeholder={`${calendarType === 'hijri' ? '1448 AH' : '2026'} Annual Zakat Assessment`}
+              placeholder={`${calendarType === 'hijri' ? new Intl.DateTimeFormat('en-u-ca-islamic', { year: 'numeric' }).format(new Date()) : new Date().getFullYear()} Annual Zakat Assessment`}
               className="w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 focus:ring-2 focus:ring-emerald-500 outline-none text-stone-900 dark:text-stone-100"
             />
             <span className="text-[10px] text-stone-400">

@@ -73,7 +73,7 @@ export const UlemaDetailPage: React.FC = () => {
 
           <div className="space-y-2 flex-1">
             <div className="flex items-center gap-2">
-              <Badge variant="blue">{scholar.status || 'Active Scholar'}</Badge>
+              <Badge variant="blue">{scholar.status || 'Status not recorded'}</Badge>
             </div>
             <h1 className="text-2xl sm:text-4xl font-serif font-bold text-stone-900 dark:text-stone-100">
               {scholar.name}
@@ -99,7 +99,7 @@ export const UlemaDetailPage: React.FC = () => {
               Assigned Mosque / Institution
             </span>
             <span className="font-semibold text-stone-900 dark:text-stone-100 text-sm block mt-1">
-              {scholar.assignedMosqueName || 'Supreme Council Central Mosque'}
+              {scholar.assignedMosqueName || 'Not listed'}
             </span>
           </div>
 
@@ -108,7 +108,7 @@ export const UlemaDetailPage: React.FC = () => {
               Years of Dawah & Service
             </span>
             <span className="font-semibold text-stone-900 dark:text-stone-100 text-sm block mt-1 font-mono">
-              {scholar.yearsOfDawah}+ Years
+              {scholar.yearsOfDawah > 0 ? `${scholar.yearsOfDawah} Years` : 'Not listed'}
             </span>
           </div>
 
@@ -117,7 +117,7 @@ export const UlemaDetailPage: React.FC = () => {
               Contact Phone & Desk
             </span>
             <span className="font-semibold text-stone-900 dark:text-stone-100 text-sm block mt-1 font-mono">
-              {scholar.contactPhone}
+            {scholar.contactPhone || 'Not listed'}
             </span>
           </div>
         </div>
@@ -203,17 +203,11 @@ export const UlemaDetailPage: React.FC = () => {
           <Card className="space-y-4">
             <h4 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-emerald-600" />
-              <span>Weekly Public Halaqah</span>
+              <span>Public Halaqah Schedule</span>
             </h4>
             <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs space-y-2">
-              <div className="font-bold text-emerald-950 dark:text-emerald-200">
-                Sharh Bulugh al-Maram & Tafsir
-              </div>
               <div className="text-stone-600 dark:text-stone-300">
-                Every Saturday after Asr Prayer
-              </div>
-              <div className="text-[11px] text-stone-500">
-                {scholar.assignedMosqueName || 'Grand Anwar Central Mosque'} • Open to all students of knowledge
+                No public halaqah schedule is listed for this scholar.
               </div>
             </div>
           </Card>

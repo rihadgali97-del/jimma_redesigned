@@ -81,8 +81,8 @@ async function fetchAll<T>(path: string, locale: Language = 'en'): Promise<T[]> 
   return rows;
 }
 
-export async function fetchDirectoryWoredas(): Promise<DirectoryWoreda[]> {
-  const rows = await fetchAll<ApiWoreda>('/locations/woredas');
+export async function fetchDirectoryWoredas(locale: Language = 'en'): Promise<DirectoryWoreda[]> {
+  const rows = await fetchAll<ApiWoreda>('/locations/woredas', locale);
   return rows.map((woreda) => ({
     ...woreda,
     name: woreda.name || formatWoreda(woreda.code),
@@ -293,7 +293,8 @@ function mapMadrasa(row: ApiMadrasa): Madrasa {
     headTeacherId: row.headTeacherId == null ? undefined : String(row.headTeacherId),
     hifzGraduatesCount: row.hifzGraduatesCount,
     establishedYear: 0,
-    totalStudents: row.capacity || 0,
+    totalStudents: null,
+    capacity: row.capacity,
     totalTeachers: 0,
     levels: [],
     programs: [],
@@ -302,7 +303,6 @@ function mapMadrasa(row: ApiMadrasa): Madrasa {
     contactPhone: '',
     image: getPublicAssetUrl(row.photos[row.photos.length - 1]?.url || ''),
     description: row.description || '',
-    accreditationStatus: 'Under Review',
   };
 }
 

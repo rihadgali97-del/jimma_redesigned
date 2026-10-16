@@ -3,7 +3,6 @@ import {
   Printer,
   Download,
   CheckCircle2,
-  ShieldCheck,
   Building,
   Calendar,
   FileText,
@@ -19,7 +18,6 @@ interface ZakatAssessmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   assessmentData: {
-    referenceNo: string;
     date: string;
     hijriDate: string;
     nisabStandard: 'gold' | 'silver';
@@ -27,8 +25,6 @@ interface ZakatAssessmentModalProps {
     goldRatePerGram: number;
     silverRatePerGram: number;
     calendarType: 'hijri' | 'gregorian';
-    currency: 'ETB' | 'USD';
-    usdExchangeRate: number;
     grossAssets: {
       cash: number;
       goldSilver: number;
@@ -48,7 +44,6 @@ interface ZakatAssessmentModalProps {
     agricultureUshrDue: number;
     livestockZakatDue: number;
     grandTotalZakatETB: number;
-    grandTotalZakatUSD: number;
     customNote?: string;
   };
 }
@@ -66,9 +61,7 @@ export const ZakatAssessmentModal: React.FC<ZakatAssessmentModalProps> = ({
 
   const handleCopySummary = () => {
     const text = `
-JIMMA CITY ISLAMIC AFFAIRS SUPREME COUNCIL
-OFFICIAL ZAKAT ASSESSMENT REPORT
-Ref: ${assessmentData.referenceNo}
+LOCAL ZAKAT CALCULATION SUMMARY
 Date: ${assessmentData.date} (${assessmentData.hijriDate})
 --------------------------------------------------
 Nisab Standard: ${assessmentData.nisabStandard.toUpperCase()} (${assessmentData.nisabThresholdETB.toLocaleString()} ETB)
@@ -94,9 +87,8 @@ FINAL ZAKAT OBLIGATION:
 - Zakat al-Mal (2.5%): ${assessmentData.zakatAlMalDue.toLocaleString()} ETB
 ${assessmentData.agricultureUshrDue > 0 ? `- Agricultural Ushr Harvest: ${assessmentData.agricultureUshrDue.toLocaleString()} ETB\n` : ''}
 ${assessmentData.livestockZakatDue > 0 ? `- Livestock Zakat: ${assessmentData.livestockZakatDue.toLocaleString()} ETB\n` : ''}
-TOTAL DUE: ${assessmentData.grandTotalZakatETB.toLocaleString()} ETB (~$${assessmentData.grandTotalZakatUSD.toLocaleString()} USD)
---------------------------------------------------
-Certified under the Fatwa Committee of Jimma Supreme Islamic Council
+ESTIMATED TOTAL: ${assessmentData.grandTotalZakatETB.toLocaleString()} ETB
+This calculation is not an official council certificate or religious ruling.
     `.trim();
 
     navigator.clipboard.writeText(text);
@@ -108,8 +100,8 @@ Certified under the Fatwa Committee of Jimma Supreme Islamic Council
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Official Zakat Assessment Statement"
-      subtitle={`Assessment Ref: ${assessmentData.referenceNo} • Jimma Islamic Supreme Council Shari'ah Compliance`}
+      title="Zakat Calculation Summary"
+      subtitle="Based on entered values and the rates shown. Not an official council certificate or religious ruling."
       size="xl"
     >
       <div className="space-y-6">
@@ -125,10 +117,10 @@ Certified under the Fatwa Committee of Jimma Supreme Islamic Council
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-700 dark:text-emerald-400 block">
-                  Majlis Supreme Council • Jimma City
+                  Local calculation
                 </span>
                 <h3 className="text-lg sm:text-xl font-serif font-bold text-stone-900 dark:text-stone-100">
-                  Official Zakat Obligation Assessment
+                  Zakat Calculation Summary
                 </h3>
                 <span className="text-xs font-serif text-amber-700 dark:text-amber-400">
                   كشف حساب وتقييم فريضة الزكاة الشرعية
@@ -137,9 +129,6 @@ Certified under the Fatwa Committee of Jimma Supreme Islamic Council
             </div>
 
             <div className="text-right sm:text-right flex flex-col items-center sm:items-end">
-              <Badge variant="emerald" size="md" className="font-mono text-xs">
-                Ref: {assessmentData.referenceNo}
-              </Badge>
               <span className="text-xs text-stone-500 mt-1 font-mono">
                 {assessmentData.date} • {assessmentData.hijriDate}
               </span>
@@ -252,35 +241,26 @@ Certified under the Fatwa Committee of Jimma Supreme Islamic Council
           <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-950 via-stone-900 to-emerald-950 text-white border border-emerald-700/60 shadow-lg relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               <span className="text-xs uppercase tracking-wider text-amber-300 font-bold block">
-                Total Certified Zakat Obligation Due
+                Estimated Zakat Obligation
               </span>
               <div className="flex items-baseline gap-2 mt-0.5">
                 <span className="text-2xl sm:text-3xl font-serif font-bold text-white">
                   {assessmentData.grandTotalZakatETB.toLocaleString()} ETB
                 </span>
-                <span className="text-xs text-stone-300 font-mono">
-                  (~${assessmentData.grandTotalZakatUSD.toLocaleString()} USD)
-                </span>
               </div>
               <p className="text-[11px] text-emerald-200/80 mt-1">
-                Disbursable directly to the Jimma City Asnaf Social Welfare Fund or certified regional poor.
+                This calculation does not submit an application, record a payment, or transfer funds.
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <div className="w-16 h-16 rounded-full border-2 border-dashed border-amber-400/80 flex flex-col items-center justify-center text-center text-[8px] uppercase font-bold text-amber-300 p-1">
-                <ShieldCheck className="w-4 h-4 mb-0.5" />
-                <span>Majlis Fatwa Verified</span>
-              </div>
-            </div>
           </div>
 
           {/* Shariah Footnote */}
           <div className="text-[11px] text-stone-500 dark:text-stone-400 border-t border-stone-200 dark:border-stone-800 pt-3 flex items-center justify-between">
             <span>
-              Calculated in accordance with Islamic jurisprudence and resolutions of the Jimma City Islamic Supreme Council.
+              Calculation summary based on the entered information. Consult a qualified adviser for guidance.
             </span>
-            <span className="font-mono text-[10px]">jimma-islamic-council.org</span>
+            <span className="font-mono text-[10px]">Generated locally</span>
           </div>
         </div>
 

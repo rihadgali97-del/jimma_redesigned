@@ -135,7 +135,8 @@ export interface Madrasa {
   headTeacherId?: string;
   hifzGraduatesCount?: number | null;
   establishedYear: number;
-  totalStudents: number;
+  totalStudents?: number | null;
+  capacity?: number | null;
   totalTeachers: number;
   levels: string[]; // e.g. ['Level 1 (Tahfeez)', 'Level 2 (Tajweed & Fiqh)', 'Level 3 (Alimiyyah Prep)']
   programs: string[];
@@ -144,7 +145,7 @@ export interface Madrasa {
   contactPhone: string;
   image: string;
   description: string;
-  accreditationStatus: 'Fully Accredited' | 'Provisional' | 'Under Review';
+  accreditationStatus?: 'Fully Accredited' | 'Provisional' | 'Under Review';
 }
 
 export interface Student {

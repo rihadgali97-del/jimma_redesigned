@@ -21,10 +21,12 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Link } from 'react-router-dom';
 import type { Student } from '../../types';
+import { StudentEnrollmentModal } from '../admin/students/StudentEnrollmentModal';
 
 export const TeacherMadrasaDashboard: React.FC = () => {
   const {
     students,
+    madrasas,
     addStudent,
     updateStudentProgress,
     attendanceMap,
@@ -39,20 +41,9 @@ export const TeacherMadrasaDashboard: React.FC = () => {
   const [isSabaqModalOpen, setIsSabaqModalOpen] = useState(false);
 
   // Sabaq Form state
-  const [sabaqSurah, setSabaqSurah] = useState('Surah Al-Kahf (Ayah 1 - 25)');
-  const [sabaqJuz, setSabaqJuz] = useState('15');
-  const [sabaqGrade, setSabaqGrade] = useState<'Mumtaz' | 'Jayyid Jiddan' | 'Jayyid' | 'Da’eef'>('Mumtaz');
-  const [sabqiStatus, setSabqiStatus] = useState<'Passed' | 'Needs Revision'>('Passed');
-  const [teacherNote, setTeacherNote] = useState('');
-
-  // Enroll Student Form state
-  const [newName, setNewName] = useState('');
-  const [newArabicName, setNewArabicName] = useState('');
-  const [newAge, setNewAge] = useState('12');
-  const [newGender, setNewGender] = useState<'Male' | 'Female'>('Male');
-  const [newMadrasa, setNewMadrasa] = useState('Madrasa Darul Uloom Jimma');
-  const [newParentPhone, setNewParentPhone] = useState('+251 91 122 3344');
-  const [newStartJuz, setNewStartJuz] = useState('1');
+  const [sabaqSurah, setSabaqSurah] = useState('');
+  const [sabaqJuz, setSabaqJuz] = useState('');
+  const [sabaqGrade, setSabaqGrade] = useState<'Mumtaz' | 'Jayyid Jiddan' | 'Jayyid' | 'Da’eef' | ''>('');
 
   const filteredStudents = students.filter((s) => {
     const q = (searchQuery || '').toLowerCase();
@@ -74,10 +65,10 @@ export const TeacherMadrasaDashboard: React.FC = () => {
 
   const handleSaveSabaq = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedStudentForSabaq) return;
+    if (!selectedStudentForSabaq || !sabaqSurah.trim() || !sabaqGrade || sabaqJuz === '') return;
 
     const saved = await updateStudentProgress(selectedStudentForSabaq.id, {
-      quranJuzCompleted: parseInt(sabaqJuz, 10) || selectedStudentForSabaq.quranJuzCompleted,
+      quranJuzCompleted: Number(sabaqJuz),
       sabaqSurah,
       tajweedRating: sabaqGrade === 'Mumtaz'
         ? 'Excellent'
@@ -98,40 +89,6 @@ export const TeacherMadrasaDashboard: React.FC = () => {
     setSelectedStudentForSabaq(null);
   };
 
-  const handleEnrollStudent = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newName.trim()) return;
-
-    addStudent({
-      name: newName,
-      arabicName: newArabicName || undefined,
-      age: parseInt(newAge, 10) || 12,
-      gender: newGender,
-      madrasaId: 'madrasa-1',
-      madrasaName: newMadrasa,
-      teacherId: 'teacher-1',
-      teacherName: currentUser.name || 'Ustadh Yusuf Ali',
-      className: 'Advanced Tahfeez Level 3',
-      attendanceRate: 100,
-      quranJuzCompleted: parseInt(newStartJuz, 10) || 1,
-      currentJuz: parseInt(newStartJuz, 10) || 1,
-      currentJuzProgress: 0,
-      hifzStatus: { sabaq: 'Surah Al-Baqarah', sabqi: '', manzil: '' },
-      tajweedRating: 'Needs Practice',
-      examScoreAvg: 0,
-      status: 'Active',
-      enrollmentDate: new Date().toISOString().split('T')[0],
-      parentName: 'Ato Mohammed',
-      parentPhone: newParentPhone,
-      guardianName: 'Ato Mohammed',
-      guardianPhone: newParentPhone,
-    });
-
-    addToast('Student Enrolled', `${newName} has been enrolled in ${newMadrasa}.`, 'success');
-    setIsEnrollModalOpen(false);
-    setNewName('');
-    setNewArabicName('');
-  };
 
   return (
     <div className="space-y-8">
@@ -343,7 +300,7 @@ export const TeacherMadrasaDashboard: React.FC = () => {
                       />
                     </div>
                     <div className="flex justify-between text-[10px] text-stone-400 pt-0.5">
-                      <span>Current: {student.sabaqSurah || student.hifzStatus.sabaq || 'Surah Al-Baqarah'}</span>
+                      <span>Current: {student.sabaqSurah || student.hifzStatus.sabaq || 'Not recorded'}</span>
                       <span>Exam average: {student.examScoreAvg}%</span>
                     </div>
                   </div>
@@ -353,7 +310,7 @@ export const TeacherMadrasaDashboard: React.FC = () => {
                 <div className="pt-2 border-t border-stone-200/60 dark:border-stone-700 flex items-center justify-between">
                   <div className="text-[10px] text-stone-400 flex items-center gap-1">
                     <Phone className="w-3 h-3 text-stone-400" />
-                    <span>{student.guardianPhone || '+251 91 100 0000'}</span>
+                    <span>{student.guardianPhone || 'Not provided'}</span>
                   </div>
 
                   <div className="flex items-center gap-1.5">
@@ -369,7 +326,8 @@ export const TeacherMadrasaDashboard: React.FC = () => {
                       onClick={() => {
                         setSelectedStudentForSabaq(student);
                         setSabaqJuz(student.quranJuzCompleted.toString());
-                        setSabaqSurah(student.sabaqSurah || student.hifzStatus.sabaq || 'Surah Al-Kahf');
+                        setSabaqSurah(student.sabaqSurah || student.hifzStatus.sabaq || '');
+                        setSabaqGrade('');
                         setIsSabaqModalOpen(true);
                       }}
                     >
@@ -410,7 +368,7 @@ export const TeacherMadrasaDashboard: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    min="1"
+                    min="0"
                     max="30"
                     required
                     value={sabaqJuz}
@@ -423,10 +381,12 @@ export const TeacherMadrasaDashboard: React.FC = () => {
                     Tajweed / Quality Grade
                   </label>
                   <select
+                    required
                     value={sabaqGrade}
-                    onChange={(e) => setSabaqGrade(e.target.value as any)}
+                    onChange={(e) => setSabaqGrade(e.target.value as typeof sabaqGrade)}
                     className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 font-medium"
                   >
+                    <option value="">Select grade</option>
                     <option value="Mumtaz">Mumtaz (Excellent - 95%+)</option>
                     <option value="Jayyid Jiddan">Jayyid Jiddan (Very Good)</option>
                     <option value="Jayyid">Jayyid (Good)</option>
@@ -449,33 +409,6 @@ export const TeacherMadrasaDashboard: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                  Sabqi (Revision of Past 5 Juz) Status
-                </label>
-                <select
-                  value={sabqiStatus}
-                  onChange={(e) => setSabqiStatus(e.target.value as any)}
-                  className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
-                >
-                  <option value="Passed">Passed (Solid Retention)</option>
-                  <option value="Needs Revision">Needs Revision Tomorrow</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                  Teacher Remarks & Pronunciation Notes
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Excellent Makharij on letters 'Ayn and Haa."
-                  value={teacherNote}
-                  onChange={(e) => setTeacherNote(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
-                />
-              </div>
-
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200 dark:border-stone-800">
                 <Button variant="ghost" size="sm" type="button" onClick={() => setIsSabaqModalOpen(false)}>
                   Cancel
@@ -489,96 +422,12 @@ export const TeacherMadrasaDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Enroll Student Modal */}
-      {isEnrollModalOpen && (
-        <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 max-w-md w-full p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 text-xs">
-            <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
-              <div>
-                <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100">
-                  Enroll New Tahfeez Student
-                </h3>
-                <p className="text-stone-500">Register into madrasa classroom</p>
-              </div>
-              <button
-                onClick={() => setIsEnrollModalOpen(false)}
-                className="p-1 rounded-lg text-stone-400 hover:text-stone-600"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleEnrollStudent} className="space-y-3.5">
-              <div>
-                <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                  Student Full Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Ibrahim Zakaria"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                    Age
-                  </label>
-                  <input
-                    type="number"
-                    min="5"
-                    max="25"
-                    required
-                    value={newAge}
-                    onChange={(e) => setNewAge(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                    Gender
-                  </label>
-                  <select
-                    value={newGender}
-                    onChange={(e) => setNewGender(e.target.value as any)}
-                    className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
-                  >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="font-bold text-stone-700 dark:text-stone-300 block mb-1">
-                  Parent / Guardian Phone (SMS Alerts)
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="+251 91 123 4567"
-                  value={newParentPhone}
-                  onChange={(e) => setNewParentPhone(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200 dark:border-stone-800">
-                <Button variant="ghost" size="sm" type="button" onClick={() => setIsEnrollModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button variant="primary" size="sm" type="submit">
-                  Enroll Student
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <StudentEnrollmentModal
+        isOpen={isEnrollModalOpen}
+        madrasas={madrasas}
+        onClose={() => setIsEnrollModalOpen(false)}
+        onSubmit={addStudent}
+      />
     </div>
   );
 };

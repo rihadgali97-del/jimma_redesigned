@@ -40,8 +40,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   const [category, setCategory] = useState<CouncilEvent['category']>(
     initialEvent?.category || 'Quran Competition'
   );
-  const [date, setDate] = useState(initialEvent?.date || '2026-09-15');
-  const [hijriDate, setHijriDate] = useState(initialEvent?.hijriDate || '4 Rabi’ al-Awwal 1448 AH');
+  const [date, setDate] = useState(initialEvent?.date || new Date().toISOString().split('T')[0]);
+  const [hijriDate, setHijriDate] = useState(initialEvent?.hijriDate || '');
   const [time, setTime] = useState(initialEvent?.time || '08:30 AM - 04:30 PM');
   const [location, setLocation] = useState(initialEvent?.location || 'Grand Anwar Mosque Auditorium');
   const [venueDetails, setVenueDetails] = useState(initialEvent?.venueDetails || 'Main Auditorium & Conference Hall');

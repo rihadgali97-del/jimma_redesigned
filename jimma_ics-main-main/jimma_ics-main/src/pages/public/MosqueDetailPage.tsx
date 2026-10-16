@@ -22,7 +22,6 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { QuickJanazahModal } from '../../components/gateway/QuickJanazahModal';
-import type { Mosque } from '../../types';
 
 export const MosqueDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,30 +31,20 @@ export const MosqueDetailPage: React.FC = () => {
 
   const [isJanazahModalOpen, setIsJanazahModalOpen] = useState(false);
 
-  const mosque: Mosque =
-    (mosques || []).find((m) => m.id === id) ||
-    (mosques || [])[0] || {
-      id: 'mosque-1',
-      name: 'Grand Anwar Mosque of Jimma',
-      arabicName: 'جامع الأنوار الكبير بجيما',
-      district: 'Jimma Central',
-      subCityOrWoreda: 'Jimma Central',
-      address: 'Merkato Center, Main Street, Jimma',
-      imam: 'Sheikh Abdullah Ahmed Al-Jimmawi',
-      muazzin: 'Ustadh Bilal Abdi',
-      committeeChairman: 'Jimma Islamic Council',
-      capacity: 5500,
-      students: 0,
-      establishedYear: 1940,
-      status: 'active',
-      facilities: ['Main Prayer Hall', 'Women Gallery', 'Wudhu Stations (120 taps)', 'Library & Manuscript Archive'],
-      hasMadrasa: false,
-      image: '',
-      jummahAttendance: 0,
-      monthlyExpensesETB: 0,
-      description: 'The historical spiritual epicenter of Jimma City, established in 1940.',
-      contactPhone: '+251 47 111 8290',
-    };
+  const mosque = mosques.find((record) => record.id === id);
+
+  if (!mosque) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-20 text-center">
+        <Building className="mx-auto h-10 w-10 text-stone-300" />
+        <h1 className="mt-4 font-serif text-2xl font-bold text-stone-900 dark:text-stone-100">Mosque record unavailable</h1>
+        <p className="mt-2 text-sm text-stone-500">This institution is not listed in the currently loaded public directory.</p>
+        <Link to="/mosques" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+          <ArrowLeft className="h-4 w-4" /> Back to Mosques Directory
+        </Link>
+      </div>
+    );
+  }
 
   const linkedMadrasa = (madrasas || []).find(
     (mad) => mad.id === mosque.madrasaId || mad.name === mosque.madrasaName || mad.mosqueId === mosque.id
@@ -67,9 +56,7 @@ export const MosqueDetailPage: React.FC = () => {
   };
 
   const facilitiesList = mosque.facilities || [];
-  const imageSrc =
-    mosque.image ||
-    'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=1200&q=80';
+  const imageSrc = mosque.image;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -109,14 +96,21 @@ export const MosqueDetailPage: React.FC = () => {
       <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden grid grid-cols-1 lg:grid-cols-12">
         {/* Left Visual Image */}
         <div className="lg:col-span-5 h-64 lg:h-auto relative bg-stone-900 min-h-[260px]">
-          <img
-            src={imageSrc}
-            alt={mosque.name}
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
+          {imageSrc ? (
+            <img
+              src={imageSrc}
+              alt={mosque.name}
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="flex h-full min-h-[260px] flex-col items-center justify-center gap-3 text-stone-400">
+              <Building className="h-12 w-12" />
+              <span className="text-sm">No photo listed</span>
+            </div>
+          )}
           <div className="absolute top-4 left-4">
-            <Badge variant="emerald">{mosque.status || 'Active'}</Badge>
+            <Badge variant="emerald">{mosque.status}</Badge>
           </div>
           <div className="absolute bottom-4 left-4 bg-stone-950/80 backdrop-blur-xs text-white text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <MapPin className="w-3.5 h-3.5 text-amber-400" />
@@ -170,7 +164,7 @@ export const MosqueDetailPage: React.FC = () => {
                 Friday Attendance
               </span>
               <span className="text-lg sm:text-xl font-bold text-amber-600 dark:text-amber-400 font-mono">
-                {Math.round((mosque.capacity || 1000) * 0.95).toLocaleString()}
+                —
               </span>
             </div>
           </div>
@@ -215,10 +209,10 @@ export const MosqueDetailPage: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-stone-400 block">
-                      Official Mu'adhin
+                      Mu'adhin
                     </span>
                     <h4 className="font-serif font-bold text-sm text-stone-900 dark:text-stone-100">
-                      {mosque.muazzin || 'Ustadh Bilal Abdi'}
+                      {mosque.muazzin || 'Not listed'}
                     </h4>
                   </div>
                 </div>
@@ -237,7 +231,7 @@ export const MosqueDetailPage: React.FC = () => {
                 <span>Linked Quranic Madrasa & Hifz Center</span>
               </h3>
               {linkedMadrasa && (
-                <Badge variant="gold">{linkedMadrasa.accreditationStatus || 'Accredited'}</Badge>
+                <Badge variant="gold">{linkedMadrasa.accreditationStatus || 'Accreditation not recorded'}</Badge>
               )}
             </div>
 
@@ -263,32 +257,32 @@ export const MosqueDetailPage: React.FC = () => {
                   <div className="p-2.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700">
                     <span className="text-stone-400 block text-[10px] uppercase">Enrolled</span>
                     <span className="font-bold text-stone-900 dark:text-stone-100 font-mono">
-                      {linkedMadrasa.totalStudents} Students
+                      {linkedMadrasa.totalStudents == null ? 'Not listed' : `${linkedMadrasa.totalStudents} Students`}
                     </span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700">
                     <span className="text-stone-400 block text-[10px] uppercase">Hifz Graduates</span>
                     <span className="font-bold text-emerald-600 font-mono">
-                      {Math.round((linkedMadrasa.totalStudents || 100) * 0.22)}+ Huffaz
+                      {linkedMadrasa.hifzGraduatesCount == null ? 'Not listed' : `${linkedMadrasa.hifzGraduatesCount} reported`}
                     </span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700">
                     <span className="text-stone-400 block text-[10px] uppercase">Faculty</span>
                     <span className="font-bold text-stone-900 dark:text-stone-100 font-mono">
-                      {linkedMadrasa.totalTeachers} Teachers
+                      {linkedMadrasa.totalTeachers || 'Not listed'}
                     </span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700">
                     <span className="text-stone-400 block text-[10px] uppercase">Shift</span>
                     <span className="font-semibold text-stone-800 dark:text-stone-200">
-                      {(linkedMadrasa.shifts || []).join(', ') || 'Morning, Afternoon'}
+                      {(linkedMadrasa.shifts || []).join(', ') || 'Not recorded'}
                     </span>
                   </div>
                 </div>
               </div>
             ) : (
               <p className="text-xs text-stone-500">
-                Community Halaqat circles operate daily after Asr and Maghrib under the supervision of the resident Imam.
+                Madrasa linkage is not recorded for this mosque.
               </p>
             )}
           </Card>
@@ -308,36 +302,24 @@ export const MosqueDetailPage: React.FC = () => {
                   <span>{fac}</span>
                 </div>
               ))}
+              {facilitiesList.length === 0 && (
+                <p className="text-xs text-stone-500">No facility information is listed.</p>
+              )}
             </div>
           </Card>
         </div>
 
         {/* Right 4-cols: Jumu'ah Schedule & Contact Card */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Jumu'ah Friday Prayer Box */}
+          {/* Jumu'ah information */}
           <div className="p-6 rounded-3xl bg-emerald-950 text-emerald-100 space-y-4 border border-emerald-800 shadow-lg">
             <div className="flex items-center justify-between border-b border-emerald-900 pb-3">
               <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">
-                Friday Congregation (Jumu'ah)
+                Jumu'ah Schedule
               </span>
-              <Badge variant="gold">Weekly</Badge>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs">
-                <span className="text-emerald-300">Khutbah Arabic:</span>
-                <span className="font-mono font-bold text-white">12:30 PM</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-emerald-300">Salah Began:</span>
-                <span className="font-mono font-bold text-white">01:00 PM</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-emerald-300">Language:</span>
-                <span className="font-semibold text-amber-300">Afaan Oromoo & Arabic</span>
-              </div>
             </div>
             <p className="text-[11px] text-emerald-300/80 pt-2 border-t border-emerald-900 leading-relaxed">
-              Arrive at least 30 minutes early. Dedicated women's gallery accessible via north entrance.
+              Prayer times and khutbah details are not listed in the public directory.
             </p>
           </div>
 
@@ -349,7 +331,7 @@ export const MosqueDetailPage: React.FC = () => {
             <div className="space-y-2.5 text-xs text-stone-600 dark:text-stone-300">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{mosque.contactPhone || '+251 47 111 8290'}</span>
+                <span>{mosque.contactPhone || 'Not listed'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-amber-600 shrink-0" />

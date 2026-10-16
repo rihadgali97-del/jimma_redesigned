@@ -50,6 +50,7 @@ import { fetchCurrentNisabRate, NisabRate, setNisabRate } from '../../services/z
 type DonationLog = Donation & {
   source: 'backend' | 'manual';
   paymentStatus?: DonationIntentRecord['status'];
+  createdAt?: string;
 };
 
 function toDonationLog(record: DonationIntentRecord, funds: { id: string; name: string }[]): DonationLog {
@@ -79,11 +80,12 @@ function toDonationLog(record: DonationIntentRecord, funds: { id: string; name: 
     paymentMethod: paymentMethods[record.paymentMethod],
     status: record.status === 'CONFIRMED' ? 'Completed' : 'Processing',
     notes: `Category: ${record.category}`,
-    certificateIssued: record.status === 'CONFIRMED',
+    certificateIssued: false,
     categoryType,
     transactionRef: record.reference,
     source: 'backend',
     paymentStatus: record.status,
+    createdAt: record.createdAt,
   };
 }
 
@@ -117,7 +119,6 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
   const [isAddDistModalOpen, setIsAddDistModalOpen] = useState(false);
   const [isCalculatorModalOpen, setIsCalculatorModalOpen] = useState(false);
   const [showTrendsChart, setShowTrendsChart] = useState(false);
-  const [trendsViewMode, setTrendsViewMode] = useState<'monthly' | 'annual'>('monthly');
   const [serverDonationLogs, setServerDonationLogs] = useState<DonationLog[]>([]);
   const [manualDonationLogs, setManualDonationLogs] = useState<DonationLog[]>([]);
   const [donationsLoading, setDonationsLoading] = useState(true);
@@ -186,40 +187,40 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
     isAnonymous: false,
     phone: '',
     email: '',
-    amountETB: 10000,
-    fundId: funds[3]?.id || 'fund-4', // Default to Zakat & Social Welfare
+    amountETB: 0,
+    fundId: funds[0]?.id || '',
     categoryType: 'Zakat ul-Mal' as Donation['categoryType'],
-    district: KEBELE_NAMES[0],
+    district: '',
     asnafCategory: 'Al-Fuqara (The Destitute)',
     paymentMethod: 'Telebirr' as Donation['paymentMethod'],
     transactionRef: '',
     notes: '',
-    collectorName: 'Zakat Officer Sheikh Hussen',
+    collectorName: '',
   });
 
   // Zakat Calculator State
   const [calcType, setCalcType] = useState<'wealth' | 'agriculture'>('wealth');
-  const [calcCash, setCalcCash] = useState<number>(150000);
-  const [calcBank, setCalcBank] = useState<number>(300000);
-  const [calcGoldValue, setCalcGoldValue] = useState<number>(200000);
-  const [calcInventory, setCalcInventory] = useState<number>(450000);
-  const [calcDebts, setCalcDebts] = useState<number>(80000);
+  const [calcCash, setCalcCash] = useState<number>(0);
+  const [calcBank, setCalcBank] = useState<number>(0);
+  const [calcGoldValue, setCalcGoldValue] = useState<number>(0);
+  const [calcInventory, setCalcInventory] = useState<number>(0);
+  const [calcDebts, setCalcDebts] = useState<number>(0);
 
   // Agricultural Calculator State
-  const [calcHarvestYieldETB, setCalcHarvestYieldETB] = useState<number>(500000);
+  const [calcHarvestYieldETB, setCalcHarvestYieldETB] = useState<number>(0);
   const [calcIrrigationType, setCalcIrrigationType] = useState<'rain' | 'irrigated'>('rain'); // 10% vs 5%
 
   // New Distribution Form State
   const [distFormData, setDistFormData] = useState<Omit<ZakatBeneficiaryDistribution, 'id'>>({
     asnafCategory: 'Al-Fuqara (The Destitute)',
     arabicName: 'الْفُقَرَاءُ',
-    woredaDistrict: KEBELE_NAMES[6],
-    beneficiaryCount: 150,
-    totalDisbursedETB: 600000,
+    woredaDistrict: '',
+    beneficiaryCount: 0,
+    totalDisbursedETB: 0,
     lastDisbursalDate: new Date().toISOString().split('T')[0],
-    distributionChannel: 'Direct CBE Birr / Biometric Voucher',
-    leadOfficer: currentUser?.name || 'Zakat Officer Sheikh Hussen',
-    notes: 'Emergency welfare disbursals to verified low-income households.',
+    distributionChannel: '',
+    leadOfficer: currentUser?.name || '',
+    notes: '',
   });
 
   // Unique Districts and Categories
@@ -284,6 +285,10 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
   const totalBeneficiariesCount = useMemo(() => {
     return zakatDistributions.reduce((sum, z) => sum + (z.beneficiaryCount || 0), 0);
   }, [zakatDistributions]);
+  const recordedDistrictCount = useMemo(
+    () => new Set(zakatDistributions.map((distribution) => distribution.district || distribution.woredaDistrict).filter(Boolean)).size,
+    [zakatDistributions],
+  );
 
   const saveNisabRates = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -353,14 +358,19 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
     }
 
     const selectedFundObj = funds.find((f) => f.id === formData.fundId) || funds[0];
-
-    const todayDate = new Date().toISOString().split('T')[0];
-    const hijriSample = '12 Safar 1448 AH';
+    if (!selectedFundObj) {
+      addToast('Fund catalogue unavailable', 'No council fund is configured, so this donation draft cannot be recorded.', 'error');
+      return;
+    }
+    if (!formData.isAnonymous && !formData.donorName.trim()) {
+      addToast('Donor name required', 'Enter the donor name or select anonymous donation.', 'warning');
+      return;
+    }
 
     const newDonation = addDonation({
-      donorName: formData.isAnonymous ? 'Anonymous Donor (Fisabilillah)' : formData.donorName || 'Generous Donor',
+      donorName: formData.isAnonymous ? 'Anonymous Donor' : formData.donorName.trim(),
       isAnonymous: formData.isAnonymous,
-      phone: formData.phone || '+251 91 000 0000',
+      phone: formData.phone,
       email: formData.email,
       amountETB: Number(formData.amountETB),
       fundId: selectedFundObj.id,
@@ -369,17 +379,14 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
       categoryType: formData.categoryType,
       district: formData.district,
       asnafCategory: formData.asnafCategory,
-      hijriDate: hijriSample,
-      transactionRef: formData.transactionRef || `TX-${Date.now().toString().slice(-6)}`,
+      hijriDate: '',
+      transactionRef: formData.transactionRef,
       collectorName: formData.collectorName,
-      taxExemptCode: `JIC-TAX-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
       notes: formData.notes,
     });
 
     setManualDonationLogs((previous) => [{ ...newDonation, source: 'manual' }, ...previous]);
     setIsAddModalOpen(false);
-    setSelectedDonationForCert(newDonation);
-    setIsCertificateModalOpen(true);
   };
 
   // Handle Add Distribution Submit
@@ -408,7 +415,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
     if (!saved) return;
 
     setIsAddDistModalOpen(false);
-    addToast('Disbursement saved', 'The record is now stored in the Zakat ledger.', 'success');
+    addToast('Distribution record saved', 'The entry is stored in the backend; no payment transfer was made.', 'success');
   };
 
   // Export CSV
@@ -471,42 +478,25 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
             <HeartHandshake className="w-3.5 h-3.5" />
             <span>Islamic Council Treasury & Zakat Board</span>
           </div>
+
+          {manualDonationLogs.length > 0 && (
+            <Card className="border-amber-200 bg-amber-50/70 dark:border-amber-900 dark:bg-amber-950/20">
+              <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">Session-only donation drafts</p>
+              <p className="mt-1 text-sm text-amber-800 dark:text-amber-300">
+                These draft entries are not saved by the backend, do not affect collection totals, and cannot receive official receipts.
+              </p>
+            </Card>
+          )}
           <h1 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100">
             Donations & Zakat Ledger
           </h1>
           <p className="text-stone-600 dark:text-stone-400 text-xs sm:text-sm max-w-3xl mt-1">
-            Jimma City Shari'ah Audited Contributions, Nisab Calculator, Official Certificate Generator & Asnaf Welfare Distributions across 13 Kebeles.
+            Backend donation requests, confirmed contributions, current Nisab rates, and saved Zakat distribution records.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
           <div className="inline-flex items-center gap-1.5">
-            {showTrendsChart && (
-              <div className="inline-flex items-center rounded-xl bg-stone-100 dark:bg-stone-800 p-1 border border-stone-200 dark:border-stone-700">
-                <button
-                  onClick={() => setTrendsViewMode('monthly')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg font-medium transition-all ${
-                    trendsViewMode === 'monthly'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
-                  }`}
-                >
-                  <BarChart3 className="w-3.5 h-3.5" />
-                  <span>Monthly</span>
-                </button>
-                <button
-                  onClick={() => setTrendsViewMode('annual')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg font-medium transition-all ${
-                    trendsViewMode === 'annual'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
-                  }`}
-                >
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  <span>Annual</span>
-                </button>
-              </div>
-            )}
             <Button
               variant="outline"
               size="sm"
@@ -541,7 +531,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
             icon={<Plus className="w-4 h-4" />}
             onClick={() => setIsAddModalOpen(true)}
           >
-            Record Contribution
+            Add Session Draft
           </Button>
         </div>
       </div>
@@ -574,7 +564,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
           </div>
           <div className="flex items-center justify-between text-xs text-stone-500">
             <span>8 Quranic Asnaf Pool</span>
-            <span className="font-semibold text-teal-600">100% Shari'ah</span>
+            <span className="font-semibold text-teal-600">Recorded contributions</span>
           </div>
         </Card>
 
@@ -604,7 +594,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
           </div>
           <div className="flex items-center justify-between text-xs text-stone-500">
             <span>Disbursed: ETB {(totalAsnafDisbursedETB / 1000000).toFixed(2)}M</span>
-            <Badge variant="blue">13 Kebeles</Badge>
+            <Badge variant="blue">{recordedDistrictCount} areas recorded</Badge>
           </div>
         </Card>
       </div>
@@ -612,9 +602,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
       {/* Recharts Monthly & Annual Inflow Trends Bar Chart */}
       {showTrendsChart && (
         <DonationInflowTrendsChart
-          donations={donationLogs.filter((donation) => donation.status === 'Completed')}
-          viewMode={trendsViewMode}
-          onViewModeChange={setTrendsViewMode}
+          donations={serverDonationLogs.filter((donation) => donation.paymentStatus === 'CONFIRMED')}
         />
       )}
 
@@ -943,7 +931,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                                 }}
                                 disabled={d.status !== 'Completed'}
                                 className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-                                title={d.status === 'Completed' ? 'View & Print Official Certificate' : 'Certificate available after payment confirmation'}
+                                title={d.status === 'Completed' ? 'View & print confirmed donation record' : 'Record available after payment confirmation'}
                               >
                                 <Award className="w-4 h-4" />
                               </button>
@@ -1045,7 +1033,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                           setIsCertificateModalOpen(true);
                         }}
                       >
-                        Certificate
+                        Donation record
                       </Button>
                     </div>
                   </div>
@@ -1074,7 +1062,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 Quranic 8 Asnaf Zakat Distribution Ledger
               </h2>
               <p className="text-emerald-200 text-xs sm:text-sm leading-relaxed">
-                Audited allocation from Jimma Council central Zakat treasury directly to eligible verified beneficiaries across 13 kebeles.
+                  Saved distribution records from the backend. Payment transfers and independent audits are not performed by this application.
               </p>
             </div>
 
@@ -1084,31 +1072,36 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
               onClick={() => setIsAddDistModalOpen(true)}
               className="relative z-10 shrink-0"
             >
-              Record Disbursal
+              Add Distribution Record
             </Button>
           </div>
 
           {/* Asnaf Distribution Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {zakatDistributions.length === 0 ? (
+            <Card className="p-8 text-center text-sm text-stone-500">
+              No distribution records are available.
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {zakatDistributions.map((z) => (
               <Card key={z.id} className="p-6 space-y-4 hover:border-emerald-500 transition-colors flex flex-col justify-between">
                 <div className="space-y-3">
                   <div className="flex items-start justify-between">
                     <div>
                       <span className="font-serif text-lg font-bold text-emerald-800 dark:text-emerald-400">
-                        {z.arabicName}
+                        {z.arabicName || '—'}
                       </span>
                       <h3 className="font-bold text-stone-900 dark:text-stone-100 text-sm">
                         {z.asnafCategory}
                       </h3>
                     </div>
-                    <Badge variant="emerald">{z.beneficiaryCount} Beneficiaries</Badge>
+                    <Badge variant="emerald">{z.beneficiaryCount ?? '—'} Beneficiaries</Badge>
                   </div>
 
                   <div className="p-3 bg-stone-50 dark:bg-stone-800/60 rounded-xl space-y-1">
                     <span className="text-[10px] uppercase font-bold text-stone-400">Total Disbursed</span>
                     <div className="text-xl font-serif font-bold text-stone-900 dark:text-stone-100 font-mono">
-                      ETB {z.totalDisbursedETB.toLocaleString()}
+                      ETB {(z.totalDisbursedETB ?? 0).toLocaleString()}
                     </div>
                   </div>
 
@@ -1119,26 +1112,27 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                   <div className="space-y-1 text-xs text-stone-500 pt-2 border-t border-stone-100 dark:border-stone-800">
                     <div className="flex justify-between">
                       <span>Kebele Coverage:</span>
-                      <span className="font-medium text-stone-700 dark:text-stone-300">{z.woredaDistrict}</span>
+                      <span className="font-medium text-stone-700 dark:text-stone-300">{z.woredaDistrict || 'Not recorded'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Channel:</span>
-                      <span className="font-mono text-stone-700 dark:text-stone-300">{z.distributionChannel}</span>
+                      <span className="font-mono text-stone-700 dark:text-stone-300">{z.distributionChannel || 'Not recorded'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Lead Auditor:</span>
-                      <span>{z.leadOfficer}</span>
+                      <span>{z.leadOfficer || 'Not recorded'}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="pt-3 text-[11px] text-stone-400 font-mono flex items-center justify-between border-t border-stone-100 dark:border-stone-800">
-                  <span>Last Cycle: {z.lastDisbursalDate}</span>
-                  <Badge variant="blue">Audited Disbursal</Badge>
+                  <span>Recorded: {z.lastDisbursalDate || 'Date unavailable'}</span>
+                  <Badge variant="blue">{z.verificationStatus || 'Status unavailable'}</Badge>
                 </div>
               </Card>
             ))}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1324,8 +1318,8 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Record Donation or Zakat Receipt"
-        subtitle="Issue Shari'ah certified electronic receipt and update council general ledger."
+        title="Add Donation Draft"
+        subtitle="Adds a session-only draft; it does not record payment or issue an official receipt."
       >
         <form onSubmit={handleAddDonationSubmit} className="space-y-4">
           {/* Anonymous checkbox */}
@@ -1335,7 +1329,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 Anonymous Donor (Fisabilillah)
               </span>
               <span className="text-[11px] text-stone-500">
-                Mask donor name on public registry and reports.
+                Keep the donor name hidden in this session-only draft.
               </span>
             </div>
             <input
@@ -1425,6 +1419,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, fundId: e.target.value })}
                 className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700"
               >
+                {funds.length === 0 && <option value="">No council funds configured</option>}
                 {funds.map((f) => (
                   <option key={f.id} value={f.id}>
                     {f.name}
@@ -1442,6 +1437,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                 className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700"
               >
+                <option value="">Select area</option>
                 {KEBELE_NAMES.map((kebele) => <option key={kebele} value={kebele}>{kebele}</option>)}
                 <option value="Diaspora (North America)">Diaspora (North America)</option>
                 <option value="Diaspora (Middle East)">Diaspora (Middle East / Europe)</option>
@@ -1500,7 +1496,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
               Cancel
             </Button>
             <Button variant="primary" type="submit" icon={<Check className="w-4 h-4" />}>
-              Issue Official Receipt
+              Save Draft
             </Button>
           </div>
         </form>
@@ -1511,7 +1507,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
         isOpen={isAddDistModalOpen}
         onClose={() => setIsAddDistModalOpen(false)}
         title="Record Asnaf Zakat Disbursal"
-        subtitle="Log verified welfare disbursement to eligible recipient categories."
+        subtitle="Save a distribution entry. This does not verify eligibility or transfer funds."
       >
         <form onSubmit={handleAddDistSubmit} className="space-y-4">
           <div>
@@ -1824,12 +1820,12 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* OFFICIAL ZAKAT & SADAQAH CERTIFICATE MODAL */}
+      {/* Confirmed donation details */}
       <Modal
         isOpen={isCertificateModalOpen}
         onClose={() => setIsCertificateModalOpen(false)}
-        title="Official Shari'ah Contribution Receipt & Certificate"
-        subtitle="Jimma City Islamic Affairs Supreme Council Treasury Certificate"
+        title="Confirmed Donation Record"
+        subtitle="Payment status returned by the backend. This is not a tax-exemption certificate or independent audit opinion."
       >
         {selectedDonationForCert && (
           <div className="space-y-6">
@@ -1851,7 +1847,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                   JIMMA CITY ISLAMIC AFFAIRS SUPREME COUNCIL
                 </h3>
                 <p className="text-[11px] uppercase tracking-widest text-emerald-800 dark:text-emerald-400 font-bold">
-                  Majlis Al-Islami Al-A'la Li-Mantaqat Jimma • Treasury & Zakat Board
+                  Majlis Al-Islami Al-A'la Li-Mantaqat Jimma
                 </p>
                 <div className="font-serif text-emerald-700 dark:text-emerald-300 text-lg sm:text-xl pt-1">
                   بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
@@ -1862,23 +1858,23 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
               <div className="relative z-10 space-y-4 text-xs sm:text-sm">
                 <div className="flex justify-between items-center bg-stone-50 dark:bg-stone-800/80 p-3.5 rounded-2xl border border-stone-200 dark:border-stone-700">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-stone-400 block">Official Receipt #</span>
+                    <span className="text-[10px] uppercase font-bold text-stone-400 block">Backend Reference</span>
                     <span className="font-mono font-bold text-stone-900 dark:text-stone-100 text-sm">
                       {selectedDonationForCert.receiptNo}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] uppercase font-bold text-stone-400 block">Tax Exemption ID</span>
+                    <span className="text-[10px] uppercase font-bold text-stone-400 block">Tax-Exemption Reference</span>
                     <span className="font-mono text-emerald-700 dark:text-emerald-400 font-semibold text-xs">
-                      {selectedDonationForCert.taxExemptCode || 'JIC-TAX-2026-001'}
+                      {selectedDonationForCert.taxExemptCode || 'Not issued'}
                     </span>
                   </div>
                 </div>
 
                 <div className="text-center py-2 space-y-1">
-                  <p className="text-stone-500 dark:text-stone-400 text-xs">This certifies that the council has received from:</p>
+                  <p className="text-stone-500 dark:text-stone-400 text-xs">Confirmed donation record for:</p>
                   <h4 className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
-                    {selectedDonationForCert.isAnonymous ? 'ANONYMOUS SERVANT OF ALLAH' : selectedDonationForCert.donorName}
+                    {selectedDonationForCert.isAnonymous ? 'ANONYMOUS DONOR' : selectedDonationForCert.donorName || 'Name not provided'}
                   </h4>
                   {selectedDonationForCert.district && (
                     <p className="text-xs text-stone-500">Resident / Organization of {selectedDonationForCert.district}</p>
@@ -1888,7 +1884,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 {/* Amount Display */}
                 <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900 text-center space-y-1">
                   <span className="text-[11px] uppercase font-bold text-emerald-900 dark:text-emerald-300">
-                    The Sum Of
+                  Confirmed Amount
                   </span>
                   <div className="text-2xl sm:text-3xl font-mono font-bold text-emerald-800 dark:text-emerald-300">
                     ETB {selectedDonationForCert.amountETB.toLocaleString()}
@@ -1911,7 +1907,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                 {/* Verification Metadata Footer */}
                 <div className="grid grid-cols-3 gap-2 pt-3 border-t border-stone-200 dark:border-stone-800 text-[10px] text-stone-500">
                   <div>
-                    <span className="block font-bold text-stone-400 uppercase">Issue Date</span>
+                    <span className="block font-bold text-stone-400 uppercase">Recorded on</span>
                     <span className="font-mono">{selectedDonationForCert.date}</span>
                     {selectedDonationForCert.hijriDate && <div>{selectedDonationForCert.hijriDate}</div>}
                   </div>
@@ -1920,8 +1916,8 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                     <span className="font-mono">{selectedDonationForCert.paymentMethod}</span>
                   </div>
                   <div className="text-right">
-                    <span className="block font-bold text-stone-400 uppercase">Authorized Officer</span>
-                    <span className="text-stone-800 dark:text-stone-200">{selectedDonationForCert.collectorName || 'Chief Treasurer'}</span>
+                    <span className="block font-bold text-stone-400 uppercase">Recorded Collector</span>
+                    <span className="text-stone-800 dark:text-stone-200">{selectedDonationForCert.collectorName || 'Not recorded'}</span>
                   </div>
                 </div>
               </div>
@@ -1938,7 +1934,7 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                   icon={<Printer className="w-4 h-4" />}
                   onClick={() => window.print()}
                 >
-                  Print Certificate
+                  Print Record
                 </Button>
                 <Button
                   variant="primary"
@@ -1946,10 +1942,10 @@ export const AdminDonationsAndZakatPage: React.FC = () => {
                   icon={<Download className="w-4 h-4" />}
                   onClick={() => {
                     window.print();
-                    addToast('Certificate Ready', 'PDF generator initiated.', 'success');
+                    addToast('Print dialog opened', 'Use the browser print dialog to save this record if needed.', 'info');
                   }}
                 >
-                  Download PDF
+                  Print / Save Record
                 </Button>
               </div>
             </div>

@@ -203,7 +203,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link to="/mosques" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Mosques Directory (128+)</span>
+                  <span>Mosques Directory</span>
                 </Link>
               </li>
               <li>
@@ -309,7 +309,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Row */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stone-500">
           <div>
-            © 2026 Jimma City Islamic Affairs Supreme Council. All rights reserved.
+            © {new Date().getFullYear()} Jimma City Islamic Affairs Supreme Council. All rights reserved.
           </div>
 
           {/* Quick social icon links in bottom bar */}

@@ -1,6 +1,6 @@
 import { DispatchLogItem } from '../types';
 
-export interface MessageTemplate {
+export interface GatewayMessageTemplate {
   id: string;
   name: string;
   category: DispatchLogItem['category'];
@@ -12,7 +12,7 @@ export interface MessageTemplate {
   };
 }
 
-export const gatewayTemplates: MessageTemplate[] = [
+export const gatewayTemplates: GatewayMessageTemplate[] = [
   {
     id: 'sabaq-daily-progress',
     name: 'Daily Sabaq & Hifz Progress to Guardian',

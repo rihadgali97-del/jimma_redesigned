@@ -1,31 +1,20 @@
 import React from 'react';
-import { useLanguage } from '../../context/LanguageContext';
 import {
   Landmark,
   ShieldCheck,
   Target,
   Compass,
-  Users,
-  Award,
-  BookOpen,
   Building,
   CheckCircle2,
-  Calendar,
-  Layers,
+  BookOpen,
+  Users,
 } from 'lucide-react';
 import { IslamicPattern } from '../../components/common/IslamicPattern';
 import { Card } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
+import { useApp } from '../../context/AppContext';
 
 export const AboutPage: React.FC = () => {
-  const { language } = useLanguage();
-
-  const roadmapMilestones = [
-    { year: '2024 - 2025', title: 'Phase 1: Institutional Digital Registry', status: 'Completed', desc: 'Digitized all 128+ mosques, 45 madrasas, and established central ulema database.' },
-    { year: '2025 - 2026', title: 'Phase 2: Unified Financial & Zakat Ledger', status: 'Active', desc: 'Multi-fund accounting, online donor certificates, real-time public transparency audits.' },
-    { year: '2026 - 2027', title: 'Phase 3: Standardized Hifz & Teacher Portals', status: 'In Progress', desc: 'Mobile-responsive Sabaq recitation trackers, curriculum monitoring, and Sanad verification.' },
-    { year: '2027 - 2028', title: 'Phase 4: Islamic Higher College of Jimma', status: 'Planned', desc: 'Establishing advanced faculty for Hadith, Fiqh, and contemporary Islamic sciences.' },
-  ];
+  const { mosques, madrasas, ulema, ulemaLoading } = useApp();
 
   return (
     <div className="space-y-16 sm:space-y-24 pb-12">
@@ -42,7 +31,7 @@ export const AboutPage: React.FC = () => {
           </h1>
           <p className="text-stone-300 text-sm sm:text-base mt-4 leading-relaxed">
             The supreme civic and religious authority coordinating the spiritual, educational,
-            and charitable affairs of the Muslim community across 18 kebeles in Jimma City, Oromia, Ethiopia.
+            and charitable affairs of the Muslim community in Jimma City, Oromia, Ethiopia.
           </p>
         </div>
       </section>
@@ -77,7 +66,7 @@ export const AboutPage: React.FC = () => {
                 Our Mission
               </h3>
               <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
-                To serve mosques, advance Quranic and Islamic education, manage Zakat and endowments with pristine integrity, and foster unity.
+                To support mosques, Quranic and Islamic education, charitable recordkeeping, and unity in the community.
               </p>
             </Card>
 
@@ -128,39 +117,29 @@ export const AboutPage: React.FC = () => {
           <div className="relative z-10 space-y-8">
             <div className="text-center max-w-2xl mx-auto space-y-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold uppercase tracking-wider">
-                <Layers className="w-3.5 h-3.5" />
-                Strategic Council Plan
+                <Landmark className="w-3.5 h-3.5" />
+                Public directory
               </div>
               <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white">
-                Council Transformation Roadmap (2024 - 2028)
+                Community records available in this portal
               </h2>
               <p className="text-stone-400 text-xs sm:text-sm">
-                A clear, milestone-driven agenda for expanding educational capacity and socio-economic support.
+                Counts reflect records currently loaded from the public directories.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {roadmapMilestones.map((m, idx) => (
-                <div
-                  key={m.year}
-                  className="bg-stone-800/80 p-5 rounded-2xl border border-stone-700/80 space-y-2 relative"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono text-amber-400 font-bold">{m.year}</span>
-                    <Badge
-                      variant={
-                        m.status === 'Completed'
-                          ? 'emerald'
-                          : m.status === 'Active'
-                          ? 'gold'
-                          : 'slate'
-                      }
-                    >
-                      {m.status}
-                    </Badge>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                { label: 'Mosques', count: mosques.length, icon: Building },
+                { label: 'Madrasas', count: madrasas.length, icon: BookOpen },
+                { label: 'Ulema', count: ulema.length, icon: Users },
+              ].map(({ label, count, icon: Icon }) => (
+                <div key={label} className="bg-stone-800/80 p-5 rounded-2xl border border-stone-700/80 space-y-2">
+                  <Icon className="w-5 h-5 text-amber-400" />
+                  <div className="font-serif text-2xl font-bold text-white">
+                    {label === 'Ulema' && ulemaLoading ? '…' : count ? count.toLocaleString() : '—'}
                   </div>
-                  <h4 className="font-serif font-bold text-sm text-white">{m.title}</h4>
-                  <p className="text-xs text-stone-400 leading-relaxed">{m.desc}</p>
+                  <h4 className="font-semibold text-sm text-stone-200">{label} directory records</h4>
                 </div>
               ))}
             </div>

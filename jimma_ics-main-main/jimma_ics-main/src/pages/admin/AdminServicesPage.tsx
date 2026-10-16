@@ -13,7 +13,7 @@ import { Modal } from '../../components/ui/Modal';
 import { ServiceRequest } from '../../types';
 import { usePagination } from '../../hooks/usePagination';
 import { PaginationControls } from '../../components/ui/PaginationControls';
-import { mockPublicServices, ServiceItem } from '../../data/mockServices';
+import { publicServiceCatalog, ServiceItem } from '../../constants/serviceCatalog';
 import {
   fetchAdminJanazahAvailability,
   setJanazahAvailability,
@@ -263,7 +263,7 @@ export const AdminServicesPage: React.FC = () => {
         </div>
 
         <div className="divide-y divide-stone-200 dark:divide-stone-800">
-          {mockPublicServices
+          {publicServiceCatalog
             .filter(
               (service): service is ServiceItem & { id: CivicPublicServiceId } =>
                 isCivicPublicServiceId(service.id)

@@ -61,9 +61,9 @@ export const ZakatReceiptModal: React.FC<ZakatReceiptModalProps> = ({
               Majlis Al-Fatwa wa'l-Irshad • Jimma City Islamic Affairs Supreme Council
             </span>
             <h3 className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 mt-1">
-              {isZakat
-                ? 'Official Zakat Discharge & Purification Certificate'
-                : 'Official Community Contribution Receipt'}
+              {donation.status === 'Completed'
+                ? isZakat ? 'Confirmed Zakat Donation Record' : 'Confirmed Donation Record'
+                : 'Donation Payment Request'}
             </h3>
             <p className="text-xs font-serif text-emerald-700 dark:text-emerald-400 mt-1">
               شهادة إبراء ذمة الزكاة والتبرع المبارك
@@ -73,11 +73,11 @@ export const ZakatReceiptModal: React.FC<ZakatReceiptModalProps> = ({
           {/* Core Certificate Content */}
           <div className="relative z-10 py-6 space-y-6 text-center">
             <p className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-widest font-mono">
-              This is to certify that the contribution of
+              Donation record for
             </p>
 
             <div className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100">
-              {donation.donorName || 'Respected Benefactor'}
+              {donation.donorName || 'Name not provided'}
             </div>
 
             <div className="flex flex-wrap justify-center items-center gap-3 text-xs text-stone-600 dark:text-stone-300">
@@ -92,20 +92,20 @@ export const ZakatReceiptModal: React.FC<ZakatReceiptModalProps> = ({
                 </span>
               )}
               <span className="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-semibold px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
-                Receipt #{donation.receiptNo}
+                Reference #{donation.receiptNo}
               </span>
             </div>
 
             <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 max-w-xl mx-auto leading-relaxed">
-              Has been duly received and recorded in the verified treasury of the Jimma City Islamic Affairs
-              Council. Designated strictly according to the noble Quranic Asnaf (Surah At-Tawbah 9:60) and
-              audited under Council Fatwa & Shari'ah directives.
+              {donation.status === 'Completed'
+                ? 'The payment status is confirmed by the available donation record. This document is not a tax-exemption certificate or an independent audit opinion.'
+                : 'This payment request has not been confirmed. No payment or transfer has been processed by this application.'}
             </p>
 
             {/* Amount Callout */}
             <div className="inline-block bg-gradient-to-r from-emerald-50 via-amber-50 to-emerald-50 dark:from-emerald-950/40 dark:via-stone-900 dark:to-emerald-950/40 border-2 border-emerald-600/40 dark:border-emerald-500/40 px-8 py-4 rounded-2xl">
               <span className="text-xs uppercase font-bold text-emerald-800 dark:text-emerald-300 tracking-wider block">
-                Discharged Amount
+                Requested Amount
               </span>
               <span className="text-3xl sm:text-4xl font-serif font-bold text-stone-900 dark:text-stone-100 font-mono">
                 {donation.amountETB.toLocaleString()} ETB
@@ -125,7 +125,7 @@ export const ZakatReceiptModal: React.FC<ZakatReceiptModalProps> = ({
             <div>
               <span className="text-stone-400 block text-[10px] uppercase font-bold">Hijri Year</span>
               <span className="font-semibold text-stone-800 dark:text-stone-200 font-serif">
-                {donation.hijriDate || '1447 AH / 1448 AH'}
+                {donation.hijriDate || 'Not recorded'}
               </span>
             </div>
             <div>
@@ -136,9 +136,9 @@ export const ZakatReceiptModal: React.FC<ZakatReceiptModalProps> = ({
             </div>
             <div>
               <span className="text-stone-400 block text-[10px] uppercase font-bold">Status</span>
-              <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-400">
-                <CheckCircle2 className="w-3 h-3" />
-                Audited & Complete
+              <span className={`inline-flex items-center gap-1 font-bold ${donation.status === 'Completed' ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                {donation.status === 'Completed' && <CheckCircle2 className="w-3 h-3" />}
+                {donation.status === 'Completed' ? 'Payment confirmed' : 'Payment not confirmed'}
               </span>
             </div>
           </div>
@@ -147,21 +147,21 @@ export const ZakatReceiptModal: React.FC<ZakatReceiptModalProps> = ({
           <div className="relative z-10 pt-6 mt-6 border-t border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-xs">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full border-2 border-amber-500/60 flex items-center justify-center text-amber-600 dark:text-amber-400 bg-amber-500/10">
-                <ShieldCheck className="w-5 h-5" />
+                <FileText className="w-5 h-5" />
               </div>
               <div>
                 <div className="font-bold text-stone-800 dark:text-stone-200">
-                  Sheikh Dr. Faisal Abdurahman
+                  Jimma Islamic Council
                 </div>
                 <div className="text-[10px] text-stone-500">
-                  Head of Fatwa, Zakat & Endowments Division
+                  Payment status from the backend record
                 </div>
               </div>
             </div>
 
             <div className="text-[10px] text-stone-500 font-mono text-center sm:text-right">
-              <div>Verification Hash: SHA256-JIC-{(donation.id || '2026').toUpperCase()}</div>
-              <div>Tax-Exempt Reference: {donation.taxExemptCode || 'ET-REV-JIC-2026-903'}</div>
+              <div>Payment reference: {donation.transactionRef || donation.receiptNo}</div>
+              <div>Tax-exempt reference: {donation.taxExemptCode || 'Not issued'}</div>
             </div>
           </div>
         </div>
@@ -174,7 +174,7 @@ export const ZakatReceiptModal: React.FC<ZakatReceiptModalProps> = ({
             onClick={handlePrint}
             icon={<Printer className="w-4 h-4" />}
           >
-            Print Certificate
+            Print Donation Record
           </Button>
 
           <Button variant="primary" size="sm" onClick={onClose}>

@@ -462,9 +462,9 @@ export const AdminStaffAndRolesPage: React.FC = () => {
             <span className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100">
               {securityLogsLoaded ? securityLogs.length : '—'}
             </span>
-            <span className="text-xs text-emerald-600 font-semibold">Real-time</span>
+            <span className="text-xs text-emerald-600 font-semibold">Loaded</span>
           </div>
-          <p className="text-[11px] text-stone-400 mt-1">100% cryptographic trace</p>
+          <p className="text-[11px] text-stone-400 mt-1">Entries returned by the audit-log service</p>
         </div>}
       </div>
 

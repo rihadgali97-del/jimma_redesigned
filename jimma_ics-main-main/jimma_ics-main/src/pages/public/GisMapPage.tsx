@@ -13,15 +13,11 @@ import {
   Building,
   BookOpen,
   Users,
-  Wallet,
-  Sun,
-  Droplets,
   BarChart3,
   SlidersHorizontal,
   ChevronDown,
   Sparkles,
   Landmark,
-  ShieldCheck,
   ArrowRight,
   TrendingUp,
   Map as MapIcon,
@@ -157,13 +153,19 @@ export const GisMapPage: React.FC = () => {
 
   // Chart Data
   const barChartData = useMemo(() => {
-    return woredas.slice(0, 10).map((w) => ({
+    return sortedWoredas.slice(0, 10).map((w) => ({
       name: w.name.split(' (')[0],
       mosques: w.totalMosques,
       madrasas: w.totalMadrasas,
-      students: Math.round(w.tahfeezStudents / 10), // scaled
     }));
-  }, [woredas]);
+  }, [sortedWoredas]);
+
+  const zakatChartData = useMemo(() => {
+    return sortedWoredas.slice(0, 10).map((w) => ({
+      name: w.name.split(' (')[0],
+      amount: w.annualZakatETB,
+    }));
+  }, [sortedWoredas]);
 
   const climateChartData = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -241,11 +243,11 @@ export const GisMapPage: React.FC = () => {
               <div className="text-[10px] text-blue-200/60">Sum of recorded population figures</div>
             </div>
             <div className="p-3 bg-white/5 backdrop-blur-xs rounded-2xl border border-white/10">
-              <div className="text-[11px] text-teal-300 font-medium">Annual Zakat Tracked</div>
+              <div className="text-[11px] text-teal-300 font-medium">Recorded Zakat Distributions</div>
               <div className="text-xl sm:text-2xl font-bold text-teal-300 mt-0.5">
                 {(gisSummary.annualZakatETB / 1000000).toFixed(0)}M
               </div>
-              <div className="text-[10px] text-teal-200/60">ETB disbursed this year</div>
+              <div className="text-[10px] text-teal-200/60">ETB recorded this calendar year</div>
             </div>
           </div>
         </div>
@@ -604,90 +606,53 @@ export const GisMapPage: React.FC = () => {
                   </ResponsiveContainer>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-center text-xs pt-4 border-t border-stone-200 dark:border-stone-800">
-                  <div className="p-2 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl">
-                    <div className="font-bold text-emerald-800 dark:text-emerald-300">Midland (Weyna Dega)</div>
-                    <div className="text-[10px] text-stone-500">11 Kebeles • 1,500-1,850m</div>
+                {climateChartData.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center text-xs pt-4 border-t border-stone-200 dark:border-stone-800">
+                    {climateChartData.map(({ name, value }) => (
+                      <div key={name} className="p-2 bg-stone-50 dark:bg-stone-800/60 rounded-xl">
+                        <div className="font-bold text-stone-800 dark:text-stone-200">{name}</div>
+                        <div className="text-[10px] text-stone-500">{value} recorded kebeles</div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="p-2 bg-amber-50 dark:bg-amber-950/40 rounded-xl">
-                    <div className="font-bold text-amber-800 dark:text-amber-300">Highland (Dega)</div>
-                    <div className="text-[10px] text-stone-500">6 Kebeles • 1,850-2,400m</div>
-                  </div>
-                  <div className="p-2 bg-blue-50 dark:bg-blue-950/40 rounded-xl">
-                    <div className="font-bold text-blue-800 dark:text-blue-300">Lowland (Kolla)</div>
-                    <div className="text-[10px] text-stone-500">1 Kebele • &lt; 1,500m</div>
-                  </div>
-                </div>
+                )}
               </div>
 
-              {/* Spatial Waqf & Renewable Infrastructure Audit */}
               <div className="bg-white dark:bg-stone-900 p-6 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-md flex flex-col justify-between">
                 <div>
                   <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100">
-                    Sustainable Infrastructure Audit
+                    Recorded Zakat Distributions by Kebele
                   </h3>
                   <p className="text-xs text-stone-500 mt-1">
-                    Progress of renewable solar energy and clean water well coverage across rural institutions
+                    Backend distribution records for the current calendar year. Saved records do not independently verify that funds were transferred.
                   </p>
                 </div>
 
-                <div className="space-y-4 my-4">
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold mb-1">
-                      <span className="text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
-                        <Sun className="w-4 h-4 text-amber-500" />
-                        Solar Powered Mosques & Madrasas
-                      </span>
-                      <span className="text-amber-600 dark:text-amber-400 font-bold">540 of 920 (58.7%)</span>
+                <div className="h-64 w-full my-4">
+                  {zakatChartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={zakatChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                        <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                        <YAxis tick={{ fontSize: 11 }} />
+                        <Tooltip
+                          formatter={(value) => [`ETB ${Number(value).toLocaleString()}`, 'Recorded amount']}
+                          contentStyle={{
+                            backgroundColor: '#18181b',
+                            border: '1px solid #3f3f46',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            color: '#f4f4f5',
+                          }}
+                        />
+                        <Bar dataKey="amount" fill="#0d9488" radius={[6, 6, 0, 0]} name="Recorded amount" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full grid place-items-center text-sm text-stone-500">
+                      {isLoadingWoredas ? 'Loading distribution records…' : 'No distribution records available.'}
                     </div>
-                    <div className="h-3 w-full bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-amber-500 rounded-full" style={{ width: '58.7%' }} />
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold mb-1">
-                      <span className="text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
-                        <Droplets className="w-4 h-4 text-blue-500" />
-                        Borehole Ablution & Clean Drinking Water
-                      </span>
-                      <span className="text-blue-600 dark:text-blue-400 font-bold">680 of 920 (73.9%)</span>
-                    </div>
-                    <div className="h-3 w-full bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full" style={{ width: '73.9%' }} />
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold mb-1">
-                      <span className="text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
-                        <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                        Formal Waqf Land Deed Registered
-                      </span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">810 of 920 (88.0%)</span>
-                    </div>
-                    <div className="h-3 w-full bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-600 rounded-full" style={{ width: '88%' }} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-3.5 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 text-xs text-stone-700 dark:text-stone-300 flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-emerald-900 dark:text-emerald-200">
-                      Council 2027 Sustainability Target
-                    </div>
-                    <div className="text-[11px] text-stone-500">
-                      100% solar lighting & clean deep-water borehole in every rural Jumu'ah mosque.
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsPrintModalOpen(true)}
-                    className="text-xs shrink-0"
-                  >
-                    View Audit
-                  </Button>
+                  )}
                 </div>
               </div>
             </div>

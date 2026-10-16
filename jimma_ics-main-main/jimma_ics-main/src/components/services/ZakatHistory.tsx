@@ -63,12 +63,8 @@ export const ZakatHistory: React.FC<ZakatHistoryProps> = ({
   const userCalculations = useMemo(() => {
     if (!isLoggedIn) return [];
     return zakatCalculations.filter((calc) => {
-      // Show user's records or admin demo records if logged in as admin
-      const isMatch =
-        calc.userEmail.toLowerCase() === currentUser.email.toLowerCase() ||
-        calc.userName.toLowerCase() === currentUser.name.toLowerCase() ||
-        (currentUser.role === 'Super Admin' && calc.userEmail.includes('admin@jimma'));
-      return isMatch;
+      return calc.userId === currentUser.id
+        || calc.userEmail.toLowerCase() === currentUser.email.toLowerCase();
     });
   }, [zakatCalculations, currentUser, isLoggedIn]);
 
@@ -87,12 +83,9 @@ export const ZakatHistory: React.FC<ZakatHistoryProps> = ({
   // Donations for current user
   const userDonations = useMemo(() => {
     if (!isLoggedIn) return [];
-    return donations.filter((d) => {
-      const emailMatch = d.email && d.email.toLowerCase() === currentUser.email.toLowerCase();
-      const nameMatch = d.donorName && d.donorName.toLowerCase().includes(currentUser.name.toLowerCase().split(' ')[0]);
-      const isZakatFund = d.fundId === 'fund-4' || d.fundName.toLowerCase().includes('zakat') || d.categoryType?.includes('Zakat');
-      return emailMatch || nameMatch || isZakatFund;
-    });
+    return donations.filter((donation) =>
+      donation.email?.toLowerCase() === currentUser.email.toLowerCase()
+    );
   }, [donations, currentUser, isLoggedIn]);
 
   // KPI calculations
@@ -134,7 +127,7 @@ export const ZakatHistory: React.FC<ZakatHistoryProps> = ({
                 </h3>
                 <Badge variant="success" className="text-[10px] py-0.5 px-2.5">
                   <UserCheck className="w-3 h-3 mr-1" />
-                  Verified Donor Profile
+                  Signed-in account
                 </Badge>
               </div>
               <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
@@ -173,7 +166,7 @@ export const ZakatHistory: React.FC<ZakatHistoryProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-5 mt-5 border-t border-stone-100 dark:border-stone-800">
           <div className="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
             <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 block tracking-wider">
-              Total Zakat Contributed
+              Confirmed Zakat payments
             </span>
             <span className="text-base sm:text-lg font-bold font-mono text-stone-900 dark:text-stone-100 mt-0.5 block">
               {totalZakatPaidETB.toLocaleString()} ETB
@@ -191,10 +184,10 @@ export const ZakatHistory: React.FC<ZakatHistoryProps> = ({
 
           <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/40 border border-stone-200 dark:border-stone-700">
             <span className="text-[10px] uppercase font-bold text-stone-500 dark:text-stone-400 block tracking-wider">
-              Audited Receipts
+              Current-session drafts
             </span>
             <span className="text-base sm:text-lg font-bold font-mono text-stone-900 dark:text-stone-100 mt-0.5 block">
-              {userDonations.length} Certificates
+              {userDonations.length} Drafts
             </span>
           </div>
 
@@ -244,7 +237,7 @@ export const ZakatHistory: React.FC<ZakatHistoryProps> = ({
             }`}
           >
             <Award className="w-3.5 h-3.5" />
-            <span>Donation Receipts & Certificates ({userDonations.length})</span>
+            <span>Donation drafts ({userDonations.length})</span>
           </button>
         </div>
 
@@ -459,18 +452,17 @@ export const ZakatHistory: React.FC<ZakatHistoryProps> = ({
         </div>
       )}
 
-      {/* SUB-TAB 2: DONATION RECEIPTS & CERTIFICATES */}
+      {/* SUB-TAB 2: CURRENT-SESSION DONATION DRAFTS */}
       {activeSubTab === 'donations' && (
         <div className="space-y-4">
           {userDonations.length === 0 ? (
             <div className="text-center py-12 px-4 rounded-2xl border-2 border-dashed border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 space-y-3">
               <Award className="w-10 h-10 text-stone-400 mx-auto" />
               <h4 className="font-serif font-bold text-stone-800 dark:text-stone-200 text-base">
-                No Donation Receipts Recorded
+                No donation drafts in this session
               </h4>
               <p className="text-xs text-stone-500 dark:text-stone-400 max-w-md mx-auto">
-                Any Zakat or Sadaqah contributions made through Telebirr, CBE Birr, or Bank Transfer will appear
-                here with official downloadable discharge certificates.
+                Donation requests are not currently saved by the backend or processed by a payment provider. Drafts created during this session appear here, but they are not confirmed payments or official receipts.
               </p>
             </div>
           ) : (
@@ -485,9 +477,13 @@ export const ZakatHistory: React.FC<ZakatHistoryProps> = ({
                       <span className="font-mono font-bold text-sm text-emerald-800 dark:text-emerald-300">
                         {don.receiptNo}
                       </span>
-                      <Badge variant="success" className="text-[10px] py-0.5 px-2">
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                        Discharge Certified
+                      <Badge variant={don.status === 'Completed' ? 'success' : 'warning'} className="text-[10px] py-0.5 px-2">
+                        {don.status === 'Completed' ? (
+                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                        ) : (
+                          <AlertCircle className="w-3 h-3 mr-1" />
+                        )}
+                        {don.status === 'Completed' ? 'Payment confirmed' : 'Not confirmed'}
                       </Badge>
                       <span className="text-xs text-stone-400">
                         {don.date} {don.hijriDate ? `(${don.hijriDate})` : ''}

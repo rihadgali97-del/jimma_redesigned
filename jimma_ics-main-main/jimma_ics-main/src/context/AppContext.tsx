@@ -28,12 +28,8 @@ import {
   ZakatCalculationRecord,
   Language,
 } from '../types';
-import { mockFunds, mockTransactions, mockDonations, mockExpenseApprovals } from '../data/mockFinance';
-import { mockPublicServices, ServiceItem } from '../data/mockServices';
-import { initialCouncilResources } from '../data/mockResources';
+import { publicServiceCatalog, ServiceItem } from '../constants/serviceCatalog';
 import { useLanguage } from './LanguageContext';
-import { initialAttendanceSessions, initialStaffAttendance } from '../data/mockAttendance';
-import { mockZakatCalculations } from '../data/mockZakatHistory';
 import { apiRequest, AuthUser, loginWithPassword, logoutFromServer, PaginationMeta, registerAccount, restoreAuthUser } from '../services/authApi';
 import { fetchDirectoryMadrasas, fetchDirectoryMosques } from '../services/directoryApi';
 import { hasAnyPermission, permissionCategories as defaultPermissionCategories } from '../data/permissionCatalog';
@@ -186,7 +182,6 @@ interface AppContextType {
 
   funds: Fund[];
   transactions: Transaction[];
-  addTransaction: (tx: Omit<Transaction, 'id' | 'referenceNo'>) => void;
 
   donations: Donation[];
   addDonation: (donation: Omit<Donation, 'id' | 'receiptNo' | 'date' | 'status' | 'certificateIssued'>) => Donation;
@@ -206,7 +201,6 @@ interface AppContextType {
   refreshJanazahAvailability: () => Promise<boolean>;
   serviceRequests: ServiceRequest[];
   upsertServiceRequest: (request: ServiceRequest) => void;
-  submitServiceRequest: (req: Omit<ServiceRequest, 'id' | 'trackingNo' | 'submissionDate' | 'status' | 'assignedOfficer'>) => ServiceRequest;
   updateServiceRequestStatus: (id: string, status: ServiceRequest['status'], officer?: string) => void;
 
   events: CouncilEvent[];
@@ -337,7 +331,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {
       // fallback
     }
-    return mockZakatCalculations;
+    return [];
   });
 
   const addZakatCalculation = (calc: Omit<ZakatCalculationRecord, 'id'> & { id?: string }) => {
@@ -414,11 +408,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [ulema, setUlema] = useState<Ulema[]>([]);
   const [ulemaLoading, setUlemaLoading] = useState(false);
   const [ulemaError, setUlemaError] = useState('');
-  const [funds, setFunds] = useState<Fund[]>(mockFunds);
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
-  const [donations, setDonations] = useState<Donation[]>(mockDonations);
+  const [funds] = useState<Fund[]>([]);
+  const [transactions] = useState<Transaction[]>([]);
+  const [donations, setDonations] = useState<Donation[]>([]);
   const [zakatDistributions, setZakatDistributions] = useState<ZakatBeneficiaryDistribution[]>([]);
-  const [expenseApprovals, setExpenseApprovals] = useState<ExpenseApproval[]>(mockExpenseApprovals);
+  const [expenseApprovals, setExpenseApprovals] = useState<ExpenseApproval[]>([]);
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
   const [janazahPublicEnabled, setJanazahPublicEnabled] = useState(true);
   const [publicServiceAvailability, setPublicServiceAvailability] = useState<Record<string, boolean>>(
@@ -563,7 +557,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const publicServices = mockPublicServices.filter((service) => {
+  const publicServices = publicServiceCatalog.filter((service) => {
     if (service.id === JANAZAH_CATALOGUE_ID) return janazahPublicEnabled;
     return publicServiceAvailability[service.id] !== false;
   });
@@ -571,7 +565,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [eventRegistrations, setEventRegistrations] = useState<EventRegistration[]>([]);
   const [eventSubscriptions, setEventSubscriptions] = useState<EventNotificationSubscription[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [resources, setResources] = useState<CouncilResource[]>(initialCouncilResources);
+  const [resources, setResources] = useState<CouncilResource[]>([]);
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
 
@@ -681,8 +675,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [attendanceMap, setAttendanceMap] = useState<Record<string, 'Present' | 'Absent' | 'Late' | 'Excused'>>({});
 
-  const [dailyAttendanceSessions, setDailyAttendanceSessions] = useState<DailyAttendanceSession[]>(initialAttendanceSessions);
-  const [staffAttendanceList, setStaffAttendanceList] = useState<StaffAttendanceEntry[]>(initialStaffAttendance);
+  const [dailyAttendanceSessions, setDailyAttendanceSessions] = useState<DailyAttendanceSession[]>([]);
+  const [staffAttendanceList, setStaffAttendanceList] = useState<StaffAttendanceEntry[]>([]);
 
   const addToast = (title: string, message: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
     const id = `toast-${Date.now()}-${Math.random()}`;
@@ -1140,69 +1134,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const addTransaction = (data: Omit<Transaction, 'id' | 'referenceNo'>) => {
-    const id = `tx-${Date.now()}`;
-    const ref = `TXN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    const newTx: Transaction = {
-      ...data,
-      id,
-      referenceNo: ref,
-    };
-    setTransactions((prev) => [newTx, ...prev]);
-
-    // Update funds
-    if (data.type === 'Income') {
-      setFunds((prev) =>
-        prev.map((f) => (f.id === data.fundId ? { ...f, allocatedETB: f.allocatedETB + data.amountETB } : f))
-      );
-    } else if (data.type === 'Expense' || data.type === 'Disbursement') {
-      setFunds((prev) =>
-        prev.map((f) => (f.id === data.fundId ? { ...f, disbursedETB: f.disbursedETB + data.amountETB } : f))
-      );
-    }
-
-    addToast('Transaction Recorded', `${ref}: ${data.amountETB.toLocaleString()} ETB allocated to ${data.fundName}`, 'success');
-  };
-
   const addDonation = (data: Omit<Donation, 'id' | 'receiptNo' | 'date' | 'status' | 'certificateIssued'>) => {
     const id = `don-${Date.now()}`;
-    const receiptNo = `REC-2026-${Math.floor(5000 + Math.random() * 4999)}`;
+    const receiptNo = `DRAFT-${Date.now()}`;
     const today = new Date().toISOString().split('T')[0];
     const newDonation: Donation = {
       ...data,
       id,
       receiptNo,
       date: today,
-      status: 'Completed',
-      certificateIssued: true,
+      status: 'Processing',
+      certificateIssued: false,
     };
     setDonations((prev) => [newDonation, ...prev]);
-
-    // Update fund balance
-    setFunds((prev) =>
-      prev.map((f) => (f.id === data.fundId ? { ...f, allocatedETB: f.allocatedETB + data.amountETB } : f))
+    addToast(
+      'Donation draft added',
+      `${receiptNo} is only in the current session. It is not confirmed, persisted, or eligible for an official receipt.`,
+      'warning'
     );
-
-    // Record as income transaction
-    const txId = `tx-${Date.now()}`;
-    const ref = `TXN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    const newTx: Transaction = {
-      id: txId,
-      referenceNo: ref,
-      date: today,
-      type: 'Income',
-      fundId: data.fundId,
-      fundName: data.fundName,
-      category: 'Public Donation',
-      amountETB: data.amountETB,
-      description: `Donation from ${data.isAnonymous ? 'Anonymous Donor' : data.donorName} (${receiptNo})`,
-      paymentMethod: data.paymentMethod,
-      status: 'Completed',
-      recordedBy: 'Public Online Portal',
-    };
-    setTransactions((prev) => [newTx, ...prev]);
-
-    addToast('Donation Received! Jazakallahu Khayran', `Receipt #${receiptNo} generated for ${data.amountETB.toLocaleString()} ETB.`, 'success');
     return newDonation;
   };
 
@@ -1243,41 +1192,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
     );
 
-    // If disbursed, create a disbursement transaction
-    const target = expenseApprovals.find((e) => e.id === id);
-    if (target && status === 'Disbursed') {
-      addTransaction({
-        date: new Date().toISOString().split('T')[0],
-        type: 'Expense',
-        fundId: target.fundId,
-        fundName: target.fundName,
-        category: target.category,
-        amountETB: target.amountETB,
-        description: `Disbursed for: ${target.title} (${target.requestNo})`,
-        paymentMethod: 'Bank Transfer',
-        status: 'Completed',
-        recordedBy: currentUser.name,
-      });
-    }
-
     addToast('Expense Request Updated', `Status changed to: "${status}"`, 'info');
-  };
-
-  const submitServiceRequest = (req: Omit<ServiceRequest, 'id' | 'trackingNo' | 'submissionDate' | 'status' | 'assignedOfficer'>) => {
-    const id = `req-${Date.now()}`;
-    const trackingNo = `REQ-2026-00${Math.floor(500 + Math.random() * 499)}`;
-    const today = new Date().toISOString().split('T')[0];
-    const newReq: ServiceRequest = {
-      ...req,
-      id,
-      trackingNo,
-      submissionDate: today,
-      status: 'Submitted',
-      assignedOfficer: 'Pending Council Assignment',
-    };
-    setServiceRequests((prev) => [newReq, ...prev]);
-    addToast('Service Application Submitted', `Tracking #${trackingNo} generated. Council desk will review within 2 business days.`, 'success');
-    return newReq;
   };
 
   const updateServiceRequestStatus = (id: string, status: ServiceRequest['status'], officer?: string) => {
@@ -1901,7 +1816,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deleteUlema,
         funds,
         transactions,
-        addTransaction,
         donations,
         addDonation,
         updateDonation,
@@ -1918,7 +1832,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         refreshJanazahAvailability,
         serviceRequests,
         upsertServiceRequest,
-        submitServiceRequest,
         updateServiceRequestStatus,
         events,
         refreshEvents,

@@ -110,13 +110,12 @@ export const AuditorDashboard: React.FC = () => {
 
   // Modals
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
-  const [isCertificateModalOpen, setIsCertificateModalOpen] = useState(false);
   const [selectedDirective, setSelectedDirective] = useState<AuditDirective | null>(null);
   const [isResolveModalOpen, setIsResolveModalOpen] = useState(false);
   const [resolveNote, setResolveNote] = useState('');
 
   // Voucher inspector
-  const [selectedVoucherId, setSelectedVoucherId] = useState<string>(expenseApprovals[0]?.id || 'EXP-001');
+  const [selectedVoucherId, setSelectedVoucherId] = useState<string>(expenseApprovals[0]?.id || '');
   const [stampedVouchers, setStampedVouchers] = useState<Record<string, 'Passed' | 'Flagged'>>({});
 
   // Directives filtering
@@ -140,7 +139,11 @@ export const AuditorDashboard: React.FC = () => {
   const [newTargetEntity, setNewTargetEntity] = useState('');
   const [newFindings, setNewFindings] = useState('');
   const [newRequiredAction, setNewRequiredAction] = useState('');
-  const [newDueDate, setNewDueDate] = useState('2026-09-30');
+  const [newDueDate, setNewDueDate] = useState(() => {
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 30);
+    return dueDate.toISOString().split('T')[0];
+  });
   const [newAmountETB, setNewAmountETB] = useState<number | ''>('');
   const [newVoucherId, setNewVoucherId] = useState('');
 
@@ -651,80 +654,64 @@ export const AuditorDashboard: React.FC = () => {
       {isActiveTab('overview') && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Shari'ah & Institutional Compliance Status Card */}
+            {/* Available audit evidence */}
             <Card className="lg:col-span-2 space-y-4">
               <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
                 <div className="flex items-center gap-2.5">
                   <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-700">
-                    <Award className="w-5 h-5" />
+                    <Database className="w-5 h-5" />
                   </div>
                   <div>
                     <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100">
-                      Shari'ah Governance & Ringfencing Status
+                      Available Audit Evidence
                     </h3>
                     <p className="text-xs text-stone-500">
-                      Continuous audit of Zakat 8-Asnaf segregation, Waqf corpus preservation, and interest-free treasury.
+                      Only data returned by connected application services is shown here.
                     </p>
                   </div>
                 </div>
-                <Badge variant="emerald">100% Segregated</Badge>
+                <Badge variant="gold">Not certified</Badge>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-700 space-y-2">
                   <div className="flex items-center justify-between text-xs font-bold text-stone-700 dark:text-stone-200">
-                    <span>Zakat ul-Mal & Fitr Fund</span>
-                    <span className="text-emerald-600 font-mono">100% Shari'ah Compliant</span>
+                    <span>Zakat distribution records</span>
+                    <span className="font-mono">{zakatDistributions.length}</span>
                   </div>
                   <p className="text-xs text-stone-500">
-                    Strict sub-ledger ringfencing. Disbursed strictly to verified Fuqara, Masakeen, and Fi Sabilillah. Zero operational overhead deduction.
+                    Backend distribution records currently available to this session.
                   </p>
-                  <div className="pt-2 flex items-center justify-between text-[11px] text-stone-400 font-mono border-t border-stone-200 dark:border-stone-700">
-                    <span>Beneficiaries: {zakatDistributions.length + 84}</span>
-                    <span>Audit Status: Certified</span>
-                  </div>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-700 space-y-2">
                   <div className="flex items-center justify-between text-xs font-bold text-stone-700 dark:text-stone-200">
-                    <span>Waqf Endowment Corpus</span>
-                    <span className="text-emerald-600 font-mono">Principal Preserved</span>
+                    <span>General ledger</span>
+                    <span className="font-mono">Unavailable</span>
                   </div>
                   <p className="text-xs text-stone-500">
-                    Habis al-Asl governance verified. 154 registered mosques and commercial farmland properties held in perpetuity without liquidation.
+                    The backend does not provide persisted treasury transactions or balances.
                   </p>
-                  <div className="pt-2 flex items-center justify-between text-[11px] text-stone-400 font-mono border-t border-stone-200 dark:border-stone-700">
-                    <span>Properties: 154 Mosques / 48 Madrasas</span>
-                    <span>Audit Status: Certified</span>
-                  </div>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-700 space-y-2">
                   <div className="flex items-center justify-between text-xs font-bold text-stone-700 dark:text-stone-200">
-                    <span>Treasury & Banking Windows</span>
-                    <span className="text-emerald-600 font-mono">Zero Riba Detected</span>
+                    <span>Waqf asset registry</span>
+                    <span className="font-mono">Unavailable</span>
                   </div>
                   <p className="text-xs text-stone-500">
-                    All accounts held under CBE Noor, Oromia Bank, Hijra Bank, and ZamZam Bank Islamic profit-sharing contracts.
+                    No Waqf property or asset register is connected to the audit service.
                   </p>
-                  <div className="pt-2 flex items-center justify-between text-[11px] text-stone-400 font-mono border-t border-stone-200 dark:border-stone-700">
-                    <span>Accounts Audited: 6 Main Windows</span>
-                    <span>Audit Status: Certified</span>
-                  </div>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-700 space-y-2">
                   <div className="flex items-center justify-between text-xs font-bold text-stone-700 dark:text-stone-200">
-                    <span>Dual-Signature Disbursement Mandate</span>
-                    <span className="text-emerald-600 font-mono">100% Enforced</span>
+                    <span>Expense approvals</span>
+                    <span className="font-mono">Unavailable</span>
                   </div>
                   <p className="text-xs text-stone-500">
-                    Transactions &gt; 10,000 ETB automatically require dual cryptographic authorization by Finance Officer and General Secretary.
+                    Approval requests and dual-signature controls are not available from the backend.
                   </p>
-                  <div className="pt-2 flex items-center justify-between text-[11px] text-stone-400 font-mono border-t border-stone-200 dark:border-stone-700">
-                    <span>Vouchers Audited: {expenseApprovals.length}</span>
-                    <span>Audit Status: Certified</span>
-                  </div>
                 </div>
               </div>
             </Card>
@@ -777,23 +764,14 @@ export const AuditorDashboard: React.FC = () => {
                   <ChevronRight className="w-4 h-4 text-stone-400 group-hover:text-amber-600 transition-colors" />
                 </button>
 
-                <button
-                  onClick={() => setIsCertificateModalOpen(true)}
-                  className="w-full p-3 rounded-2xl bg-stone-50 dark:bg-stone-800 hover:bg-purple-50 dark:hover:bg-purple-950/40 border border-stone-200 dark:border-stone-700 hover:border-purple-300 dark:hover:border-purple-700 text-left transition-all group flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700">
-                      <Award className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-xs text-stone-900 dark:text-stone-100">
-                        Shari'ah Audit Certificate
-                      </div>
-                      <div className="text-[11px] text-stone-400">View & print certified seal</div>
-                    </div>
+                <div className="w-full p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-left">
+                  <div className="font-bold text-xs text-amber-900 dark:text-amber-200">
+                    No signed audit opinion is available
                   </div>
-                  <ChevronRight className="w-4 h-4 text-stone-400 group-hover:text-purple-600 transition-colors" />
-                </button>
+                  <div className="mt-1 text-[11px] text-amber-800 dark:text-amber-300">
+                    The backend does not provide an issued compliance certificate.
+                  </div>
+                </div>
 
                 <button
                   onClick={handleExportSealedAudit}
@@ -1860,103 +1838,6 @@ export const AuditorDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL: SHARI'AH AUDIT OPINION CERTIFICATE */}
-      {isCertificateModalOpen && (
-        <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl animate-in fade-in zoom-in-95 text-stone-900 dark:text-stone-100">
-            {/* Certificate Header with Seal */}
-            <div className="text-center space-y-2 border-b-2 border-amber-600/30 pb-6 relative">
-              <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 mx-auto flex items-center justify-center border-2 border-amber-500/40 shadow-inner">
-                <Landmark className="w-8 h-8" />
-              </div>
-              <div className="text-xs font-serif tracking-widest text-amber-700 dark:text-amber-400 uppercase font-bold">
-                Jimma City Islamic Affairs Supreme Council
-              </div>
-              <h2 className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 tracking-tight">
-                CERTIFICATE OF SHARI'AH & FINANCIAL AUDIT COMPLIANCE
-              </h2>
-              <div className="text-xs text-stone-500 font-mono">
-                Independent Audit Opinion • Clean & Unqualified Rating • FY 2025/2026
-              </div>
-            </div>
-
-            {/* Formal Certificate Body */}
-            <div className="space-y-4 text-xs sm:text-sm leading-relaxed text-stone-700 dark:text-stone-300 font-serif">
-              <p>
-                <strong>To the Supreme Shura Assembly and Community of Jimma City:</strong>
-              </p>
-              <p>
-                The Independent Internal Audit and Shari'ah Compliance Board has conducted a comprehensive forensic audit of all financial ledgers, Zakat disbursements, Waqf property title deeds, and expense vouchers for the Jimma Islamic Council for the period ending August 31, 2026.
-              </p>
-
-              <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 space-y-2 text-xs font-sans">
-                <div className="font-bold text-amber-900 dark:text-amber-200 text-sm">
-                  Official Shari'ah Supervisory Opinion:
-                </div>
-                <p className="text-amber-950 dark:text-amber-300 leading-relaxed">
-                  "In our professional opinion as independent Shari'ah auditors, all collected Zakat funds were ringfenced strictly in accordance with Surah At-Tawbah (9:60) and AAOIFI Standard No. 35. Waqf assets maintain complete principal preservation (Habis al-Asl), and all treasury liquidity remains 100% free of conventional usurious interest (Riba)."
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-xs font-sans pt-2">
-                <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700">
-                  <span className="font-bold text-stone-500 block">Ledger Reconciled:</span>
-                  <span className="font-mono font-bold text-emerald-600">1,420+ Tx (0.00 Variance)</span>
-                </div>
-                <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700">
-                  <span className="font-bold text-stone-500 block">CSO Proclamation 1113/2019:</span>
-                  <span className="font-mono font-bold text-emerald-600">100% Statutory Compliant</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Signature Block */}
-            <div className="grid grid-cols-2 gap-6 pt-4 border-t border-stone-200 dark:border-stone-800 text-xs">
-              <div className="text-center space-y-1">
-                <div className="font-serif italic text-amber-700 dark:text-amber-400 font-bold">
-                  Sheikh Dr. Khalid Ahmed
-                </div>
-                <div className="text-[11px] text-stone-500">Lead Shari'ah Auditor, Jimma City</div>
-                <div className="text-[10px] text-stone-400 font-mono">ID: SH-AUD-KHALID-2026</div>
-              </div>
-
-              <div className="text-center space-y-1">
-                <div className="font-serif italic text-amber-700 dark:text-amber-400 font-bold">
-                  Amina Kedir, CPA
-                </div>
-                <div className="text-[11px] text-stone-500">Chief Inspector of Internal Controls</div>
-                <div className="text-[10px] text-stone-400 font-mono">ID: AUD-AMINA-ETH-98</div>
-              </div>
-            </div>
-
-            {/* Modal Actions */}
-            <div className="flex items-center justify-between pt-4 border-t border-stone-200 dark:border-stone-800">
-              <span className="text-[11px] text-stone-400 font-mono">
-                SHA-256 Digest: e3b0c44298fc1c149afbf4c8996fb924...
-              </span>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  icon={<Printer className="w-4 h-4" />}
-                  onClick={() => {
-                    window.print();
-                  }}
-                >
-                  Print Certificate
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => setIsCertificateModalOpen(false)}
-                >
-                  Close
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

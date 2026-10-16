@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CouncilEvent, EventRegistration } from '../../types';
 import { useApp } from '../../context/AppContext';
-import { KEBELE_NAMES } from '../../constants/kebeles';
+import { useLanguage } from '../../context/LanguageContext';
+import { DirectoryWoreda, fetchDirectoryWoredas } from '../../services/directoryApi';
 import {
   X,
   Calendar,
@@ -57,15 +58,20 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
     isSubscribedToEvent,
     addToast,
   } = useApp();
+  const { language } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'agenda' | 'speakers' | 'register'>(initialTab);
   const tabContentRef = useRef<HTMLDivElement>(null);
+  const [woredas, setWoredas] = useState<DirectoryWoreda[]>([]);
+  const [woredasLoading, setWoredasLoading] = useState(false);
+  const [woredasError, setWoredasError] = useState('');
+  const [woredasRetry, setWoredasRetry] = useState(0);
 
   // Form State
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [district, setDistrict] = useState(event.district || KEBELE_NAMES[0]);
+  const [district, setDistrict] = useState('');
   const [organization, setOrganization] = useState('');
   const [attendeesCount, setAttendeesCount] = useState(1);
   const [notes, setNotes] = useState('');
@@ -76,6 +82,36 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   useEffect(() => {
     tabContentRef.current?.scrollTo({ top: 0 });
   }, [activeTab]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let isCurrent = true;
+    setWoredasLoading(true);
+    setWoredasError('');
+    fetchDirectoryWoredas(language)
+      .then((items) => {
+        if (!isCurrent) return;
+        const activeWoredas = items.filter((woreda) => woreda.isActive);
+        setWoredas(activeWoredas);
+        setDistrict((current) => {
+          if (activeWoredas.some((woreda) => woreda.name === current)) return current;
+          if (activeWoredas.some((woreda) => woreda.name === event.district)) return event.district;
+          return activeWoredas[0]?.name || '';
+        });
+      })
+      .catch((error: unknown) => {
+        if (!isCurrent) return;
+        setWoredasError(error instanceof Error ? error.message : 'Could not load the kebele list.');
+      })
+      .finally(() => {
+        if (isCurrent) setWoredasLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [isOpen, language, event.district, woredasRetry]);
 
   if (!isOpen) return null;
 
@@ -90,10 +126,10 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || !phone.trim() || !email.trim() || (event.isPaid && !paymentReceipt)) {
+    if (!fullName.trim() || !phone.trim() || !email.trim() || !district || (event.isPaid && !paymentReceipt)) {
       addToast('Missing Fields', event.isPaid
-        ? 'Enter your name, phone, email, and attach your payment receipt.'
-        : 'Please enter your full name, phone number, and email address.', 'warning');
+        ? 'Enter your name, phone, email, select your kebele, and attach your payment receipt.'
+        : 'Please enter your full name, phone number, email address, and select your kebele.', 'warning');
       return;
     }
 
@@ -647,17 +683,39 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-stone-700 dark:text-stone-300">
-                        Your Kebele
+                        Your Kebele <span className="text-rose-500">*</span>
                       </label>
                       <select
+                        required
                         value={district}
                         onChange={(e) => setDistrict(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs sm:text-sm outline-hidden focus:ring-2 focus:ring-amber-500 text-stone-900 dark:text-stone-100"
+                        disabled={woredasLoading || Boolean(woredasError) || woredas.length === 0}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs sm:text-sm outline-hidden focus:ring-2 focus:ring-amber-500 text-stone-900 dark:text-stone-100 disabled:opacity-60"
                       >
-                        {[...new Set([...KEBELE_NAMES, ...(KEBELE_NAMES.includes(district) ? [] : [district]), 'Other Zone'])].map((d) => (
-                          <option key={d} value={d}>{d}</option>
+                        <option value="" disabled>
+                          {woredasLoading ? 'Loading kebeles…' : woredasError ? 'Kebele list unavailable' : 'Select a kebele'}
+                        </option>
+                        {woredas.map((woreda) => (
+                          <option key={woreda.id} value={woreda.name}>{woreda.name}</option>
                         ))}
                       </select>
+                      {woredasError && (
+                        <div className="flex items-center justify-between gap-2 text-xs text-rose-600 dark:text-rose-400" role="alert">
+                          <span>{woredasError}</span>
+                          <button
+                            type="button"
+                            className="shrink-0 font-semibold underline"
+                            onClick={() => setWoredasRetry((retry) => retry + 1)}
+                          >
+                            Retry
+                          </button>
+                        </div>
+                      )}
+                      {!woredasLoading && !woredasError && woredas.length === 0 && (
+                        <p className="text-xs text-amber-700 dark:text-amber-400" role="status">
+                          No active kebeles are configured.
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-1.5">
