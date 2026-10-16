@@ -9,7 +9,7 @@ services:
     runtime: docker
     plan: starter
     dockerfilePath: ./jimma_ics-main-main/jimma-ics-backend/Dockerfile
-    dockerContext: ./jimma_ics-main-main/jimma-ics-backend
+    dockerContext: ./jimma_ics-main-main
     healthCheckPath: /api/v1/health
     envVars:
       - key: NODE_ENV
