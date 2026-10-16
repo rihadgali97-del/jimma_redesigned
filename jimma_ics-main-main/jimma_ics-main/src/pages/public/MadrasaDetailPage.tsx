@@ -61,11 +61,6 @@ export const MadrasaDetailPage: React.FC = () => {
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Madrasas Directory</span>
         </Link>
-        <Link to="/admin/students">
-          <Button variant="outline" size="sm" icon={<GraduationCap className="w-4 h-4 text-emerald-600" />}>
-            Manage Students in Portal
-          </Button>
-        </Link>
       </div>
 
       {/* Madrasa Main Hero Box */}
@@ -210,9 +205,6 @@ export const MadrasaDetailPage: React.FC = () => {
                 <GraduationCap className="w-5 h-5 text-emerald-600" />
                 <span>Enrolled Student Records ({enrolledStudents.length})</span>
               </h3>
-              <Link to="/admin/students" className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold hover:underline">
-                View All in Registry →
-              </Link>
             </div>
 
             <div className="space-y-3">
@@ -244,11 +236,6 @@ export const MadrasaDetailPage: React.FC = () => {
                         Focus: Juz {student.currentJuz} ({student.currentJuzProgress}%)
                       </span>
                     </div>
-                    <Link to={`/admin/students`}>
-                      <Button variant="secondary" size="sm" className="text-xs">
-                        Profile
-                      </Button>
-                    </Link>
                   </div>
                 </div>
               ))}
