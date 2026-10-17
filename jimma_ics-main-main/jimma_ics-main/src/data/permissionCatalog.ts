@@ -1,4 +1,4 @@
-import permissionCatalogData from '../../../permissions/permissionCatalog.json';
+import permissionCatalogData from '../../../jimma-ics-backend/permissions/permissionCatalog.json';
 import { PermissionCategory } from '../types';
 
 export const permissionCategories = permissionCatalogData.categories as PermissionCategory[];
