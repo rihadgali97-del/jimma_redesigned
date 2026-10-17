@@ -1575,12 +1575,12 @@ export const publicCopy: Record<string, Copy> = {
   'Role Default': { om: 'Gahee durtii', am: 'ነባሪ ሚና', ar: 'الدور الافتراضي' },
   'Administrative Dossier / Special Mandate Notes': { om: 'Galmee bulchiinsaa / yaadannoo aangoo addaa', am: 'የአስተዳደር ሰነድ / የልዩ ተልዕኮ ማስታወሻዎች', ar: 'ملف إداري / ملاحظات التفويض الخاص' },
   'e.g. Primary contact for Bosa Kito kebele madrasa annual evaluations.': { om: 'fkn. Quunnamaa ijoo madaallii waggaa madrasa ganda Bosa Kito', am: 'ለምሳሌ ለቦሳ ኪቶ ቀበሌ መድረሳ ዓመታዊ ግምገማዎች ዋና ግንኙነት', ar: 'مثال: جهة الاتصال الرئيسية للتقييمات السنوية لمدرسة كيبيلي بوسا كيتو' },
-  'Student Full Name *': { om: 'Maqaa guutuu barataa *', am: 'ሙሉ ስም የተማሪ *', ar: 'الاسم الكامل للطالب *' },
+  'Student Full Name *': { om: 'Maqaa guutuu barataa *', am: 'የተማሪው ሙሉ ስም *', ar: 'الاسم الكامل للطالب *' },
   'e.g. Zakariya Mustefa Kemal': { om: 'fkn. Zakariya Mustefa Kemal', am: 'ለምሳሌ ዘከሪያ ሙስጠፋ ከማል', ar: 'مثال: زكريا مصطفى كمال' },
   'Age *': { om: 'Umurii *', am: 'ዕድሜ *', ar: 'العمر *' },
   'Gender *': { om: 'Saala *', am: 'ጾታ *', ar: 'الجنس *' },
   'Madrasa *': { om: 'Madrasa *', am: 'መድረሳ *', ar: 'المدرسة *' },
-  'Guardian Full Name *': { om: 'Maqaa guutuu eegduu *', am: 'ሙሉ ስም የአሳዳጊ *', ar: 'الاسم الكامل لولي الأمر *' },
+  'Guardian Full Name *': { om: 'Maqaa guutuu eegduu *', am: 'የአሳዳጊው ሙሉ ስም *', ar: 'الاسم الكامل لولي الأمر *' },
   'e.g. Hajji Mustefa Kemal': { om: 'fkn. Hajji Mustefa Kemal', am: 'ለምሳሌ ሀጂ ሙስጠፋ ከማል', ar: 'مثال: الحاج مصطفى كمال' },
   'Guardian Phone *': { om: 'Bilbila eegduu *', am: 'የአሳዳጊ ስልክ *', ar: 'هاتف ولي الأمر *' },
   'Completed Juz (0 - 30)': { om: 'Juz xumurame (0 - 30)', am: 'የተጠናቀቀ ጁዝ (0 - 30)', ar: 'الأجزاء المكتملة (0 - 30)' },
@@ -1734,6 +1734,21 @@ export const publicCopy: Record<string, Copy> = {
   'Madrasas & Quranic Centers': { om: 'Madarisoota fi giddugalawwan Qur’aanaa', am: 'መድረሳዎች እና የቁርአን ማዕከላት', ar: 'المدارس والمراكز القرآنية' },
   'Accredited Islamic education institutions, Tahfeez halaqat, and Arabic language academies across Jimma City.': { om: 'Dhaabbilee barnoota Islaamaa raggaasifaman, halaqaa Tahfeez fi akademii Afaan Arabaa Magaalaa Jimmaa keessatti argaman.', am: 'በጅማ ከተማ ያሉ እውቅና ያገኙ የእስላማዊ ትምህርት ተቋማት፣ የተህፊዝ ሀለቃዎች እና የአረብኛ ቋንቋ አካዳሚዎች።', ar: 'مؤسسات التعليم الإسلامي المعتمدة وحلقات التحفيظ وأكاديميات اللغة العربية في مدينة جيما.' },
   'Certified Asatidhah': { om: 'Asaatizoota mirkanaa’an', am: 'የተረጋገጡ ኡስታዞች', ar: 'الأساتذة المعتمدون' },
+  'Applicant Full Name': { om: 'Maqaa guutuu nama iyyannoo dhiyeessuu', am: 'የአመልካች ሙሉ ስም', ar: 'الاسم الكامل لمقدم الطلب' },
+  'Family / Contact Full Name': { om: 'Maqaa guutuu maatii / nama quunnamtii', am: 'የቤተሰብ / የመገናኛ ሰው ሙሉ ስም', ar: 'الاسم الكامل لأحد أفراد الأسرة / جهة الاتصال' },
+  'Head of Household Full Name': { om: 'Maqaa guutuu mataa maatii', am: 'የቤተሰብ አስተዳዳሪ ሙሉ ስም', ar: 'الاسم الكامل لرب الأسرة' },
+  'Beneficiary Full Name': { om: 'Maqaa guutuu nama deeggarsa argatu', am: 'የተጠቃሚው ሙሉ ስም', ar: 'الاسم الكامل للمستفيد' },
+  'Student Full Name': { om: 'Maqaa guutuu barataa', am: 'የተማሪው ሙሉ ስም', ar: 'الاسم الكامل للطالب' },
+  'Guardian Full Name': { om: 'Maqaa guutuu eegduu', am: 'የአሳዳጊው ሙሉ ስም', ar: 'الاسم الكامل لولي الأمر' },
+  'Deceased Full Name': { om: 'Maqaa guutuu nama du’e', am: 'የሟቹ ሙሉ ስም', ar: 'الاسم الكامل للمتوفى' },
+  'Donor Full Name': { om: 'Maqaa guutuu arjoomaa', am: 'የለጋሹ ሙሉ ስም', ar: 'الاسم الكامل للمتبرع' },
+  'Teacher Full Name': { om: 'Maqaa guutuu barsiisaa', am: 'የመምህሩ ሙሉ ስም', ar: 'الاسم الكامل للمعلم' },
+  'Full Name (English)': { om: 'Maqaa guutuu (Afaan Ingiliffaan)', am: 'ሙሉ ስም (በእንግሊዝኛ)', ar: 'الاسم الكامل (بالإنجليزية)' },
+  Age: { om: 'Umurii', am: 'ዕድሜ', ar: 'العمر' },
+  Gender: { om: 'Saala', am: 'ፆታ', ar: 'الجنس' },
+  'Select gender': { om: 'Saala filadhu', am: 'ፆታ ይምረጡ', ar: 'اختر الجنس' },
+  'Select a madrasa': { om: 'Madaarisaa filadhu', am: 'መድረሳ ይምረጡ', ar: 'اختر مدرسة' },
+  'Guardian Phone': { om: 'Lakkoofsa bilbilaa eegduu', am: 'የአሳዳጊ ስልክ ቁጥር', ar: 'هاتف ولي الأمر' },
 };
 
 export const translatePublicCopy = (source: string, language: Language): string => {
@@ -1741,6 +1756,12 @@ export const translatePublicCopy = (source: string, language: Language): string 
   const normalizedSource = source.replace(/\s+/g, ' ').trim();
   const exactTranslation = publicCopy[normalizedSource]?.[language];
   if (exactTranslation) return exactTranslation;
+
+  const requiredFieldMatch = normalizedSource.match(/^(.+?)\s*\*$/);
+  if (requiredFieldMatch) {
+    const fieldTranslation = publicCopy[requiredFieldMatch[1]]?.[language];
+    if (fieldTranslation) return `${fieldTranslation} *`;
+  }
 
   const dynamicTemplates: Array<[RegExp, (match: RegExpMatchArray) => string]> = [
     [
