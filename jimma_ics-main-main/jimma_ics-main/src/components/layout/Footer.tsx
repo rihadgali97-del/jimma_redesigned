@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { useApp } from '../../context/AppContext';
+import { translatePublicCopy } from '../../i18n/publicCopy';
 import {
   Landmark,
   MapPin,
@@ -20,8 +21,9 @@ import {
 import { IslamicPattern } from '../common/IslamicPattern';
 
 export const Footer: React.FC = () => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const { addToast } = useApp();
+  const translate = (copy: string) => translatePublicCopy(copy, language);
 
   const socialLinks = [
     {
@@ -107,28 +109,22 @@ export const Footer: React.FC = () => {
               </div>
               <div>
                 <h3 className="font-serif font-bold text-lg text-white tracking-tight">
-                  {language === 'ar'
-                    ? 'مجلس الشؤون الإسلامية لمنطقة جيما'
-                    : language === 'om'
-                    ? 'Majiilisa Dhimmoota Islaamummaa Godina Jimmaa'
-                    : 'Jimma City Islamic Affairs Supreme Council'}
+                  {translate('Jimma City Islamic Affairs Supreme Council')}
                 </h3>
                 <p className="text-xs text-amber-400 font-sans">
-                  Serving 18 Kebeles • Islamic Education • Zakat & Community Development
+                  {translate('Serving 18 Kebeles • Islamic Education • Zakat & Community Development')}
                 </p>
               </div>
             </div>
 
             <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
-              Official digital institutional infrastructure for Jimma City, coordinating
-              mosque administration, traditional and modern madrasa curricula, Fatwa guidance,
-              Zakat disbursals, and public social welfare services.
+              {translate('Official digital institutional infrastructure for Jimma City, coordinating mosque administration, traditional and modern madrasa curricula, Fatwa guidance, Zakat disbursals, and public social welfare services.')}
             </p>
 
             <div className="pt-2 text-xs text-stone-400 space-y-1.5">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Central Secretariat Building, Grand Mosque Ave, Jimma City, Oromia, Ethiopia</span>
+                <span>{translate('Central Secretariat Building, Grand Mosque Ave, Jimma City, Oromia, Ethiopia')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-amber-400 shrink-0" />
@@ -144,7 +140,7 @@ export const Footer: React.FC = () => {
             <div className="pt-4 border-t border-stone-800/80">
               <div className="flex items-center justify-between mb-2.5">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400 font-sans">
-                  Official Channels & Social Media
+                  {translate('Official Channels & Social Media')}
                 </span>
                 <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/80 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -162,8 +158,8 @@ export const Footer: React.FC = () => {
                     onClick={(e) => handleSocialClick(e, item)}
                     title={
                       item.isPlaceholder
-                        ? `${item.name} (${item.handle}) - ${item.description}`
-                        : `Open official ${item.name} channel: ${item.handle}`
+                        ? `${item.name} (${item.handle}) - ${translate(item.description)}`
+                        : `${translate(`Open official ${item.name} channel`)}: ${item.handle}`
                     }
                     className={`group flex items-center justify-between p-2 rounded-xl bg-stone-900/80 border border-stone-800/90 text-stone-300 transition-all cursor-pointer ${item.hoverBorder}`}
                   >
@@ -177,7 +173,7 @@ export const Footer: React.FC = () => {
                             {item.name}
                           </span>
                           {!item.isPlaceholder && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" title="Active Link" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" title={translate('Active Link')} />
                           )}
                         </div>
                         <span className="text-[10px] font-mono text-stone-500 truncate group-hover:text-stone-300">
@@ -197,43 +193,43 @@ export const Footer: React.FC = () => {
           {/* Col 2: Institutional Portals */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 font-sans">
-              Institutions
+              {translate('Institutions')}
             </h4>
             <ul className="space-y-2 text-xs sm:text-sm">
               <li>
                 <Link to="/mosques" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Mosques Directory</span>
+                  <span>{translate('Mosques Directory')}</span>
                 </Link>
               </li>
               <li>
                 <Link to="/madrasas" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Madrasas & Hifz Centers</span>
+                  <span>{translate('Madrasas & Hifz Centers')}</span>
                 </Link>
               </li>
               <li>
                 <Link to="/ulema" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Ulema Scholars Directory</span>
+                  <span>{translate('Ulema Scholars Directory')}</span>
                 </Link>
               </li>
               <li>
                 <Link to="/map" className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>Interactive GIS Map (18 Kebeles)</span>
+                  <span>{translate('Interactive GIS Map (18 Kebeles)')}</span>
                 </Link>
               </li>
               <li>
                 <Link to="/about" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Executive Leadership</span>
+                  <span>{translate('Executive Leadership')}</span>
                 </Link>
               </li>
               <li>
                 <Link to="/admin/students" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Students & Hifz Records</span>
+                  <span>{translate('Students & Hifz Records')}</span>
                 </Link>
               </li>
             </ul>
@@ -242,37 +238,37 @@ export const Footer: React.FC = () => {
           {/* Col 3: Public Services & Welfare */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 font-sans">
-              Public Services
+              {translate('Public Services')}
             </h4>
             <ul className="space-y-2 text-xs sm:text-sm">
               <li>
                 <Link to="/services" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Islamic Counselling & Guidance</span>
+                  <span>{translate('Islamic Counselling & Guidance')}</span>
                 </Link>
               </li>
               <li>
                 <Link to="/services" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Zakat Calculator & Distribution</span>
+                  <span>{translate('Zakat Calculator & Distribution')}</span>
                 </Link>
               </li>
               <li>
                 <Link to="/services" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Janazah & Burial Coordination</span>
+                  <span>{translate('Janazah & Burial Coordination')}</span>
                 </Link>
               </li>
               <li>
                 <Link to="/services" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Fatwa & Shari'ah Inquiries</span>
+                  <span>{translate("Fatwa & Shari'ah Inquiries")}</span>
                 </Link>
               </li>
               <li>
                 <Link to="/donate" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Public Donation Portal</span>
+                  <span>{translate('Public Donation Portal')}</span>
                 </Link>
               </li>
             </ul>
@@ -281,25 +277,25 @@ export const Footer: React.FC = () => {
           {/* Col 4: Governance & Transparency */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-blue-400 font-sans">
-              Governance
+              {translate('Governance')}
             </h4>
             <ul className="space-y-2 text-xs sm:text-sm">
               <li>
                 <Link to="/announcements" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Official Council Declarations</span>
+                  <span>{translate('Official Council Declarations')}</span>
                 </Link>
               </li>
               <li>
                 <Link to="/events" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>Conferences</span>
+                  <span>{translate('Conferences')}</span>
                 </Link>
               </li>
               <li>
                 <Link to="/contact" className="text-stone-400 hover:text-white transition-colors flex items-center gap-1.5">
                   <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>{t('contact')} & Secretariat</span>
+                  <span>{translate('Contact & Secretariat')}</span>
                 </Link>
               </li>
             </ul>
@@ -309,12 +305,12 @@ export const Footer: React.FC = () => {
         {/* Bottom Row */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stone-500">
           <div>
-            © {new Date().getFullYear()} Jimma City Islamic Affairs Supreme Council. All rights reserved.
+            © {new Date().getFullYear()} {translate('Jimma City Islamic Affairs Supreme Council')}. {translate('All rights reserved.')}
           </div>
 
           {/* Quick social icon links in bottom bar */}
           <div className="flex items-center gap-2" id="footer-bottom-social-bar">
-            <span className="text-[11px] text-stone-500 hidden sm:inline-block">Channels:</span>
+            <span className="text-[11px] text-stone-500 hidden sm:inline-block">{translate('Channels:')}</span>
             {socialLinks.map((item) => (
               <a
                 key={`bottom-${item.id}`}
@@ -325,10 +321,10 @@ export const Footer: React.FC = () => {
                 onClick={(e) => handleSocialClick(e, item)}
                 title={
                   item.isPlaceholder
-                    ? `${item.name}: ${item.handle} (Placeholder link)`
-                    : `Visit official ${item.name}: ${item.handle}`
+                    ? `${item.name}: ${item.handle} (${translate('Placeholder link')})`
+                    : `${translate(`Visit official ${item.name} channel`)}: ${item.handle}`
                 }
-                aria-label={`Official ${item.name}`}
+                aria-label={`${translate('Official')} ${item.name}`}
                 className={`p-2 rounded-lg bg-stone-900/90 border border-stone-800 text-stone-400 transition-colors cursor-pointer ${item.hoverBorder}`}
               >
                 {item.icon}
@@ -338,7 +334,7 @@ export const Footer: React.FC = () => {
 
           <div className="flex items-center gap-4">
             <span className="text-stone-400 text-center md:text-right">
-              Verified Shari'ah Oversight Board • Jimma, Oromia, Ethiopia
+              {translate("Verified Shari'ah Oversight Board • Jimma, Oromia, Ethiopia")}
             </span>
           </div>
         </div>

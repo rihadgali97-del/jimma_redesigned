@@ -7,8 +7,8 @@ const translatableAttributes = ['placeholder', 'aria-label', 'title'] as const;
 
 export const PublicTranslationLayer: React.FC = () => {
   const { language } = useLanguage();
-  const originalTextMap = useRef(new WeakMap<Text, string>());
-  const originalAttrMap = useRef(new WeakMap<Element, Map<string, string>>());
+  const originalTextMap = useRef(new WeakMap<Text, { source: string; translated: string }>());
+  const originalAttrMap = useRef(new WeakMap<Element, Map<string, { source: string; translated: string }>>());
 
   useEffect(() => {
     const root = document.querySelector<HTMLElement>('#root') || document.body;
@@ -28,12 +28,15 @@ export const PublicTranslationLayer: React.FC = () => {
           const parent = textNode.parentElement;
           if (!parent || parent.closest(excludedText)) continue;
 
-          // Store the immutable original text on first encounter
-          if (!originalTextMap.current.has(textNode)) {
-            originalTextMap.current.set(textNode, textNode.data);
+          let textRecord = originalTextMap.current.get(textNode);
+          if (!textRecord) {
+            textRecord = { source: textNode.data, translated: textNode.data };
+            originalTextMap.current.set(textNode, textRecord);
+          } else if (textNode.data !== textRecord.translated) {
+            textRecord.source = textNode.data;
           }
 
-          const source = originalTextMap.current.get(textNode) ?? textNode.data;
+          const source = textRecord.source;
           if (!source.trim()) continue;
 
           const leading = source.match(/^\s*/)?.[0] ?? '';
@@ -45,6 +48,7 @@ export const PublicTranslationLayer: React.FC = () => {
           if (textNode.data !== translated) {
             textNode.data = translated;
           }
+          textRecord.translated = translated;
         }
 
         root.querySelectorAll<HTMLElement>('[placeholder], [aria-label], [title]').forEach((element) => {
@@ -52,7 +56,7 @@ export const PublicTranslationLayer: React.FC = () => {
 
           let attrMap = originalAttrMap.current.get(element);
           if (!attrMap) {
-            attrMap = new Map<string, string>();
+            attrMap = new Map<string, { source: string; translated: string }>();
             originalAttrMap.current.set(element, attrMap);
           }
 
@@ -60,15 +64,19 @@ export const PublicTranslationLayer: React.FC = () => {
             const currentVal = element.getAttribute(attribute);
             if (currentVal === null) continue;
 
-            if (!attrMap.has(attribute)) {
-              attrMap.set(attribute, currentVal);
+            let attrRecord = attrMap.get(attribute);
+            if (!attrRecord) {
+              attrRecord = { source: currentVal, translated: currentVal };
+              attrMap.set(attribute, attrRecord);
+            } else if (currentVal !== attrRecord.translated) {
+              attrRecord.source = currentVal;
             }
 
-            const source = attrMap.get(attribute) ?? currentVal;
-            const translated = translatePublicCopy(source, language);
+            const translated = translatePublicCopy(attrRecord.source, language);
             if (currentVal !== translated) {
               element.setAttribute(attribute, translated);
             }
+            attrRecord.translated = translated;
           }
         });
       } finally {
@@ -106,4 +114,3 @@ export const PublicTranslationLayer: React.FC = () => {
 
   return null;
 };
-

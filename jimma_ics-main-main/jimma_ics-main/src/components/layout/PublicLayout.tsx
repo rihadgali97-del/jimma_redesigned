@@ -7,7 +7,6 @@ import { ToastContainer } from '../ui/ToastContainer';
 import { GlobalSearchModal } from '../common/GlobalSearchModal';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { PublicTranslationLayer } from './PublicTranslationLayer';
 
 export const PublicLayout: React.FC = () => {
   const { refreshEvents, refreshAnnouncements } = useApp();
@@ -27,7 +26,6 @@ export const PublicLayout: React.FC = () => {
       <MobileBottomNav />
       <ToastContainer />
       <GlobalSearchModal />
-      <PublicTranslationLayer />
     </div>
   );
 };

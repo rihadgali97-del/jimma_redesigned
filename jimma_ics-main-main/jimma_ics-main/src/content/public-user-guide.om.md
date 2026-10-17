@@ -1,22 +1,22 @@
 # Qajeelfama Fayyadama Ummataa
 
-Baga Nagaan Gara poortaala hawaasaa Mana Maree Islaamummaa Jimmaatti  dhuftan. Qajeelfamni kun fuula ummataa irratti argaman akkamitti akka fayyadamtan ibsa. Fuula ummataa ilaaluuf ykn unka tajaajila ummataa guutuuf herrega hojjettootaa hin barbaachisu.
+Baga Gara poortaala hawaasaa Mana Maree Islaamummaa Jimmaatti Nagaan dhuftan. Qajeelfamni kun fuula ummataa irratti argaman akkamitti akka fayyadamtan ibsa. Fuula ummataa ilaaluuf ykn unka tajaajila ummataa guutuuf herrega hojjettootaa hin barbaachisu.
 
-## Geessituuwwan saffisaa
+## Geessituuwwan saffisaa(liinkii)
 
 - [Tajaajiloota ummataa ilaali](/services)
 - [Sagantaawwan ilaali; galmaa'i](/events)
 - [Beeksisota mana maree dubbisi](/announcements)
 - [Arjoomi ykn Herrega Zakaa bani](/donate)
-- [Masjiidota, madrasoota, barsiisota fi hayyoota barbaadi](/mosques)
+- [Masjiidota, madrasoota, barsiisotaa fi hayyoota barbaadi](/mosques)
 - [Nu qunnami; gaaffilee yeroo baay'ee dhiyaatan ilaali](/contact)
 
-As deebi'uuf sarara gubbaa irraa **Qajeelfama Fayyadamaa** fili. Bilbila irratti, menu navigeeshinii bani.
+As deebi'uuf sarara gubbaa irraa **Qajeelfama Fayyadamaa** jedhu fili. Bilbila irratti, meenu navigeeshinii bani.
 
 ## Dhaabbata ykn naannoo barbaaduu
 
 1. Navigeeshinii ijoo keessaa **Dhaabbilee** bani.
-2. **Masjiidota**, **Madrasoota fi Hifz**, **Barsiisota fi Mu'allimoota**, ykn **Hayyoota Ulamaa** keessaa fili.
+2. **Masjiidota**, **Madrasoota fi Hifzi**, **Barsiisotaa fi Mu'allimoota**, ykn **Hayyoota Ulamaa** keessaa fili.
 3. Galmee keessa barbaadi ykn daawwadhu; odeeffannoo jiru fi quunnamtii argachuuf galmee tokko bani.
 4. Bakkaalee fi naannolee kaartaan ilaaluuf **Kaartaa Kebele qoradhu** fili.
 
@@ -27,15 +27,15 @@ As deebi'uuf sarara gubbaa irraa **Qajeelfama Fayyadamaa** fili. Bilbila irratti
 3. Yoo galmeen karaa interneetii banaa ta'e **Iyyadhu** ykn **Iyyata Karaa Interneetii** fili.
 4. Unka guutii ergi. Lakkoofsa wabii erga mul'ate booda kuusii; haala iyyata kee ilaaluuf lakkoofsa bilbilaa quunnamtii sana fayyadami.
 
-Sanadoonni tarreeffaman tokko tokko yeroo gaaffii/ilaalcha qaamaan dhiyaachuu qabu ta'a; kanaaf ibsa tajaajilaa ilaali. Tajaajilli tokko iyyata karaa interneetii fudhachuu dhaabuu danda'a. Unki yoo hin banamne, odeeffannoo quunnamtii mana maree fuula irratti jiru fayyadami.
+Sanadoonni tarreeffaman tokko tokko yeroo gaaffii/ilaalcha qaamaan dhiyaachuu qabu ta'a; kanaaf ibsa tajaajilaa ilaali. Tajaajilli tokko iyyata karaa interneetii fudhachuu dhaabuu danda'a. Unki(linkiin) yoo hin banamne, odeeffannoo quunnamtii mana maree fuula irratti jiru fayyadami.
 
 ### Deeggarsa Zakaa
 
-Galmee tajaajilaa keessaa **Deeggarsa Zakaa** fili. Maqaa iyyataa, lakkoofsa bilbilaa, kebele, baay'ina maatii fi yaada ulaagaa barbaachisaa yoo jiraate galchi. Erga ergitee booda lakkoofsa wabii kuusii. Haala isaa ilaaluuf **Iyyata Hordofi** bani; wabii fi lakkoofsa bilbilaa sana galchii ergi.
+Galmee tajaajilaa keessaa **Deeggarsa Zakaa** fili. Maqaa iyyataa, lakkoofsa bilbilaa, Ganda, baay'ina maatii fi yaada ulaagaa barbaachisaa yoo jiraate galchi. Erga ergitee booda lakkoofsa wabii kuusii(track number). Haala isaa ilaaluuf **Iyyata Hordofi** bani; wabii fi lakkoofsa bilbilaa sana galchii ergi.
 
 ### Deeggarsa Janaazaa
 
-**Deeggarsa Janaazaa** fili; maqaa fi bilbila nama quunnamtii maatii, maqaa guutuu nama du'ee fi kebele galchi. Deeggarsa barbaaddu (Ghusl/uffisa awwaalchaa, geejjibaa, ykn iddoo awwaalchaa) fili; bakka ykn bakka ka'umsaa sirriitti ibsi. Wabii gaaffii kuusii; bilbilli kee waamicha hojjetaa yeroo-dhiyoo eeguu haa danda'u. Wabii fi lakkoofsa bilbila quunnamtii fayyadamuun haala hordofi. Iyyanni Janaazaa karaa interneetii yoo hin jirre, lakkoofsa bilbila hatattamaa sa'aatii 24 tajaajilu kan mana maree irratti tarreeffame fayyadami.
+**Deeggarsa Janaazaa** fili; maqaa fi bilbila nama quunnamtii maatii, maqaa guutuu nama du'ee fi Ganda galchi. Deeggarsa barbaaddu (Ghusl/uffisa awwaalchaa, geejjibaa, ykn iddoo awwaalchaa) fili; bakka ykn bakka ka'umsaa sirriitti ibsi. Wabii gaaffii kuusii; bilbilli kee waamicha hojjetaa yeroo-dhiyoo eeguu haa danda'u. Wabii fi lakkoofsa bilbila quunnamtii fayyadamuun haala hordofi. Iyyanni Janaazaa karaa interneetii yoo hin jirre, lakkoofsa bilbila hatattamaa sa'aatii 24 tajaajilu kan mana maree irratti tarreeffame fayyadami.
 
 ### Gaaffilee tajaajila biroo
 

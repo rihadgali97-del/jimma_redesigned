@@ -12,9 +12,13 @@ import {
 import { IslamicPattern } from '../../components/common/IslamicPattern';
 import { Card } from '../../components/ui/Card';
 import { useApp } from '../../context/AppContext';
+import { useLanguage } from '../../context/LanguageContext';
+import { translatePublicCopy } from '../../i18n/publicCopy';
 
 export const AboutPage: React.FC = () => {
   const { mosques, madrasas, ulema, ulemaLoading } = useApp();
+  const { language } = useLanguage();
+  const translate = (copy: string) => translatePublicCopy(copy, language);
 
   return (
     <div className="space-y-16 sm:space-y-24 pb-12">
@@ -24,14 +28,13 @@ export const AboutPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/80 border border-emerald-700 text-amber-300 text-xs font-semibold mb-4">
             <Landmark className="w-3.5 h-3.5" />
-            <span>Islamic Governance & Heritage</span>
+            <span>{translate('Islamic Governance & Heritage')}</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-serif font-bold text-white tracking-tight">
-            About the Jimma Islamic Council
+            {translate('About the Jimma Islamic Council')}
           </h1>
           <p className="text-stone-300 text-sm sm:text-base mt-4 leading-relaxed">
-            The supreme civic and religious authority coordinating the spiritual, educational,
-            and charitable affairs of the Muslim community in Jimma City, Oromia, Ethiopia.
+            {translate('The supreme civic and religious authority coordinating the spiritual, educational, and charitable affairs of the Muslim community in Jimma City, Oromia, Ethiopia.')}
           </p>
         </div>
       </section>
@@ -41,19 +44,16 @@ export const AboutPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <div className="lg:col-span-6 space-y-5">
             <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-              A Legacy of Knowledge & Faith
+              {translate('A Legacy of Knowledge & Faith')}
             </span>
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100 leading-tight">
-              Honoring centuries of Islamic scholarship from the Kingdom of Jimma Abba Jifar
+              {translate('Honoring centuries of Islamic scholarship from the Kingdom of Jimma Abba Jifar')}
             </h2>
             <p className="text-stone-600 dark:text-stone-300 text-sm sm:text-base leading-relaxed">
-              Jimma has stood as a beacon of Islamic learning, Sufi scholarship, and Quranic recitation in the Horn of Africa.
-              Under the historic leadership of King Abba Jifar and renowned Ulema lineages, scholars established extensive
-              zawiyas, endowments (Awqaf), and manuscript libraries.
+              {translate('Jimma has stood as a beacon of Islamic learning, Sufi scholarship, and Quranic recitation in the Horn of Africa. Under the historic leadership of King Abba Jifar and renowned Ulema lineages, scholars established extensive zawiyas, endowments (Awqaf), and manuscript libraries.')}
             </p>
             <p className="text-stone-600 dark:text-stone-300 text-sm sm:text-base leading-relaxed">
-              Today, the Jimma Islamic Council modernizes this profound trust: creating digital governance frameworks that
-              bridge tradition with 21st-century administrative precision, transparency, and social welfare delivery.
+              {translate('Today, the Jimma Islamic Council modernizes this profound trust: creating digital governance frameworks that bridge tradition with 21st-century administrative precision, transparency, and social welfare delivery.')}
             </p>
           </div>
 
@@ -63,10 +63,10 @@ export const AboutPage: React.FC = () => {
                 <Target className="w-5 h-5" />
               </div>
               <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100">
-                Our Mission
+                {translate('Our Mission')}
               </h3>
               <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
-                To support mosques, Quranic and Islamic education, charitable recordkeeping, and unity in the community.
+                {translate('To support mosques, Quranic and Islamic education, charitable recordkeeping, and unity in the community.')}
               </p>
             </Card>
 
@@ -75,10 +75,10 @@ export const AboutPage: React.FC = () => {
                 <Compass className="w-5 h-5" />
               </div>
               <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100">
-                Our Vision
+                {translate('Our Vision')}
               </h3>
               <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
-                A digitally unified, highly educated, and socially prosperous Muslim community in Jimma grounded in authentic moderation.
+                {translate('A digitally unified, highly educated, and socially prosperous Muslim community in Jimma grounded in authentic moderation.')}
               </p>
             </Card>
 
@@ -87,10 +87,10 @@ export const AboutPage: React.FC = () => {
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100">
-                Shari'ah Oversight
+                {translate("Shari'ah Oversight")}
               </h3>
               <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
-                All financial disbursements, Fatwa rulings, and curriculum accreditations are vetted by a certified senior Ulema panel.
+                {translate('All financial disbursements, Fatwa rulings, and curriculum accreditations are vetted by a certified senior Ulema panel.')}
               </p>
             </Card>
 
@@ -99,10 +99,10 @@ export const AboutPage: React.FC = () => {
                 <Building className="w-5 h-5" />
               </div>
               <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100">
-                18 Kebele Desks
+                {translate('18 Kebele Desks')}
               </h3>
               <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
-                Empowering localized administrative desks in Kersa, Agaro, Mana, Gomma, Limmu, Seka, and all zonal subdivisions.
+                {translate('Empowering localized administrative desks in Kersa, Agaro, Mana, Gomma, Limmu, Seka, and all zonal subdivisions.')}
               </p>
             </Card>
           </div>
@@ -118,13 +118,13 @@ export const AboutPage: React.FC = () => {
             <div className="text-center max-w-2xl mx-auto space-y-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold uppercase tracking-wider">
                 <Landmark className="w-3.5 h-3.5" />
-                Public directory
+                {translate('Public directory')}
               </div>
               <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white">
-                Community records available in this portal
+                {translate('Community records available in this portal')}
               </h2>
               <p className="text-stone-400 text-xs sm:text-sm">
-                Counts reflect records currently loaded from the public directories.
+                {translate('Counts reflect records currently loaded from the public directories.')}
               </p>
             </div>
 
@@ -139,7 +139,7 @@ export const AboutPage: React.FC = () => {
                   <div className="font-serif text-2xl font-bold text-white">
                     {label === 'Ulema' && ulemaLoading ? '…' : count ? count.toLocaleString() : '—'}
                   </div>
-                  <h4 className="font-semibold text-sm text-stone-200">{label} directory records</h4>
+                  <h4 className="font-semibold text-sm text-stone-200">{translate(`${label} directory records`)}</h4>
                 </div>
               ))}
             </div>

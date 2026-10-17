@@ -38,6 +38,8 @@ An integrated digital governance portal and civic services platform engineered f
 - **Amharic (አማርኛ)**
 - **Arabic (العربية)** — with right-to-left (RTL) reading support and classical typographic accents.
 
+English is the default language. The selected language is saved in the browser, and Arabic enables RTL document direction. Interface translations are maintained in `src/i18n/translations.ts` and `src/i18n/publicCopy.ts`; translated institutional records are resolved by the backend translation service with English fallback.
+
 ---
 
 ## 🛠️ Technology Stack
