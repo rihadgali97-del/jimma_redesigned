@@ -41,7 +41,7 @@ export const PublicTranslationLayer: React.FC = () => {
 
           const leading = source.match(/^\s*/)?.[0] ?? '';
           const trailing = source.match(/\s*$/)?.[0] ?? '';
-          const cleanSource = source.trim();
+          const cleanSource = source.trim().replace(/\s+/g, ' ');
           const translatedText = translatePublicCopy(cleanSource, language);
           const translated = `${leading}${translatedText}${trailing}`;
 
