@@ -1268,6 +1268,22 @@ export const ZakatCalculator: React.FC<ZakatCalculatorProps> = ({
               <p className="text-[11px] leading-relaxed text-stone-500 dark:text-stone-400">
                 Eligible debts and deductions are subtracted from gross zakatable wealth first. Nisab and Zakat are then calculated from the remaining net wealth; deductions are not subtracted from the payable amount a second time.
               </p>
+              <label className="flex items-start gap-2.5 rounded-lg border border-stone-200 dark:border-stone-700 p-2.5 text-stone-700 dark:text-stone-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hasHawlPassed}
+                  onChange={(e) => setHasHawlPassed(e.target.checked)}
+                  className="mt-0.5 accent-emerald-700"
+                />
+                <span>
+                  My zakatable wealth has been at or above Nisab for one full lunar year (Hawl).
+                  {!hasHawlPassed && isNisabMet && (
+                    <span className="block mt-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                      Select this if true to include Zakat al-Mal in the live total.
+                    </span>
+                  )}
+                </span>
+              </label>
               <div className="flex justify-between">
                 <span className="text-stone-600 dark:text-stone-300">Zakat al-Mal (2.5%):</span>
                 <span className="font-mono font-bold text-stone-900 dark:text-stone-100">
